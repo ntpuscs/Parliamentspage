@@ -119,9 +119,45 @@ aside.side ol{margin:0;padding-left:1.4em;display:flex;flex-direction:column;gap
 .done p{margin:0;font-size:18px;line-height:1.7;color:#3A4050}
 a.primary{display:inline-flex;align-items:center;text-decoration:none;margin-top:0}
 .primary:disabled{opacity:.6;cursor:wait}
+/* ====== App 載入畫面：Logo 滑入 → 圓點跳動 → Logo 往上滑出 → 淡出進入首頁 ====== */
+#splash{position:fixed;inset:0;z-index:9999;background:#fff;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:44px;padding:24px;transition:opacity .35s ease .35s,visibility .35s .35s}
+#splash img{width:min(560px,86vw);height:auto;animation:spIn .6s cubic-bezier(.4,0,.2,1) both;transition:transform .5s cubic-bezier(.4,0,.2,1),opacity .5s}
+#splash .dots{display:flex;gap:10px;height:20px;align-items:flex-end;animation:spFade .4s ease .25s both;transition:opacity .3s}
+#splash .dots i{width:9px;height:9px;border-radius:50%;background:#475B78;animation:spDot .9s ease-in-out infinite}
+#splash .dots i:nth-child(2){animation-delay:.15s}#splash .dots i:nth-child(3){animation-delay:.3s}
+#splash.out{opacity:0;visibility:hidden}
+#splash.out img{transform:translateY(-48px);opacity:0}
+#splash.out .dots{opacity:0}
+@keyframes spIn{from{opacity:0;transform:translateY(28px)}to{opacity:1;transform:none}}
+@keyframes spFade{from{opacity:0}to{opacity:1}}
+@keyframes spDot{0%,60%,100%{transform:translateY(0);opacity:.35}30%{transform:translateY(-9px);opacity:1}}
+@media (prefers-reduced-motion:reduce){#splash img,#splash .dots,#splash .dots i{animation:none}#splash,#splash img{transition:opacity .2s}#splash.out img{transform:none}}
 </style>
 </head>
 <body>
+<div id="splash" role="status" aria-label="載入中">
+  <img src="logo.png" alt="國立臺北大學三峽校區學生議會 NTPU Student Parliament">
+  <div class="dots" aria-hidden="true"><i></i><i></i><i></i></div>
+</div>
+<script>
+/* 只有從主畫面打開 App 時才顯示載入畫面；一般用瀏覽器開網站不會擋住內容 */
+(function () {
+  var sp = document.getElementById('splash');
+  var app = window.matchMedia('(display-mode: standalone)').matches || navigator.standalone === true;
+  if (!app) { sp.parentNode.removeChild(sp); return; }
+  var t0 = Date.now();
+  var done = false;
+  function hide() {
+    if (done) return; done = true;
+    setTimeout(function () {
+      sp.classList.add('out');
+      setTimeout(function () { if (sp.parentNode) sp.parentNode.removeChild(sp); }, 800);
+    }, Math.max(0, 1600 - (Date.now() - t0))); // 至少顯示 1.6 秒，讓圓點跳完幾下
+  }
+  if (document.readyState === 'complete') hide(); else window.addEventListener('load', hide);
+  setTimeout(hide, 6000); // 網路很慢時最多 6 秒就關掉
+})();
+</script>
 <div class="wrap" id="viewPublic" hidden>
   <header>
     <div class="topbar">
