@@ -1,0 +1,991 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>國立臺北大學三峽校區學生議會</title>
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#1D2230">
+<link rel="icon" type="image/png" href="favicon.png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="學生議會">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&family=Noto+Serif+TC:wght@600;700&display=swap" rel="stylesheet">
+<style>
+:root{--ink:#1D2230;--muted:#5A6070;--line:#D9D3C4;--paper:#F7F4EC;--accent:#1F4E9A}
+*{box-sizing:border-box}
+body{margin:0;background:#fff;color:var(--ink);font-family:'Noto Sans TC','PingFang TC','Microsoft JhengHei',sans-serif}
+button{font-family:inherit}
+button:focus-visible,input:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+.wrap{max-width:1040px;margin:0 auto;padding:0 clamp(16px,4vw,48px) 80px}
+header{padding:56px 0 32px;border-bottom:3px double var(--ink);display:flex;flex-direction:column;gap:16px}
+.school{font-size:15px;font-weight:500;letter-spacing:.12em;color:var(--muted)}
+.topbar{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:12px}
+.topbtns{display:flex;flex-wrap:wrap;gap:10px}
+.secbtn{display:inline-flex;align-items:center;gap:8px;min-height:44px;padding:0 18px;border:2px solid var(--ink);border-radius:4px;background:transparent;color:var(--ink);font-size:16px;font-weight:500;cursor:pointer}
+.secbtn:hover{background:var(--ink);color:var(--paper)}
+.form{max-width:420px;padding:32px 0;display:flex;flex-direction:column;gap:8px}
+.form label{font-size:15px;font-weight:700;margin-top:8px}
+.form input{min-height:52px;padding:0 16px;font-size:18px;font-family:inherit;color:var(--ink);background:#fff;border:2px solid var(--ink);border-radius:4px}
+.primary{min-height:52px;margin-top:16px;padding:0 24px;font-size:17px;font-weight:700;color:var(--paper);background:var(--ink);border:2px solid var(--ink);border-radius:4px;cursor:pointer}
+.err{min-height:1.6em;margin:8px 0 0;font-size:15px;font-weight:500;color:#7A3200}
+.agenda{padding:32px 0;display:flex;flex-direction:column;gap:12px}
+.agenda label{font-size:15px;font-weight:700}
+.agenda input,.agenda textarea{width:100%;padding:14px 16px;font-size:18px;font-family:inherit;color:var(--ink);background:#fff;border:2px solid var(--ink);border-radius:4px}
+.agenda input{min-height:56px}
+.agenda textarea{min-height:420px;font-size:17px;line-height:1.9;resize:vertical}
+.hint{margin:0;font-size:14px;color:var(--muted)}
+.msg{margin:0;font-size:15px;line-height:1.7;color:#7A3200}
+.btnrow{display:flex;flex-wrap:wrap;gap:10px}
+[hidden]{display:none!important}
+h1{margin:0;font-family:'Noto Serif TC','Songti TC',serif;font-weight:700;font-size:clamp(34px,6vw,60px);line-height:1.15;letter-spacing:.02em}
+.intro{margin:0;font-size:18px;line-height:1.7;max-width:36em;color:#3A4050;text-wrap:pretty}
+.tools{padding:32px 0 8px;display:flex;flex-direction:column;gap:20px}
+.tools label.q{font-size:15px;font-weight:700;display:block;margin-bottom:8px}
+#q{width:100%;min-height:56px;padding:0 18px;font-size:18px;font-family:inherit;color:var(--ink);background:#fff;border:2px solid var(--ink);border-radius:4px}
+.row{display:flex;flex-wrap:wrap;align-items:center;gap:10px}
+.row .tag{font-size:15px;font-weight:700;width:3em}
+.chip{min-height:44px;padding:0 18px;font-size:16px;font-weight:500;cursor:pointer;border:2px solid var(--ink);background:transparent;color:var(--ink)}
+.chip.pill{border-radius:999px}.chip.sq{border-radius:4px}
+.chip[aria-pressed="true"]{background:var(--ink);color:var(--paper)}
+.count{font-size:15px;color:var(--muted)}
+main{margin-top:8px;border-bottom:1px solid var(--line)}
+article{border-top:1px solid var(--line);padding:28px 0 20px;display:flex;flex-direction:column;gap:12px}
+.head{display:flex;flex-wrap:wrap;align-items:center;gap:12px}
+.id{font-size:14px;font-weight:700;letter-spacing:.08em;color:var(--muted)}
+.badge{font-size:14px;font-weight:700;padding:3px 12px;border-radius:4px}
+.cat{font-size:14px;font-weight:500;padding:1px 10px;border-radius:4px;border:1px solid var(--ink)}
+h2{margin:0;font-family:'Noto Serif TC','Songti TC',serif;font-weight:600;font-size:26px;line-height:1.4}
+h2 button{display:block;width:100%;padding:0;margin:0;text-align:left;background:transparent;border:0;cursor:pointer;font:inherit;color:inherit;text-wrap:pretty}
+.meta{display:flex;flex-wrap:wrap;gap:4px 24px;font-size:16px;color:#3A4050}
+.bar{display:flex;gap:4px}.bar i{flex:1 1 0;height:8px;border-radius:2px}
+.cur{font-size:16px;font-weight:700;margin-top:8px}
+.more{min-height:44px;padding:0;background:transparent;border:0;cursor:pointer;font-size:16px;font-weight:700;color:var(--accent);text-decoration:underline;text-underline-offset:4px;text-align:left}
+.detail{margin-top:4px;padding:24px;background:#fff;border:1px solid var(--line);border-radius:4px;display:flex;flex-direction:column;gap:24px}
+.detail p{margin:0;font-size:15px;line-height:1.75;text-wrap:pretty;white-space:pre-line}
+dl{margin:0;display:grid;grid-template-columns:repeat(auto-fit,minmax(min(200px,100%),1fr));gap:16px 24px}
+dt{font-size:14px;color:var(--muted)}dd{margin:4px 0 0;font-size:17px;font-weight:500}
+.steps{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(110px,100%),1fr));gap:16px 12px}
+.step{display:flex;flex-direction:column;gap:6px}.step i{height:6px;border-radius:2px}
+.step b{font-size:16px}.step .t{font-size:14px;font-weight:500}.step .d{font-size:14px;color:var(--muted)}
+.files{list-style:none;margin:0;padding:0}.files li{border-bottom:1px solid var(--line)}.files a{display:flex;align-items:center;gap:10px;min-height:44px;font-size:16px;font-weight:500;color:var(--accent);text-underline-offset:4px;word-break:break-all}
+.note{padding:16px 18px;background:var(--paper);border-radius:4px;font-size:16px;line-height:1.7}
+.empty{border-top:1px solid var(--line);padding:56px 0;text-align:center;font-size:18px;line-height:1.7;color:#3A4050}
+footer{padding-top:32px;display:flex;flex-direction:column;gap:6px;font-size:15px;line-height:1.7;color:var(--muted)}
+/* ====== 首頁與表單（新增） ====== */
+a:focus-visible,select:focus-visible,textarea:focus-visible,.card:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+a.secbtn{text-decoration:none}
+.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(300px,100%),1fr));gap:24px;margin-top:32px}
+.card{display:flex;flex-direction:column;gap:18px;padding:32px;border:2px solid var(--ink);border-radius:4px;color:var(--ink);text-decoration:none;min-height:280px}
+.card:hover{background:var(--paper)}
+.card .ic{width:56px;height:56px;border-radius:4px;background:var(--ink);color:var(--paper);display:flex;align-items:center;justify-content:center}
+.card .k{font-size:14px;font-weight:700;letter-spacing:.08em;color:var(--muted)}
+.card h2{font-size:30px;font-weight:700;margin:8px 0}
+.card p{margin:0;font-size:17px;line-height:1.7;color:#3A4050}
+.card .go{margin-top:auto;display:flex;align-items:center;gap:8px;font-size:17px;font-weight:700;color:var(--accent)}
+.grp{margin-top:40px;font-size:15px;font-weight:700;letter-spacing:.08em;color:var(--muted)}
+.fgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(260px,100%),1fr));gap:40px 56px;padding-top:32px;align-items:start}
+.f{display:flex;flex-direction:column;gap:26px;grid-column:span 2;min-width:0}
+@media (max-width:760px){.f{grid-column:auto}}
+.fld{display:flex;flex-direction:column;gap:8px;min-width:0}
+.fld>label,.fld>.lb{font-size:16px;font-weight:700}
+.req{color:#7A3200}
+.in{width:100%;min-height:52px;padding:0 16px;font-size:18px;font-family:inherit;color:var(--ink);background:#fff;border:2px solid var(--ink);border-radius:4px}
+.in[readonly]{background:var(--paper)}
+textarea.in{padding:14px 16px;line-height:1.6;resize:vertical;min-height:0}
+.two{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(240px,100%),1fr));gap:24px}
+.sub{font-size:15px;line-height:1.6;color:var(--muted)}
+.notice{padding:14px 18px;background:var(--paper);border-radius:4px;font-size:15px;line-height:1.7}
+.prow{display:grid;grid-template-columns:2em minmax(0,1fr) minmax(0,1fr) auto;align-items:end;gap:12px;padding:16px;border:1px solid var(--line);border-radius:4px}
+.prow .no{font-size:18px;font-weight:700;color:var(--muted);padding-bottom:14px}
+.prow .in{min-height:48px;font-size:17px}
+.arow{display:grid;grid-template-columns:4.5em minmax(0,1fr) auto;align-items:center;gap:12px;padding:12px 16px;border:1px solid var(--line);border-radius:4px}
+.arow label{font-size:16px;font-weight:700}
+.arow .picked{font-size:14px;color:var(--muted);word-break:break-all}
+.xbtn{width:48px;height:48px;display:flex;align-items:center;justify-content:center;background:transparent;border:2px solid var(--ink);border-radius:4px;color:var(--ink);cursor:pointer}
+.xbtn:disabled{border-color:var(--line);color:#A9A395;cursor:default}
+.addbtn{display:inline-flex;align-items:center;gap:8px;min-height:44px;padding:0 18px;font-size:16px;font-weight:500;color:var(--ink);background:transparent;border:2px dashed var(--ink);border-radius:4px;cursor:pointer;align-self:flex-start}
+.sendto{border:1px solid var(--line);border-radius:4px;padding:20px 24px;display:flex;flex-direction:column;gap:12px}
+.sendto dl{grid-template-columns:auto 1fr;gap:10px 20px;font-size:16px;line-height:1.5}
+.sendto dt{font-size:16px}.sendto dd{margin:0;font-size:16px;font-weight:400}
+aside.side{display:flex;flex-direction:column;gap:14px;padding:24px;background:var(--paper);border-radius:4px;font-size:16px;line-height:1.75}
+aside.side h3{margin:0;font-family:'Noto Serif TC','Songti TC',serif;font-size:20px}
+aside.side ol{margin:0;padding-left:1.4em;display:flex;flex-direction:column;gap:10px}
+.done{padding:40px 0;display:flex;flex-direction:column;gap:20px}
+.done h2{font-size:32px;font-weight:700}
+.done p{margin:0;font-size:18px;line-height:1.7;color:#3A4050}
+a.primary{display:inline-flex;align-items:center;text-decoration:none;margin-top:0}
+.primary:disabled{opacity:.6;cursor:wait}
+</style>
+</head>
+<body>
+<div class="wrap" id="viewPublic" hidden>
+  <header>
+    <div class="topbar">
+      <div class="school">國立臺北大學三峽校區學生議會</div>
+      <div class="topbtns"><a class="secbtn" href="#">返回首頁</a><button type="button" class="secbtn" id="goSec"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>秘書處</button></div>
+    </div>
+    <h1>議會法案</h1>
+    <p class="intro">法案是學生議員或各級機關的提案。如果法案通過三峽校區學生議會和跨校區法案所必需的所有審查程序，並獲得公布，即可正式生效。</p>
+  </header>
+
+  <section class="tools" aria-label="搜尋與篩選">
+    <div>
+      <label class="q" for="q">搜尋議案</label>
+      <input id="q" type="search" placeholder="例如：修正案、林某某、27-007" autocomplete="off">
+    </div>
+    <div class="row" role="group" aria-label="依分類篩選"><span class="tag">分類</span><span id="cats" class="row"></span></div>
+    <div class="row" role="group" aria-label="依狀態篩選"><span class="tag">狀態</span><span id="stats" class="row"></span></div>
+    <div class="count" id="count" aria-live="polite"></div>
+  </section>
+
+  <main id="list"></main>
+
+  <footer>
+    <div id="updated"></div>
+    <div>對議案內容有疑問，請洽議事組：ntpuscs@gmail.com</div>
+  </footer>
+</div>
+
+<!-- 秘書處登入 -->
+<div class="wrap" id="viewLogin" hidden>
+  <header>
+    <div class="topbar">
+      <div class="school">國立臺北大學三峽校區學生議會</div>
+      <button type="button" class="secbtn" id="loginBack">返回首頁</button>
+    </div>
+    <h1>秘書處登入</h1>
+    <p class="intro">此區僅供學生議會秘書處使用。</p>
+  </header>
+  <form class="form" id="loginForm" autocomplete="off">
+    <label for="u">帳號</label>
+    <input id="u" name="u" type="text" autocapitalize="none" autocomplete="off" required>
+    <label for="pw">密碼</label>
+    <input id="pw" name="pw" type="password" autocomplete="off" required>
+    <p class="err" id="loginErr" role="alert"></p>
+    <button type="submit" class="primary">登入</button>
+  </form>
+</div>
+
+<!-- 秘書處：議程草擬系統 -->
+<div class="wrap" id="viewSec" hidden>
+  <header>
+    <div class="topbar">
+      <div class="school">國立臺北大學三峽校區學生議會　秘書處</div>
+      <div class="topbtns">
+        <button type="button" class="secbtn" id="secHome">議案查詢</button>
+        <button type="button" class="secbtn" id="logout">登出</button>
+      </div>
+    </div>
+    <h1>議程與會議記錄草擬系統</h1>
+    <p class="intro">分別輸入報告事項與討論事項的議案編號，一次產生議程與會議記錄草稿。</p>
+  </header>
+  <section class="agenda" aria-label="議程與會議記錄草擬">
+    <label for="agReport">報告事項　議案編號</label>
+    <input id="agReport" type="text" placeholder="例如：27-001、27-002（沒有就留空）" autocomplete="off">
+    <label for="agDisc" style="margin-top:8px">討論事項　議案編號</label>
+    <input id="agDisc" type="text" placeholder="例如：27-003、27-004" autocomplete="off">
+    <p class="hint">用頓號、逗號或空格分開，依輸入的順序排列。編號可以省略前綴，打 27-001 即可。</p>
+    <div class="btnrow"><button type="button" class="primary" id="agMake" style="margin-top:4px">產生議程與會議記錄</button></div>
+    <p class="msg" id="agMsg" role="status"></p>
+
+    <label for="agOut" style="margin-top:8px">議程草稿（可直接修改）</label>
+    <textarea id="agOut" spellcheck="false"></textarea>
+    <div class="btnrow">
+      <button type="button" class="secbtn" id="agCopy">複製議程</button>
+      <button type="button" class="secbtn" id="agDown">下載議程</button>
+    </div>
+
+    <label for="mnOut" style="margin-top:24px">會議記錄草稿（可直接修改）</label>
+    <textarea id="mnOut" spellcheck="false"></textarea>
+    <div class="btnrow">
+      <button type="button" class="secbtn" id="mnCopy">複製會議記錄</button>
+      <button type="button" class="secbtn" id="mnDown">下載會議記錄</button>
+    </div>
+  </section>
+</div>
+
+<!-- ====== 首頁 ====== -->
+<div class="wrap" id="viewHome">
+  <header>
+    <div class="topbar">
+      <div class="school">國立臺北大學三峽校區學生議會</div>
+      <div class="topbtns"><button type="button" class="secbtn" id="installBtn" hidden><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 4v11M7 10l5 5 5-5"/><path d="M5 20h14"/></svg>安裝 App</button><a class="secbtn" href="#sec"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>秘書處</a></div>
+    </div>
+    <h1>議會服務</h1>
+    <p class="intro">查詢議案進度，或線上提出提案、索資與邀請列席備詢。</p>
+  </header>
+  <div class="notice" id="iosTip" hidden style="margin-top:24px">
+    <strong>把學生議會加到主畫面：</strong>在 Safari 點下方的「分享」按鈕 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="vertical-align:-2px"><path d="M12 15V3M8 7l4-4 4 4"/><path d="M5 12v7a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-7"/></svg>，再選「加入主畫面」。
+    <button type="button" class="more" id="iosTipClose" style="display:block;min-height:36px">知道了</button>
+  </div>
+
+  <nav class="cards" aria-label="服務項目">
+    <a class="card" href="#bills">
+      <span class="ic"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="6.5"/><path d="M20 20l-4.2-4.2"/></svg></span>
+      <span><span class="k">所有同學</span><h2>議案查詢</h2><p>查看每件議案的提案人、類別與審查進度。</p></span>
+      <span class="go">查詢議案<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span>
+    </a>
+    <a class="card" href="#proposal">
+      <span class="ic"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 20h4L19 9l-4-4L4 16z"/><path d="M13.5 6.5l4 4"/></svg></span>
+      <span><span class="k">議員・各機關</span><h2>提案</h2><p>填寫案由與說明、上傳附件，登錄後由秘書處形式審查。</p></span>
+      <span class="go">提出議案<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span>
+    </a>
+    <a class="card" href="#request">
+      <span class="ic"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5"/><path d="M9 13h6M9 17h4"/></svg></span>
+      <span><span class="k">議員</span><h2>議員索資</h2><p>向各機關調閱資料，指定至少 7 天的回覆期限。</p></span>
+      <span class="go">提出索資<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span>
+    </a>
+    <a class="card" href="#invite">
+      <span class="ic"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="9" cy="8" r="3.2"/><path d="M3 20c0-3.3 2.7-6 6-6s6 2.7 6 6"/><path d="M16 4.5a3.2 3.2 0 0 1 0 6.4M18 14.4c1.8.9 3 2.9 3 5.6"/></svg></span>
+      <span><span class="k">議員</span><h2>邀請列席備詢</h2><p>邀請學生會或學生法院人員到議會會議列席、接受詢答。</p></span>
+      <span class="go">發出邀請<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span>
+    </a>
+  </nav>
+
+  <footer>
+    <div>系統問題請洽學生議會秘書處：ntpuscs@gmail.com</div>
+  </footer>
+</div>
+
+<!-- ====== 提案 ====== -->
+<div class="wrap" id="viewProposal" hidden>
+  <header>
+    <div class="topbar"><div class="school">國立臺北大學三峽校區學生議會</div><a class="secbtn" href="#">返回首頁</a></div>
+    <h1>提案</h1>
+    <p class="intro">送出後，提案會登錄至學生議會秘書處的提案紀錄，由秘書處進行形式審查。</p>
+  </header>
+  <div class="fgrid" id="pMain">
+    <form class="f" id="pForm" novalidate>
+      <div class="fld"><label for="pUnit">提案單位 <span class="req">*</span></label>
+        <select class="in" id="pUnit">
+          <option value="">請選擇</option><option>學生議員</option><option>議長</option><option>學生法院書記處</option>
+          <option>學生會正副會長</option><option>學生會秘書處</option><option>學生會活動部</option><option>學生會學生權益暨學術部</option>
+          <option>學生會財務部</option><option>學生會公關部</option><option>學生會新聞部</option><option>學生會國際事務部</option><option>學生會選舉委員會</option>
+        </select></div>
+      <div class="fld"><label for="pWho">提案人 <span class="req">*</span></label>
+        <div class="sub" id="pWhoHint">議員連署共同提案請以「、」分隔姓名，如：張阿三、李小四、王五。<br>學生會各部門提案請以部門首長名義提出。</div>
+        <input class="in" id="pWho" aria-describedby="pWhoHint" autocomplete="off"></div>
+      <div class="fld"><label for="pWmail">提案人公務信箱 <span class="req">*</span></label>
+        <div class="sub" id="pWmailHint">共同提案請填第一位提案人的信箱。此信箱僅供秘書處聯繫，不會公開於議案查詢。</div>
+        <input class="in" id="pWmail" type="email" aria-describedby="pWmailHint" autocomplete="off"></div>
+      <div class="two">
+        <div class="fld"><label for="pCname">提案聯絡人姓名 <span class="req">*</span></label><input class="in" id="pCname" aria-describedby="pCHint" autocomplete="off"></div>
+        <div class="fld"><label for="pCmail">提案聯絡人公務電子郵件 <span class="req">*</span></label><input class="in" id="pCmail" type="email" aria-describedby="pCHint" autocomplete="off"></div>
+      </div>
+      <div class="sub" id="pCHint" style="margin-top:-14px">聯絡人可為統一提案部門人員或機關首長秘書、部員、助理等。</div>
+      <div class="fld"><span class="lb">提案類型 <span class="req">*</span></span>
+        <div class="sub">決議、糾正、糾舉、聲明、加入組織等案，請選「一般決議」。</div>
+        <div class="row" role="group" aria-label="提案類型" id="pType"></div></div>
+      <div class="fld"><label for="pTitle">案由 <span class="req">*</span></label><input class="in" id="pTitle" autocomplete="off"></div>
+      <div class="fld"><label for="pDesc">說明 <span class="req">*</span></label>
+        <div class="sub" id="pDescHint">請於說明欄中，註明所上傳附件的內容與檔案類型。範例：「一、...。二、辭呈如附件（附件一PDF、附件二DOCX）。」</div>
+        <textarea class="in" id="pDesc" rows="8" aria-describedby="pDescHint"></textarea></div>
+      <div class="fld"><span class="lb">附件（最多 5 個，選填）</span>
+        <div class="notice">關於附件：您上傳的附件將保存在本會雲端硬碟；一旦送出，即無法編輯該檔案。如上傳有誤，請通知本會秘書處並提供正確的檔案，由後台更正。</div>
+        <div id="pAtts" style="display:flex;flex-direction:column;gap:10px"></div>
+        <button type="button" class="addbtn" id="pAddAtt"></button></div>
+      <p class="err" id="pErr" role="alert"></p>
+      <div><button type="submit" class="primary" id="pSend">送出提案</button></div>
+    </form>
+    <aside class="side"><h3>送出之後</h3><ol>
+      <li><strong>登錄提案</strong>：資料寫入本會提案試算表，附件存入本會雲端硬碟。</li>
+      <li><strong>形式審查</strong>：秘書處確認格式與內容。</li>
+      <li><strong>編號與追蹤</strong>：通過後編上議案編號，可在「議案查詢」追蹤進度。</li></ol>
+      <div class="sub">標示 <span class="req">*</span> 的欄位為必填。</div></aside>
+  </div>
+  <section class="done" id="pDone" hidden aria-live="polite">
+    <h2>提案已送出</h2><p id="pDoneText"></p>
+    <div class="btnrow"><a class="primary" href="#">返回首頁</a><button type="button" class="secbtn" id="pAgain">再提一案</button></div>
+  </section>
+</div>
+
+<!-- ====== 議員索資 ====== -->
+<div class="wrap" id="viewRequest" hidden>
+  <header>
+    <div class="topbar"><div class="school">國立臺北大學三峽校區學生議會</div><a class="secbtn" href="#">返回首頁</a></div>
+    <h1>議員索資</h1>
+    <p class="intro">學生議員可透過此表單，直接向學生會各部門、學生議會秘書處或學生法院書記處調閱資料。送出後系統會自動寄信給受索單位，並同步副本給議會秘書處；受索單位回覆時，你也會收到。</p>
+  </header>
+  <div class="fgrid" id="rMain">
+    <form class="f" id="rForm" novalidate>
+      <div class="two">
+        <div class="fld"><label for="rWho">索資議員 <span class="req">*</span></label><input class="in" id="rWho" placeholder="姓名" autocomplete="off"></div>
+        <div class="fld"><label for="rSeat">選區</label><input class="in" id="rSeat" placeholder="例如：工學院" autocomplete="off"></div>
+      </div>
+      <div class="fld"><label for="rMail">回覆信箱 <span class="req">*</span></label><input class="in" id="rMail" type="email" placeholder="你的電子郵件信箱" autocomplete="off"></div>
+      <div class="fld"><label for="rOrg">受索單位 <span class="req">*</span></label>
+        <select class="in" id="rOrg"><option value="">請選擇</option>
+          <optgroup label="學生會"><option value="學生會正副會長">正副會長</option><option value="學生會秘書處">秘書處</option><option value="學生會學權暨學術部">學權暨學術部</option><option value="學生會公關部">公關部</option><option value="學生會財務部">財務部</option><option value="學生會活動部">活動部</option><option value="學生會新聞部">新聞部</option><option value="學生會國際部">國際部</option><option value="學生會選委會">選委會</option></optgroup>
+          <optgroup label="學生議會"><option value="學生議會秘書處">學生議會秘書處</option></optgroup>
+          <optgroup label="學生法院"><option value="學生法院書記處">學生法院書記處</option></optgroup>
+        </select></div>
+      <div class="fld"><label for="rSubj">索資主旨 <span class="req">*</span></label><input class="in" id="rSubj" placeholder="例如：迎新活動經費支出憑證" autocomplete="off"></div>
+      <div class="fld"><label for="rAsks">索資事項 <span class="req">*</span></label><div class="sub" id="rAsksHint">一行寫一項，送出後會自動編號。</div>
+        <textarea class="in" id="rAsks" rows="5" aria-describedby="rAsksHint"></textarea></div>
+      <div class="fld"><label for="rWhy">索資理由</label><textarea class="in" id="rWhy" rows="3" placeholder="說明需要這份資料的原因"></textarea></div>
+      <div class="fld"><label for="rDue">回覆期限 <span class="req">*</span></label>
+        <div class="sub" id="rDueHint"></div>
+        <div class="row"><input class="in" id="rDue" type="date" aria-describedby="rDueHint" style="max-width:240px"><span class="row" id="rQuick"></span></div>
+        <div style="font-size:16px;font-weight:700" id="rDueLine">尚未選擇回覆期限</div></div>
+      <div class="fld"><span class="lb">資料提供方式</span><div class="row" role="group" aria-label="資料提供方式" id="rMode"></div></div>
+      <div class="sendto"><div style="font-size:15px;font-weight:700">送出後會自動寄信給</div><dl id="rTo"></dl></div>
+      <p class="err" id="rErr" role="alert"></p>
+      <div><button type="submit" class="primary" id="rSend">送出索資</button></div>
+    </form>
+    <aside class="side"><h3>送出之後</h3><ol>
+      <li><strong>自動寄出</strong>：索資信寄給受索單位，同時副本給議會秘書處與你。</li>
+      <li><strong>受索單位準備資料</strong>：應於你指定的回覆期限前回覆。</li>
+      <li><strong>全部回覆</strong>：受索單位直接回覆該信，你與議會秘書處都會收到。</li></ol></aside>
+  </div>
+  <section class="done" id="rDone" hidden aria-live="polite">
+    <h2>索資已送出</h2><p id="rDoneText"></p>
+    <div class="btnrow"><a class="primary" href="#">返回首頁</a><button type="button" class="secbtn" id="rAgain">再提出一筆</button></div>
+  </section>
+</div>
+
+<!-- ====== 邀請列席備詢 ====== -->
+<div class="wrap" id="viewInvite" hidden>
+  <header>
+    <div class="topbar"><div class="school">國立臺北大學三峽校區學生議會</div><a class="secbtn" href="#">返回首頁</a></div>
+    <h1>邀請列席備詢</h1>
+    <p class="intro">邀請學生會或學生法院人員到議會會議列席，接受議員詢答。送出後系統會自動寄出邀請函，並副本給議會秘書處。</p>
+  </header>
+  <div class="fgrid" id="iMain">
+    <form class="f" id="iForm" novalidate>
+      <div class="fld"><label for="iMeeting">列席會議 <span class="req">*</span></label>
+        <input class="in" id="iMeeting" placeholder="例如：第 27 屆第 5 次常會" aria-describedby="iMHint" autocomplete="off">
+        <div class="sub" id="iMHint">會議時間與地點以議會秘書處發出的開會通知為準。</div></div>
+      <div class="fld"><label for="iOrg">受邀機關 <span class="req">*</span></label>
+        <select class="in" id="iOrg"><option value="">請選擇</option><option>學生會</option><option>學生法院</option></select></div>
+      <div class="fld"><span class="lb">受邀人 <span class="req">*</span></span>
+        <div class="notice" id="iCourtHint" hidden>學生法院僅能邀請<strong>書記長</strong>列席備詢，請填寫姓名。</div>
+        <div id="iPeople" style="display:flex;flex-direction:column;gap:10px"></div>
+        <button type="button" class="addbtn" id="iAddP">＋ 新增受邀人</button></div>
+      <div class="fld"><label for="iTopics">詢答主題 <span class="req">*</span></label><div class="sub" id="iTHint">一行寫一項，讓受邀人預先準備。</div>
+        <textarea class="in" id="iTopics" rows="5" aria-describedby="iTHint"></textarea></div>
+      <div class="fld"><label for="iNote">補充說明</label><textarea class="in" id="iNote" rows="3" placeholder="例如：請攜帶相關資料或簡報"></textarea></div>
+      <div class="two">
+        <div class="fld"><label for="iWho">邀請議員 <span class="req">*</span></label><input class="in" id="iWho" placeholder="姓名" autocomplete="off"></div>
+        <div class="fld"><label for="iSeat">選區</label><input class="in" id="iSeat" placeholder="例如：工學院" autocomplete="off"></div>
+      </div>
+      <div class="fld"><label for="iMail">回覆信箱 <span class="req">*</span></label><input class="in" id="iMail" type="email" placeholder="你的電子郵件信箱" autocomplete="off"></div>
+      <div class="sendto"><div style="font-size:15px;font-weight:700">送出後會自動寄出邀請函給</div><dl id="iTo"></dl></div>
+      <p class="err" id="iErr" role="alert"></p>
+      <div><button type="submit" class="primary" id="iSend">送出邀請</button></div>
+    </form>
+    <aside class="side"><h3>送出之後</h3><ol>
+      <li><strong>寄出邀請函</strong>：寄給受邀機關，副本給議會秘書處與你。</li>
+      <li><strong>確認出席</strong>：受邀機關以「全部回覆」告知能否出席。</li>
+      <li><strong>排入議程</strong>：議會秘書處將列席備詢排入該次會議議程。</li></ol></aside>
+  </div>
+  <section class="done" id="iDone" hidden aria-live="polite">
+    <h2>邀請已送出</h2><p id="iDoneText"></p>
+    <div class="btnrow"><a class="primary" href="#">返回首頁</a><button type="button" class="secbtn" id="iAgain">再邀請一個機關</button></div>
+  </section>
+</div>
+
+<script>
+/* ★ 設定一：議案資料來源。貼上「發布到網路」的 CSV 網址（設定二 FORM_API_URL 在檔案下方「表單共用」）
+   取得方式：試算表 → 檔案 → 分享 → 發布到網路 → 選「議案」工作表與「逗號分隔值 (.csv)」→ 發布 */
+const SHEET_API_URL = '';  // ★ 貼上 Apps Script「網頁應用程式網址」（結尾 /exec），優先使用
+const SHEET_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQxa1jqHh48FhCrgPNU7cufov-Fy64eKeYzOYHY70H9-fCQIO647_YvAVMtQTDYFKQeMXYln_1g_67h/pub?gid=0&single=true&output=csv';
+
+// 欄位別名：試算表表頭只要符合其中一個名稱就能讀到（可自行增加）
+const ALIASES = {
+  id: ['編號', '議案編號', '案號', '提案編號', '議案號碼', 'ID', 'id'],
+  title: ['標題', '議案名稱', '案名', '提案名稱', '名稱'],
+  cat: ['分類', '類別', '議案類別', '案別'],
+  name: ['提案人姓名', '姓名', '提案人', '提案者'],
+  ptitle: ['提案人職稱', '職稱', '提案人單位'],
+  unit: ['提案單位', '所屬單位', '單位', '提案機關'],
+  date: ['提案日期', '日期', '提案時間'],
+  committee: ['審查單位', '審查委員會', '委員會', '交付委員會'],
+  summary: ['摘要', '內容', '說明', '提案說明'],
+  stage: ['目前關卡', '目前進度', '審查進度', '進度', '目前審查階段', '審查階段'],
+  status: ['狀態', '議案狀態', '審查結果', '結果'],
+  note: ['最新說明', '備註', '最新進度說明']
+};
+const MAX_FILES = 5; // 附件欄位：附件1 ~ 附件5，儲存格寫「顯示名稱 | 網址」或直接貼網址
+
+const CATS = ['一般提案','法律案','財務案','人事案','報告案','備查案'];
+
+const STAGES = ['提案送出','形式審查','一讀','委員會審查','二讀','送出本會','公告'];
+const STATUS = {
+  '審查中':{bg:'#E3ECF9',fg:'#17407F'},
+  '已通過':{bg:'#1D2230',fg:'#F7F4EC'},
+  '已退回':{bg:'#FBE6D0',fg:'#7A3200'},
+  '已撤案':{bg:'#E7E5DE',fg:'#4A4F5C'}
+};
+const ACCENT = '#1F4E9A', INK = '#1D2230';
+
+const S = { bills: [], q: '', cat: '全部', status: '全部', open: null };
+const $ = (id) => document.getElementById(id);
+const esc = (s) => String(s == null ? '' : s).replace(/[&<>"']/g, (c) => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+
+function parseCSV(text) {
+  const rows = []; let row = [], cur = '', q = false;
+  for (let i = 0; i < text.length; i++) {
+    const c = text[i];
+    if (q) {
+      if (c === '"') { if (text[i + 1] === '"') { cur += '"'; i++; } else q = false; }
+      else cur += c;
+    } else if (c === '"') q = true;
+    else if (c === ',') { row.push(cur); cur = ''; }
+    else if (c === '\n' || c === '\r') {
+      if (c === '\r' && text[i + 1] === '\n') i++;
+      row.push(cur); rows.push(row); row = []; cur = '';
+    } else cur += c;
+  }
+  if (cur !== '' || row.length) { row.push(cur); rows.push(row); }
+  return rows;
+}
+
+function parseFiles(head, r) {
+  const out = [];
+  for (let n = 1; n <= MAX_FILES; n++) {
+    const i = head.indexOf('附件' + n);
+    if (i === -1) continue;
+    const raw = (r[i] || '').trim();
+    if (!raw) continue;
+    const parts = raw.split(/[|｜]/).map((x) => x.trim());
+    const url = parts.length > 1 ? parts[parts.length - 1] : parts[0];
+    if (!/^https?:\/\//i.test(url)) continue; // 只接受 http(s) 連結
+    out.push({ name: parts.length > 1 && parts[0] ? parts[0] : '附件' + n, url: url });
+  }
+  return out;
+}
+
+function toBills(rows) {
+  const head = rows[0].map((h) => h.replace(/^﻿/, '').trim());
+  const col = {};
+  Object.keys(ALIASES).forEach((k) => {
+    col[k] = head.findIndex((h) => ALIASES[k].indexOf(h) !== -1);
+  });
+  if (col.title === -1) {
+    const e = new Error('找不到「標題」欄。目前讀到的表頭：' + (head.filter(Boolean).join('、') || '（空白）'));
+    e.headers = head; throw e;
+  }
+  S.noIdCol = col.id === -1;
+  const get = (r, k) => (col[k] === -1 ? '' : (r[col[k]] || '').trim());
+  return rows.slice(1).filter((r) => r.some((c) => c.trim())).map((r, n) => {
+    const pname = get(r, 'name'), ptitle = get(r, 'ptitle');
+    const stageText = get(r, 'stage');
+    let stage = STAGES.indexOf(stageText);
+    if (stage === -1) stage = 0;
+    const statusText = get(r, 'status');
+    return {
+      id: get(r, 'id') || String(n + 1), title: get(r, 'title'),
+      cat: CATS.indexOf(get(r, 'cat')) !== -1 ? get(r, 'cat') : '一般提案',
+      proposer: pname, ptitle: ptitle, proposerFull: pname + (ptitle ? '（' + ptitle + '）' : '') + (get(r, 'unit') ? '（' + get(r, 'unit') + '）' : ''),
+      unit: get(r, 'unit'), date: get(r, 'date'), committee: get(r, 'committee'),
+      summary: get(r, 'summary'), note: get(r, 'note'),
+      files: parseFiles(head, r),
+      stage: stage, status: STATUS[statusText] ? statusText : '審查中',
+    };
+  });
+}
+
+// 顯示規則：這些分類的下列關卡不適用（只影響網頁顯示，不影響試算表格式）
+const NA_STAGES = ['委員會審查','二讀','送出本會','公告'];
+const NA_CATS = ['報告案','備查案','一般提案','人事案'];
+const isNA = (b, label) => NA_CATS.indexOf(b.cat) !== -1 && NA_STAGES.indexOf(label) !== -1;
+const shadow = (s) => (s.na ? ';box-shadow:inset 0 0 0 1px #A9A395' : '');
+
+function steps(b) {
+  return STAGES.map((label, i) => {
+    if (isNA(b, label)) return { label: label, bar: 'transparent', tag: '不適用', tc: '#5A6070', lc: '#5A6070', na: true };
+    let st;
+    if (b.status === '已通過' || i < b.stage) st = 'done';
+    else if (i === b.stage) st = b.status === '審查中' ? 'current' : (b.status === '已退回' ? 'returned' : 'withdrawn');
+    else st = 'pending';
+    const m = {
+      done:{bar:INK,tag:'已完成',tc:'#3A4050',lc:INK},
+      current:{bar:ACCENT,tag:'進行中',tc:ACCENT,lc:INK},
+      returned:{bar:'#C2570C',tag:'於此退回',tc:'#7A3200',lc:INK},
+      withdrawn:{bar:'#8A8F9C',tag:'於此撤案',tc:'#4A4F5C',lc:INK},
+      pending:{bar:'#D9D3C4',tag:'尚未進行',tc:'#5A6070',lc:'#5A6070'}
+    }[st];
+    return Object.assign({ label: label }, m);
+  });
+}
+
+function currentLabel(b) {
+  if (b.status === '已通過') {
+    if (b.cat === '報告案') return '已洽悉';
+    if (b.cat === '備查案') return '准予備查';
+    return isNA(b, '公告') ? '已通過' : '已通過，並已公告';
+  }
+  if (b.status === '已退回') return '在「' + STAGES[b.stage] + '」被退回';
+  if (b.status === '已撤案') return '在「' + STAGES[b.stage] + '」撤案';
+  return STAGES[b.stage];
+}
+
+// 狀態名稱依分類顯示：報告案的「已通過」顯示為「已洽悉」，備查案顯示為「准予備查」
+function statusText(status, cat) {
+  if (status === '已通過' && cat === '報告案') return '已洽悉';
+  if (status === '已通過' && cat === '備查案') return '准予備查';
+  return status;
+}
+
+function chips(el, names, current, cls, key) {
+  if (key === 'status' && S.cat !== '全部') {
+    // 選了分類時，只顯示該分類有的狀態（目前選中的一定保留）
+    names = names.filter((n) => n === '全部' || n === current || S.bills.some((b) => b.cat === S.cat && b.status === n));
+  }
+  el.innerHTML = names.map((n) => {
+    // 狀態的數字只算目前選的分類（例如選「一般提案」，就只統計一般提案的各狀態）
+    const pool = key === 'status' && S.cat !== '全部' ? S.bills.filter((b) => b.cat === S.cat) : S.bills;
+    const c = n === '全部' ? pool.length : pool.filter((b) => (key === 'cat' ? b.cat : b.status) === n).length;
+    return '<button type="button" class="chip ' + cls + '" data-' + key + '="' + esc(n) + '" aria-pressed="' + (n === current) + '">' + esc(key === 'status' ? statusText(n, S.cat) : n) + '（' + c + '）</button>';
+  }).join('');
+}
+
+function render() {
+  chips($('cats'), ['全部'].concat(CATS), S.cat, 'sq', 'cat');
+  chips($('stats'), ['全部'].concat(Object.keys(STATUS)), S.status, 'pill', 'status');
+
+  const q = S.q.trim().toLowerCase();
+  const list = S.bills.filter((b) =>
+    (S.cat === '全部' || b.cat === S.cat) &&
+    (S.status === '全部' || b.status === S.status) &&
+    (!q || (b.title + b.proposerFull + b.unit + b.id + b.committee).toLowerCase().indexOf(q) !== -1));
+
+  $('count').textContent = '共 ' + list.length + ' 件議案';
+  $('list').innerHTML = list.length ? list.map((b) => {
+    const st = STATUS[b.status], sp = steps(b), open = S.open === b.id;
+    return '<article>' +
+      '<div class="head"><span class="id">議案 ' + esc(b.id) + '</span>' +
+      '<span class="badge" style="background:' + st.bg + ';color:' + st.fg + '">' + esc(statusText(b.status, b.cat)) + '</span>' +
+      '<span class="cat">' + esc(b.cat) + '</span></div>' +
+      '<h2><button type="button" data-open="' + esc(b.id) + '" aria-expanded="' + open + '">' + esc(b.title) + '</button></h2>' +
+      '<div class="meta"><span>提案人：<strong>' + esc(b.proposer) + '</strong>' + (b.ptitle ? '（' + esc(b.ptitle) + '）' : '') + (b.unit ? '（' + esc(b.unit) + '）' : '') + '</span><span>' + esc(b.date) + ' 提案</span></div>' +
+      '<div><div class="bar" role="img" aria-label="共 ' + STAGES.length + ' 關，目前：' + esc(currentLabel(b)) + '">' +
+        sp.map((s) => '<i style="background:' + s.bar + shadow(s) + '"></i>').join('') + '</div>' +
+      '<div class="cur">目前進度：' + esc(currentLabel(b)) + '</div></div>' +
+      '<div><button type="button" class="more" data-open="' + esc(b.id) + '" aria-expanded="' + open + '">' + (open ? '收合詳情' : '查看詳情') + '</button></div>' +
+      (open ? '<div class="detail">' +
+        (b.summary ? '<p>' + esc(b.summary) + '</p>' : '') +
+        '<dl><div><dt>提案人</dt><dd>' + esc(b.proposerFull) + '</dd></div>' +
+        '<div><dt>審查單位</dt><dd>' + esc(b.committee) + '</dd></div></dl>' +
+        (b.files.length ? '<div><div style="font-size:15px;font-weight:700;margin-bottom:4px">附件</div><ul class="files">' +
+          b.files.map((f) => '<li><a href="' + esc(f.url) + '" target="_blank" rel="noopener noreferrer"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 11.5l-8.6 8.6a5 5 0 0 1-7.1-7.1l8.6-8.6a3.3 3.3 0 0 1 4.7 4.7l-8.6 8.6a1.7 1.7 0 0 1-2.4-2.4l7.9-7.9"/></svg>' + esc(f.name) + '</a></li>').join('') +
+        '</ul></div>' : '') +
+        '<div><div style="font-size:15px;font-weight:700;margin-bottom:12px">審查歷程</div><div class="steps">' +
+          sp.map((s) => '<div class="step"><i style="background:' + s.bar + shadow(s) + '"></i><b style="color:' + s.lc + '">' + s.label + '</b><span class="t" style="color:' + s.tc + '">' + s.tag + '</span></div>').join('') +
+        '</div></div>' +
+        (b.note ? '<div class="note"><strong>最新說明：</strong>' + esc(b.note) + '</div>' : '') +
+      '</div>' : '') +
+      '</article>';
+  }).join('') : '<div class="empty">找不到符合的議案。<br>換個關鍵字，或把篩選改回「全部」試試。</div>';
+}
+
+document.addEventListener('click', (e) => {
+  const t = e.target.closest('button'); if (!t) return;
+  if (t.dataset.cat) {
+    S.cat = t.dataset.cat;
+    // 換分類後，如果原本選的狀態在這個分類沒有議案，就回到「全部」
+    if (S.cat !== '全部' && S.status !== '全部' && !S.bills.some((b) => b.cat === S.cat && b.status === S.status)) S.status = '全部';
+  }
+  else if (t.dataset.status) S.status = t.dataset.status;
+  else if (t.dataset.open) S.open = S.open === t.dataset.open ? null : t.dataset.open;
+  else return;
+  render();
+});
+$('q').addEventListener('input', (e) => { S.q = e.target.value; render(); });
+
+async function load() {
+  if (!SHEET_API_URL && !SHEET_CSV_URL) {
+    $('list').innerHTML = '<div class="empty">尚未設定資料來源。<br>請在 index.html 的 SHEET_CSV_URL 貼上試算表的 CSV 網址。</div>';
+    return;
+  }
+  $('list').innerHTML = '<div class="empty">載入議案中…</div>';
+  try {
+    let rows;
+    if (SHEET_API_URL) {
+      const res = await fetch(SHEET_API_URL, { cache: 'no-store' });
+      if (!res.ok) throw new Error(res.status);
+      rows = (await res.json()).values;
+    } else {
+      const res = await fetch(SHEET_CSV_URL, { cache: 'no-store' });
+      if (!res.ok) throw new Error(res.status);
+      rows = parseCSV(await res.text());
+    }
+    if (!rows || !rows.length) throw new Error('試算表沒有資料');
+    S.bills = toBills(rows).reverse();
+    $('updated').textContent = '資料載入時間：' + new Date().toLocaleString('zh-TW', { hour12: false });
+    render();
+  } catch (err) {
+    const why = err && err.headers ? err.message : '無法連到試算表（' + (err && err.message ? err.message : '未知原因') + '）。請確認已「發布到網路」且格式為 CSV。';
+    S.err = why;
+    $('list').innerHTML = '<div class="empty">暫時讀不到議案資料。<br><span style="font-size:15px;color:#5A6070">' + esc(why) + '</span></div>';
+    console.error(err);
+  }
+}
+/* ====== 秘書處 ====== */
+// 帳號密碼只以雜湊值存放，原始碼裡看不到明文；這只是簡易的前台門檻，不是真正的資安防護。
+const AUTH_SALT = 'ntpu-sps-secretariat-v1|';
+const AUTH_USER = '9c2a82e661079c994c098f80a8a6023938f56a361d9f8f208b884fc421b52d51';
+const AUTH_PASS = '88f1bd440bd2932e7d41a1fdc482dbe6252e86aa31f32dec2c10f773bb7132c9';
+
+function sha256(msg){
+  const rotr=(x,n)=>(x>>>n)|(x<<(32-n));
+  const bytes=[...unescape(encodeURIComponent(msg))].map(c=>c.charCodeAt(0));
+  const K=[],H=[];let n=2,cnt=0;
+  const frac=(x)=>Math.floor((x-Math.floor(x))*4294967296);
+  for(;cnt<64;n++){let p=true;for(let d=2;d*d<=n;d++)if(n%d===0){p=false;break;}
+    if(p){if(cnt<8)H[cnt]=frac(Math.pow(n,1/2));K[cnt]=frac(Math.pow(n,1/3));cnt++;}}
+  const l=bytes.length*8;
+  bytes.push(0x80);
+  while(bytes.length%64!==56)bytes.push(0);
+  for(let i=7;i>=0;i--)bytes.push(i>=4?0:(l>>>(i*8))&255);
+  for(let off=0;off<bytes.length;off+=64){
+    const w=new Array(64);
+    for(let i=0;i<16;i++)w[i]=(bytes[off+4*i]<<24)|(bytes[off+4*i+1]<<16)|(bytes[off+4*i+2]<<8)|bytes[off+4*i+3];
+    for(let i=16;i<64;i++){const s0=rotr(w[i-15],7)^rotr(w[i-15],18)^(w[i-15]>>>3);const s1=rotr(w[i-2],17)^rotr(w[i-2],19)^(w[i-2]>>>10);w[i]=(w[i-16]+s0+w[i-7]+s1)|0;}
+    let a=H[0],b=H[1],c=H[2],d=H[3],e=H[4],f=H[5],g=H[6],h=H[7];
+    for(let i=0;i<64;i++){const S1=rotr(e,6)^rotr(e,11)^rotr(e,25);const ch=(e&f)^(~e&g);const t1=(h+S1+ch+K[i]+w[i])|0;
+      const S0=rotr(a,2)^rotr(a,13)^rotr(a,22);const mj=(a&b)^(a&c)^(b&c);const t2=(S0+mj)|0;
+      h=g;g=f;f=e;e=(d+t1)|0;d=c;c=b;b=a;a=(t1+t2)|0;}
+    H[0]=(H[0]+a)|0;H[1]=(H[1]+b)|0;H[2]=(H[2]+c)|0;H[3]=(H[3]+d)|0;H[4]=(H[4]+e)|0;H[5]=(H[5]+f)|0;H[6]=(H[6]+g)|0;H[7]=(H[7]+h)|0;
+  }
+  return H.map(x=>('00000000'+(x>>>0).toString(16)).slice(-8)).join('');
+}
+
+
+/* ====== 議程與會議記錄草擬 ====== */
+const CN = '零一二三四五六七八九';
+function cn(n) {
+  if (n < 10) return CN[n];
+  if (n < 20) return '十' + (n % 10 ? CN[n % 10] : '');
+  if (n < 100) return CN[Math.floor(n / 10)] + '十' + (n % 10 ? CN[n % 10] : '');
+  return String(n);
+}
+// 編號比對：全形轉半形、忽略空白與大小寫、數字前面的 0 不影響（27-1 與 27-001 視為相同），可省略前綴
+const normId = (x) => String(x == null ? '' : x).normalize('NFKC').replace(/[–—−﹣－]/g, '-').replace(/\s+/g, '').toUpperCase()
+  .split('-').map((p) => (/^\d+$/.test(p) ? String(parseInt(p, 10)) : p)).join('-');
+
+// 把一欄輸入的編號對應到議案；回傳 { items: [{ b, orig }], missing, dup }
+function resolveIds(text, seen) {
+  const out = { items: [], missing: [], dup: [] };
+  text.split(/[、,，;；\s]+/).map((x) => x.trim()).filter(Boolean).forEach((orig) => {
+    const key = normId(orig);
+    if (seen[key]) { out.dup.push(orig); return; }
+    seen[key] = true;
+    // 先找完全相同的編號；找不到時，允許省略前綴（例如只打 27-001 也能對到 NTPUSP-27-001）
+    const b = S.bills.find((x) => normId(x.id) === key) || S.bills.find((x) => normId(x.id).endsWith('-' + key));
+    b ? out.items.push({ b: b, orig: orig.normalize('NFKC') }) : out.missing.push(orig);
+  });
+  return out;
+}
+
+const SP2 = '　　', SP5 = '　　　　　';
+
+function buildAgenda(rep, disc) {
+  return ['【議程】', '一、開會', '二、主席致詞', '三、確認議程', '四、報告事項', '　（一）確認前次會議紀錄']
+    .concat(rep.map((it, i) => '　（' + cn(i + 2) + '）報告【' + it.b.title + '】'))
+    .concat(['五、答問時段', '六、討論事項'])
+    .concat(disc.map((it, i) => '　（' + cn(i + 1) + '）審查【' + it.b.title + '】'))
+    .concat(['七、會務質詢', '八、臨時動議', '九、散會']).join('\n');
+}
+
+function buildMinutes(rep, disc) {
+  const L = ['一、開會。', '二、主席致詞。', '三、確認議程。', SP2 + '本次議程認可。', '四、報告事項。',
+    SP2 + '（一）確認前次會議紀錄。', SP5 + '決議：前次會議紀錄認可。'];
+  rep.forEach((it, i) => {
+    L.push(SP2 + '（' + cn(i + 2) + '）' + it.orig + '【' + it.b.title + '】');
+    L.push(SP5 + '決議：' + (it.b.cat === '備查案' ? '准予備查。' : '已洽悉。'));
+  });
+  L.push('五、答問時段', SP2 + '詳見會議影音。', '六、討論事項。');
+  disc.forEach((it, i) => {
+    L.push('　第' + cn(i + 1) + '案',
+      SP2 + '審查' + it.orig + '【' + it.b.title + '】',
+      SP2 + '說明：',
+      SP2 + '附件：詳見提案系統',
+      SP2 + '決議：',
+      SP2 + '一、經提案者說明、本會議員詢答完畢。',
+      SP2 + '二、議員提案包裹表決，議員附議，通過。',
+      SP2 + '三、全案，同意票0票，不同意票0票，贊成者多數，通過。');
+  });
+  L.push('七、會務質詢。', SP2 + '詳見會議影音。', '八、臨時動議。', '九、散會。');
+  return L.join('\n');
+}
+
+function makeAgenda() {
+  const msg = $('agMsg'); msg.textContent = '';
+  const rText = $('agReport').value, dText = $('agDisc').value;
+  if (!rText.trim() && !dText.trim()) { msg.textContent = '請至少輸入一個議案編號（報告事項或討論事項）。'; return; }
+  if (!S.bills.length) { msg.textContent = S.err ? ('議案資料讀取失敗：' + S.err) : '議案資料還沒載入完成，請稍候再試一次。'; return; }
+  if (S.noIdCol) { msg.textContent = '試算表裡找不到「編號」欄（表頭請寫「編號」），所以無法依編號查詢。'; return; }
+  const seen = {};
+  const rep = resolveIds(rText, seen), disc = resolveIds(dText, seen);
+  $('agOut').value = buildAgenda(rep.items, disc.items);
+  $('mnOut').value = buildMinutes(rep.items, disc.items);
+  const notes = [];
+  const missing = rep.missing.concat(disc.missing), dup = rep.dup.concat(disc.dup);
+  if (missing.length) {
+    const sample = S.bills.slice(0, 5).map((b) => b.id).join('、');
+    notes.push('找不到這些編號，已略過：' + missing.join('、') + '。目前讀到 ' + S.bills.length + ' 筆議案，編號例如：' + sample + '。');
+  }
+  if (dup.length) notes.push('重複輸入的編號只列一次：' + dup.join('、') + '。');
+  msg.textContent = notes.join('');
+}
+$('agMake').addEventListener('click', makeAgenda);
+['agReport', 'agDisc'].forEach((id) => $(id).addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); makeAgenda(); } }));
+
+function wireOut(copyId, downId, taId, filename, doneText) {
+  $(copyId).addEventListener('click', async () => {
+    const t = $(taId).value; if (!t) return;
+    try { await navigator.clipboard.writeText(t); }
+    catch (err) { $(taId).select(); document.execCommand('copy'); }
+    $('agMsg').textContent = doneText;
+  });
+  $(downId).addEventListener('click', () => {
+    const t = $(taId).value; if (!t) return;
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(new Blob([t], { type: 'text/plain;charset=utf-8' }));
+    a.download = filename; a.click(); URL.revokeObjectURL(a.href);
+  });
+}
+wireOut('agCopy', 'agDown', 'agOut', '議程.txt', '已複製議程。');
+wireOut('mnCopy', 'mnDown', 'mnOut', '會議記錄.txt', '已複製會議記錄。');
+
+load();
+
+/* ====== 頁面切換（網址 #bills、#proposal、#request、#invite、#sec） ====== */
+const views = { home: $('viewHome'), pub: $('viewPublic'), login: $('viewLogin'), sec: $('viewSec'),
+  proposal: $('viewProposal'), request: $('viewRequest'), invite: $('viewInvite') };
+function show(name) {
+  Object.keys(views).forEach((k) => { views[k].hidden = k !== name; });
+  window.scrollTo(0, 0);
+  if (name === 'login') { $('u').focus(); }
+}
+const isAuthed = () => { try { return sessionStorage.getItem('sec') === '1'; } catch (e) { return false; } };
+const setAuthed = (v) => { try { v ? sessionStorage.setItem('sec', '1') : sessionStorage.removeItem('sec'); } catch (e) {} };
+function route() {
+  const h = location.hash.replace(/^#\/?/, '');
+  const map = { '': 'home', bills: 'pub', proposal: 'proposal', request: 'request', invite: 'invite', sec: isAuthed() ? 'sec' : 'login' };
+  show(map[h] || 'home');
+}
+const go = (h) => { if (location.hash === '#' + h) route(); else location.hash = h; };
+window.addEventListener('hashchange', route);
+
+$('goSec').addEventListener('click', () => go('sec'));
+$('loginBack').addEventListener('click', () => go(''));
+$('secHome').addEventListener('click', () => go('bills'));
+$('logout').addEventListener('click', () => { setAuthed(false); go(''); });
+
+$('loginForm').addEventListener('submit', (e) => {
+  e.preventDefault();
+  const ok = sha256(AUTH_SALT + $('u').value.trim()) === AUTH_USER && sha256(AUTH_SALT + $('pw').value) === AUTH_PASS;
+  if (ok) {
+    setAuthed(true); $('loginErr').textContent = ''; $('pw').value = ''; route();
+  } else {
+    $('loginErr').textContent = '帳號或密碼錯誤，請再試一次。'; $('pw').value = ''; $('pw').focus();
+  }
+});
+
+/* ====== 表單共用 ====== */
+/* ★ 貼上「議員專區_AppsScript.gs」部署後的網頁應用程式網址（結尾 /exec） */
+const FORM_API_URL = 'https://script.google.com/macros/s/AKfycbwZE63WWksqAi3wLooESVdFFwMyEpqEZIn5ez6EA-OaHtRznH0bFEANbFFrJDreazoR/exec';
+
+const val = (id) => $(id).value.trim();
+const lines = (s) => String(s || '').split('\n').map((x) => x.trim()).filter(Boolean);
+const isMail = (s) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(s);
+const ymd = (d) => d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+const addDays = (n) => { const d = new Date(); d.setDate(d.getDate() + n); return ymd(d); };
+const slash = (v) => String(v || '').replace(/-/g, '/');
+const X_ICON = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>';
+
+async function postForm(data) {
+  if (!FORM_API_URL) throw new Error('系統尚未設定送出網址，請聯絡議會秘書處 ntpuscs@gmail.com。');
+  const res = await fetch(FORM_API_URL, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify(data) });
+  const out = await res.json();
+  if (!out.ok) throw new Error(out.error || '送出失敗，請稍後再試。');
+  return out;
+}
+
+// 單選按鈕組（提案類型、提供方式、快速期限）
+function chipGroup(el, opts, get, set) {
+  const draw = () => {
+    el.innerHTML = opts.map((o) => '<button type="button" class="chip sq" data-v="' + esc(o.v) + '" aria-pressed="' + (o.v === get()) + '">' + esc(o.t) + '</button>').join('');
+  };
+  el.addEventListener('click', (e) => { const b = e.target.closest('button[data-v]'); if (!b) return; set(b.dataset.v); draw(); });
+  draw();
+  return draw;
+}
+
+// 送出流程：鎖按鈕 → 送出 → 顯示成功畫面或錯誤
+async function submitFlow(prefix, data, doneHtml) {
+  const btn = $(prefix + 'Send'), err = $(prefix + 'Err'), label = btn.textContent;
+  btn.disabled = true; btn.textContent = '送出中…'; err.textContent = '';
+  try {
+    const out = await postForm(data);
+    $(prefix + 'DoneText').innerHTML = doneHtml(out);
+    $(prefix + 'Main').hidden = true; $(prefix + 'Done').hidden = false; window.scrollTo(0, 0);
+  } catch (e) {
+    err.textContent = e.message || '送出失敗，請稍後再試。';
+  } finally {
+    btn.disabled = false; btn.textContent = label;
+  }
+}
+const again = (prefix, reset) => $(prefix + 'Again').addEventListener('click', () => {
+  reset(); $(prefix + 'Done').hidden = true; $(prefix + 'Main').hidden = false; window.scrollTo(0, 0);
+});
+
+/* ====== 提案（只寫入試算表） ====== */
+let pType = '';
+chipGroup($('pType'), ['法律案', '財務案', '人事案', '備查案', '報告案', '一般決議'].map((t) => ({ v: t, t: t })), () => pType, (v) => { pType = v; });
+const NUM = ['一', '二', '三', '四', '五'];
+let atts = [null];
+function renderAtts() {
+  $('pAtts').innerHTML = atts.map((f, i) => '<div class="arow"><label for="pa' + i + '">附件' + NUM[i] + '</label>' +
+    '<div style="min-width:0"><input type="file" id="pa' + i + '" data-ai="' + i + '" style="max-width:100%">' +
+    (f ? '<div class="picked">已選擇：' + esc(f.name) + '（' + Math.ceil(f.size / 1024) + ' KB）</div>' : '') + '</div>' +
+    '<button type="button" class="xbtn" data-arm="' + i + '" aria-label="移除附件' + NUM[i] + '">' + X_ICON + '</button></div>').join('');
+  $('pAddAtt').hidden = atts.length >= 5;
+  $('pAddAtt').textContent = '＋ 新增附件（' + atts.length + ' / 5）';
+}
+$('pAtts').addEventListener('change', (e) => { const t = e.target; if (t.dataset.ai == null) return; atts[+t.dataset.ai] = t.files[0] || null; renderAtts(); });
+$('pAtts').addEventListener('click', (e) => { const b = e.target.closest('[data-arm]'); if (!b) return; atts.splice(+b.dataset.arm, 1); if (!atts.length) atts = [null]; renderAtts(); });
+$('pAddAtt').addEventListener('click', () => { if (atts.length < 5) { atts.push(null); renderAtts(); } });
+renderAtts();
+
+const toB64 = (f) => new Promise((res, rej) => { const fr = new FileReader(); fr.onload = () => res(String(fr.result).split(',')[1]); fr.onerror = rej; fr.readAsDataURL(f); });
+
+$('pForm').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const miss = [['pUnit', '提案單位'], ['pWho', '提案人'], ['pWmail', '提案人公務信箱'], ['pCname', '提案聯絡人姓名'], ['pCmail', '提案聯絡人公務電子郵件'], ['TYPE', '提案類型'], ['pTitle', '案由'], ['pDesc', '說明']]
+    .filter((n) => (n[0] === 'TYPE' ? !pType : !val(n[0]))).map((n) => n[1]);
+  if (miss.length) { $('pErr').textContent = '請填寫：' + miss.join('、'); return; }
+  if (!isMail(val('pWmail'))) { $('pErr').textContent = '提案人公務信箱格式不正確。'; return; }
+  if (!isMail(val('pCmail'))) { $('pErr').textContent = '提案聯絡人公務電子郵件格式不正確。'; return; }
+  const big = atts.filter(Boolean).find((f) => f.size > 10 * 1024 * 1024);
+  if (big) { $('pErr').textContent = '附件「' + big.name + '」超過 10MB。'; return; }
+  let files = [];
+  try { files = await Promise.all(atts.filter(Boolean).map(async (f) => ({ name: f.name, mimeType: f.type, data: await toB64(f) }))); }
+  catch (er) { $('pErr').textContent = '讀取附件失敗，請重新選擇檔案。'; return; }
+  submitFlow('p', { type: 'proposal', unit: val('pUnit'), who: val('pWho'), wmail: val('pWmail'), cname: val('pCname'), cmail: val('pCmail'),
+    ptype: pType, title: val('pTitle'), desc: $('pDesc').value.trim(), files: files },
+  (out) => '收件編號 <strong>' + esc(out.id) + '</strong>。提案已登錄至本會提案紀錄，秘書處完成形式審查後會以 <strong>' + esc(val('pCmail')) + '</strong> 與聯絡人聯繫。');
+});
+again('p', () => { ['pTitle', 'pDesc'].forEach((id) => { $(id).value = ''; }); atts = [null]; renderAtts(); });
+
+/* ====== 議員索資（寄信） ====== */
+let rMode = '電子檔', rDue = '';
+chipGroup($('rMode'), ['電子檔', '紙本影本', '到場閱覽'].map((t) => ({ v: t, t: t })), () => rMode, (v) => { rMode = v; });
+const rMin = addDays(7);
+$('rDue').min = rMin;
+$('rDueHint').textContent = '由你自行指定，至少要給受索單位 7 天，最早可選 ' + slash(rMin) + '。';
+const drawQuick = chipGroup($('rQuick'), [7, 14, 21].map((n) => ({ v: addDays(n), t: n + ' 天後' })), () => rDue, (v) => { rDue = v; $('rDue').value = v; dueLine(); });
+function dueLine() { $('rDueLine').textContent = rDue ? '受索單位須於 ' + slash(rDue) + ' 前回覆' : '尚未選擇回覆期限'; }
+$('rDue').addEventListener('change', () => { rDue = $('rDue').value; dueLine(); drawQuick(); });
+
+function sendToHtml(toName, toMail, ccSec, me) {
+  return '<dt>收件</dt><dd><strong>' + esc(toName) + '</strong>　' + esc(toMail) + '</dd>' +
+    (ccSec ? '<dt>副本</dt><dd><strong>學生議會秘書處</strong>　ntpuscs@gmail.com</dd>' : '') +
+    '<dt>副本</dt><dd><strong>你</strong>　' + esc(me || '（你填寫的回覆信箱）') + '</dd>';
+}
+function rRoute() {
+  const o = val('rOrg');
+  if (!o) return ['受索單位', '（選擇受索單位後顯示）', true];
+  if (o === '學生議會秘書處') return [o, 'ntpuscs@gmail.com', false];
+  if (o === '學生法院書記處') return [o, 'ntpucourt@gmail.com', true];
+  return [o, 'ntpusu@gm.ntpu.edu.tw', true];
+}
+function drawRTo() { const r = rRoute(); $('rTo').innerHTML = sendToHtml(r[0], r[1], r[2], val('rMail')); }
+['rOrg', 'rMail'].forEach((id) => $(id).addEventListener('input', drawRTo));
+$('rOrg').addEventListener('change', drawRTo);
+drawRTo();
+
+$('rForm').addEventListener('submit', (e) => {
+  e.preventDefault();
+  const miss = [];
+  if (!val('rWho')) miss.push('索資議員');
+  if (!val('rMail')) miss.push('回覆信箱');
+  if (!val('rOrg')) miss.push('受索單位');
+  if (!val('rSubj')) miss.push('索資主旨');
+  if (!lines($('rAsks').value).length) miss.push('索資事項');
+  if (!rDue) miss.push('回覆期限');
+  if (miss.length) { $('rErr').textContent = '請填寫：' + miss.join('、'); return; }
+  if (!isMail(val('rMail'))) { $('rErr').textContent = '回覆信箱格式不正確。'; return; }
+  if (rDue < addDays(7)) { $('rErr').textContent = '回覆期限至少要在 7 天後，請選 ' + slash(addDays(7)) + ' 或之後的日期。'; return; }
+  const r = rRoute();
+  submitFlow('r', { type: 'request', who: val('rWho'), seat: val('rSeat'), mail: val('rMail'), org: val('rOrg'),
+    subj: val('rSubj'), asks: $('rAsks').value, why: $('rWhy').value.trim(), due: rDue, mode: rMode },
+  (out) => '索資編號 <strong>' + esc(out.id) + '</strong>。索資信已寄給' + esc(r[0]) + '，並副本給' + (r[2] ? '議會秘書處與 ' : '') +
+    '<strong>' + esc(val('rMail')) + '</strong>。' + esc(r[0]) + '請於 <strong>' + slash(rDue) + '</strong> 前回覆。');
+});
+again('r', () => { ['rSubj', 'rAsks', 'rWhy', 'rDue'].forEach((id) => { $(id).value = ''; }); rDue = ''; dueLine(); drawQuick(); });
+
+/* ====== 邀請列席備詢（寄信） ====== */
+let people = [{ title: '', name: '' }], iPrev = '';
+function renderPeople() {
+  const court = val('iOrg') === '學生法院';
+  $('iCourtHint').hidden = !court; $('iAddP').hidden = court;
+  $('iPeople').innerHTML = people.map((p, i) => '<div class="prow"><span class="no">' + (i + 1) + '</span>' +
+    '<div class="fld"><label for="ipt' + i + '" style="font-size:14px">職稱</label><input class="in" id="ipt' + i + '" data-pi="' + i + '" data-pf="title" value="' + esc(p.title) + '"' + (court ? ' readonly' : '') + ' placeholder="例如：財務部部長、會長" autocomplete="off"></div>' +
+    '<div class="fld"><label for="ipn' + i + '" style="font-size:14px">姓名</label><input class="in" id="ipn' + i + '" data-pi="' + i + '" data-pf="name" value="' + esc(p.name) + '" placeholder="姓名" autocomplete="off"></div>' +
+    '<button type="button" class="xbtn" data-prm="' + i + '" aria-label="移除第 ' + (i + 1) + ' 位受邀人"' + (people.length === 1 ? ' disabled' : '') + '>' + X_ICON + '</button></div>').join('');
+}
+$('iPeople').addEventListener('input', (e) => { const t = e.target; if (t.dataset.pf) people[+t.dataset.pi][t.dataset.pf] = t.value; });
+$('iPeople').addEventListener('click', (e) => { const b = e.target.closest('[data-prm]'); if (!b || b.disabled) return; people.splice(+b.dataset.prm, 1); renderPeople(); });
+$('iAddP').addEventListener('click', () => { people.push({ title: '', name: '' }); renderPeople(); });
+function drawITo() {
+  const o = val('iOrg');
+  const r = !o ? ['受邀機關', '（選擇受邀機關後顯示）'] : o === '學生法院' ? ['學生法院', 'ntpucourt@gmail.com'] : ['學生會', 'ntpusu@gm.ntpu.edu.tw'];
+  $('iTo').innerHTML = sendToHtml(r[0], r[1], true, val('iMail'));
+}
+$('iOrg').addEventListener('change', () => {
+  const o = val('iOrg');
+  if (o === '學生法院') people = [{ title: '書記長', name: people[0].name }];
+  else if (iPrev === '學生法院') people = people.map((p) => ({ title: '', name: p.name }));
+  iPrev = o; renderPeople(); drawITo();
+});
+$('iMail').addEventListener('input', drawITo);
+renderPeople(); drawITo();
+
+$('iForm').addEventListener('submit', (e) => {
+  e.preventDefault();
+  const miss = [];
+  if (!val('iMeeting')) miss.push('列席會議');
+  if (!val('iOrg')) miss.push('受邀機關');
+  if (people.some((p) => !p.title.trim() || !p.name.trim())) miss.push('每位受邀人的職稱與姓名');
+  if (!lines($('iTopics').value).length) miss.push('詢答主題');
+  if (!val('iWho')) miss.push('邀請議員');
+  if (!val('iMail')) miss.push('回覆信箱');
+  if (miss.length) { $('iErr').textContent = '請填寫：' + miss.join('、'); return; }
+  if (!isMail(val('iMail'))) { $('iErr').textContent = '回覆信箱格式不正確。'; return; }
+  const org = val('iOrg');
+  submitFlow('i', { type: 'invite', meeting: val('iMeeting'), org: org,
+    people: people.map((p) => ({ title: p.title.trim(), name: p.name.trim() })),
+    topics: $('iTopics').value, note: $('iNote').value.trim(), who: val('iWho'), seat: val('iSeat'), mail: val('iMail') },
+  (out) => '邀請編號 <strong>' + esc(out.id) + '</strong>。邀請函已寄給' + esc(org) + '，並副本給議會秘書處與 <strong>' + esc(val('iMail')) + '</strong>。');
+});
+again('i', () => { $('iOrg').value = ''; iPrev = ''; people = [{ title: '', name: '' }]; ['iTopics', 'iNote'].forEach((id) => { $(id).value = ''; }); renderPeople(); drawITo(); });
+
+route();
+
+/* ====== App（PWA）安裝 ====== */
+if ('serviceWorker' in navigator && (location.protocol === 'https:' || location.hostname === 'localhost')) {
+  window.addEventListener('load', () => navigator.serviceWorker.register('./sw.js').catch(() => {}));
+}
+const standalone = window.matchMedia('(display-mode: standalone)').matches || navigator.standalone === true;
+let installEvt = null;
+window.addEventListener('beforeinstallprompt', (e) => { e.preventDefault(); installEvt = e; if (!standalone) $('installBtn').hidden = false; });
+$('installBtn').addEventListener('click', async () => {
+  if (!installEvt) return;
+  installEvt.prompt(); await installEvt.userChoice; installEvt = null; $('installBtn').hidden = true;
+});
+window.addEventListener('appinstalled', () => { $('installBtn').hidden = true; });
+// iPhone / iPad 沒有安裝按鈕，改顯示教學（關掉後不再出現）
+const isIOS = /iphone|ipad|ipod/i.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+let tipClosed = false; try { tipClosed = localStorage.getItem('iosTipClosed') === '1'; } catch (e) {}
+if (isIOS && !standalone && !tipClosed) $('iosTip').hidden = false;
+$('iosTipClose').addEventListener('click', () => { $('iosTip').hidden = true; try { localStorage.setItem('iosTipClosed', '1'); } catch (e) {} });
+</script>
+</body>
+</html>
