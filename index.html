@@ -119,6 +119,20 @@ aside.side ol{margin:0;padding-left:1.4em;display:flex;flex-direction:column;gap
 .done p{margin:0;font-size:18px;line-height:1.7;color:#3A4050}
 a.primary{display:inline-flex;align-items:center;text-decoration:none;margin-top:0}
 .primary:disabled{opacity:.6;cursor:wait}
+/* ====== 送出前確認視窗 ====== */
+dialog.cf{border:0;padding:0;border-radius:6px;width:calc(100% - 32px);max-width:640px;color:var(--ink);box-shadow:0 20px 60px rgba(29,34,48,.25)}
+dialog.cf::backdrop{background:rgba(29,34,48,.55)}
+.cf .hd{padding:24px 28px 12px}
+.cf .hd h2{margin:0;font-size:24px;font-weight:700}
+.cf .hd p{margin:8px 0 0;font-size:15px;line-height:1.6;color:var(--muted)}
+.cf .cfl{display:flex;flex-direction:column;gap:12px;padding:8px 28px 16px;max-height:58vh;overflow:auto}
+.cf .cfr{display:grid;grid-template-columns:8em 1fr;gap:4px 16px}
+.cf .cfr .k{font-size:14px;color:var(--muted);padding-top:2px}
+.cf .cfr .v{font-size:16px;line-height:1.6;white-space:pre-line;word-break:break-word}
+.cf .ft{display:flex;flex-wrap:wrap;justify-content:flex-end;gap:10px;padding:16px 28px 24px;border-top:1px solid var(--line)}
+.cf .ft .primary{margin-top:0}
+.cf .ft button{justify-content:center}
+@media (max-width:520px){.cf .cfr{grid-template-columns:1fr}.cf .hd,.cf .cfl,.cf .ft{padding-left:20px;padding-right:20px}.cf .ft button{flex:1 1 auto}}
 /* ====== App 載入畫面：Logo 滑入 → 圓點跳動 → Logo 往上滑出 → 淡出進入首頁 ====== */
 #splash{position:fixed;inset:0;z-index:9999;background:#fff;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:44px;padding:24px;transition:opacity .35s ease .35s,visibility .35s .35s}
 #splash img{width:min(560px,86vw);height:auto;animation:spIn .6s cubic-bezier(.4,0,.2,1) both;transition:transform .5s cubic-bezier(.4,0,.2,1),opacity .5s}
@@ -267,7 +281,7 @@ a.primary{display:inline-flex;align-items:center;text-decoration:none;margin-top
     </a>
     <a class="card" href="#proposal">
       <span class="ic"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 20h4L19 9l-4-4L4 16z"/><path d="M13.5 6.5l4 4"/></svg></span>
-      <span><span class="k">議員・各機關</span><h2>提案</h2><p>填寫案由與說明、上傳附件，登錄後由秘書處形式審查。</p></span>
+      <span><span class="k">議員・各機關</span><h2>提案</h2><p>填寫案由與說明、上傳附件，登錄後送交程序委員會審查。</p></span>
       <span class="go">提出議案<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span>
     </a>
     <a class="card" href="#request">
@@ -292,7 +306,7 @@ a.primary{display:inline-flex;align-items:center;text-decoration:none;margin-top
   <header>
     <div class="topbar"><div class="school">國立臺北大學三峽校區學生議會</div><a class="secbtn" href="#">返回首頁</a></div>
     <h1>提案</h1>
-    <p class="intro">送出後，提案會登錄至學生議會秘書處的提案紀錄，由秘書處進行形式審查。</p>
+    <p class="intro">送出後，提案會登錄至學生議會秘書處的提案紀錄，送交程序委員會審查。</p>
   </header>
   <div class="fgrid" id="pMain">
     <form class="f" id="pForm" novalidate>
@@ -316,7 +330,9 @@ a.primary{display:inline-flex;align-items:center;text-decoration:none;margin-top
       <div class="fld"><span class="lb">提案類型 <span class="req">*</span></span>
         <div class="sub">決議、糾正、糾舉、聲明、加入組織等案，請選「一般決議」。</div>
         <div class="row" role="group" aria-label="提案類型" id="pType"></div></div>
-      <div class="fld"><label for="pTitle">案由 <span class="req">*</span></label><input class="in" id="pTitle" autocomplete="off"></div>
+      <div class="fld"><label for="pTitle">案由 <span class="req">*</span></label>
+        <div class="sub" id="pTitleHint">案由請簡明扼要，勿加「本會議員擬具」、「是否有當？請公決案」等贅詞。</div>
+        <input class="in" id="pTitle" aria-describedby="pTitleHint" autocomplete="off"></div>
       <div class="fld"><label for="pDesc">說明 <span class="req">*</span></label>
         <div class="sub" id="pDescHint">請於說明欄中，註明所上傳附件的內容與檔案類型。範例：「一、...。二、辭呈如附件（附件一PDF、附件二DOCX）。」</div>
         <textarea class="in" id="pDesc" rows="8" aria-describedby="pDescHint"></textarea></div>
@@ -329,7 +345,7 @@ a.primary{display:inline-flex;align-items:center;text-decoration:none;margin-top
     </form>
     <aside class="side"><h3>送出之後</h3><ol>
       <li><strong>登錄提案</strong>：資料寫入本會提案試算表，附件存入本會雲端硬碟。</li>
-      <li><strong>形式審查</strong>：秘書處確認格式與內容。</li>
+      <li><strong>程序委員會</strong>：審查提案程序與格式。</li>
       <li><strong>編號與追蹤</strong>：通過後編上議案編號，可在「議案查詢」追蹤進度。</li></ol>
       <div class="sub">標示 <span class="req">*</span> 的欄位為必填。</div></aside>
   </div>
@@ -423,6 +439,13 @@ a.primary{display:inline-flex;align-items:center;text-decoration:none;margin-top
     <div class="btnrow"><a class="primary" href="#">返回首頁</a><button type="button" class="secbtn" id="iAgain">再邀請一個機關</button></div>
   </section>
 </div>
+
+<!-- 送出前確認視窗 -->
+<dialog class="cf" id="cfBox" aria-labelledby="cfTitle">
+  <div class="hd"><h2 id="cfTitle">確認資料</h2><p>請確認以下資料無誤。送出後若要更正，需聯絡議會秘書處。</p></div>
+  <div class="cfl" id="cfList"></div>
+  <div class="ft"><button type="button" class="secbtn" id="cfBack">返回修改</button><button type="button" class="primary" id="cfOk">確認送出</button></div>
+</dialog>
 
 <script>
 /* ★ 設定一：議案資料來源。貼上「發布到網路」的 CSV 網址（設定二 FORM_API_URL 在檔案下方「表單共用」）
@@ -844,6 +867,27 @@ async function postForm(data) {
   return out;
 }
 
+// 送出前確認：列出資料，按「確認送出」才回傳 true
+function confirmBox(title, rows) {
+  return new Promise((resolve) => {
+    const d = $('cfBox');
+    $('cfTitle').textContent = title;
+    $('cfList').innerHTML = rows.filter((r) => r[1] && String(r[1]).trim())
+      .map((r) => '<div class="cfr"><div class="k">' + esc(r[0]) + '</div><div class="v">' + esc(r[1]) + '</div></div>').join('');
+    const finish = (v) => {
+      $('cfOk').onclick = $('cfBack').onclick = d.oncancel = null;
+      if (d.open) d.close();
+      resolve(v);
+    };
+    $('cfOk').onclick = () => finish(true);
+    $('cfBack').onclick = () => finish(false);
+    d.oncancel = (e) => { e.preventDefault(); finish(false); };
+    if (typeof d.showModal === 'function') { d.showModal(); $('cfBack').focus(); }
+    else resolve(window.confirm(title + '\n\n' + rows.filter((r) => r[1]).map((r) => r[0] + '：' + r[1]).join('\n')));
+  });
+}
+const numbered = (txt) => lines(txt).map((x, i) => (i + 1) + '. ' + x).join('\n');
+
 // 單選按鈕組（提案類型、提供方式、快速期限）
 function chipGroup(el, opts, get, set) {
   const draw = () => {
@@ -901,12 +945,19 @@ $('pForm').addEventListener('submit', async (e) => {
   if (!isMail(val('pCmail'))) { $('pErr').textContent = '提案聯絡人公務電子郵件格式不正確。'; return; }
   const big = atts.filter(Boolean).find((f) => f.size > 10 * 1024 * 1024);
   if (big) { $('pErr').textContent = '附件「' + big.name + '」超過 10MB。'; return; }
+  const picked = atts.filter(Boolean);
+  const ok = await confirmBox('確認提案內容', [
+    ['提案單位', val('pUnit')], ['提案人', val('pWho')], ['提案人公務信箱', val('pWmail')],
+    ['提案聯絡人', val('pCname')], ['聯絡人公務信箱', val('pCmail')], ['提案類型', pType],
+    ['案由', val('pTitle')], ['說明', $('pDesc').value.trim()],
+    ['附件', picked.length ? picked.map((f, i) => '附件' + NUM[i] + '：' + f.name).join('\n') : '無']]);
+  if (!ok) return;
   let files = [];
   try { files = await Promise.all(atts.filter(Boolean).map(async (f) => ({ name: f.name, mimeType: f.type, data: await toB64(f) }))); }
   catch (er) { $('pErr').textContent = '讀取附件失敗，請重新選擇檔案。'; return; }
   submitFlow('p', { type: 'proposal', unit: val('pUnit'), who: val('pWho'), wmail: val('pWmail'), cname: val('pCname'), cmail: val('pCmail'),
     ptype: pType, title: val('pTitle'), desc: $('pDesc').value.trim(), files: files },
-  (out) => '收件編號 <strong>' + esc(out.id) + '</strong>。提案已登錄至本會提案紀錄，秘書處完成形式審查後會以 <strong>' + esc(val('pCmail')) + '</strong> 與聯絡人聯繫。');
+  (out) => '收件編號 <strong>' + esc(out.id) + '</strong>。提案已登錄至本會提案紀錄，程序委員會審查後，秘書處會以 <strong>' + esc(val('pCmail')) + '</strong> 與聯絡人聯繫。');
 });
 again('p', () => { ['pTitle', 'pDesc'].forEach((id) => { $(id).value = ''; }); atts = [null]; renderAtts(); });
 
@@ -937,7 +988,7 @@ function drawRTo() { const r = rRoute(); $('rTo').innerHTML = sendToHtml(r[0], r
 $('rOrg').addEventListener('change', drawRTo);
 drawRTo();
 
-$('rForm').addEventListener('submit', (e) => {
+$('rForm').addEventListener('submit', async (e) => {
   e.preventDefault();
   const miss = [];
   if (!val('rWho')) miss.push('索資議員');
@@ -950,6 +1001,12 @@ $('rForm').addEventListener('submit', (e) => {
   if (!isMail(val('rMail'))) { $('rErr').textContent = '回覆信箱格式不正確。'; return; }
   if (rDue < addDays(7)) { $('rErr').textContent = '回覆期限至少要在 7 天後，請選 ' + slash(addDays(7)) + ' 或之後的日期。'; return; }
   const r = rRoute();
+  const ok = await confirmBox('確認索資內容', [
+    ['索資議員', val('rWho') + (val('rSeat') ? '（選區：' + val('rSeat') + '）' : '')], ['回覆信箱', val('rMail')],
+    ['受索單位', val('rOrg')], ['索資主旨', val('rSubj')], ['索資事項', numbered($('rAsks').value)],
+    ['索資理由', $('rWhy').value.trim()], ['回覆期限', slash(rDue)], ['提供方式', rMode],
+    ['寄送對象', '收件：' + r[0] + '（' + r[1] + '）\n副本：' + (r[2] ? '學生議會秘書處、' : '') + val('rMail')]]);
+  if (!ok) return;
   submitFlow('r', { type: 'request', who: val('rWho'), seat: val('rSeat'), mail: val('rMail'), org: val('rOrg'),
     subj: val('rSubj'), asks: $('rAsks').value, why: $('rWhy').value.trim(), due: rDue, mode: rMode },
   (out) => '索資編號 <strong>' + esc(out.id) + '</strong>。索資信已寄給' + esc(r[0]) + '，並副本給' + (r[2] ? '議會秘書處與 ' : '') +
@@ -984,7 +1041,7 @@ $('iOrg').addEventListener('change', () => {
 $('iMail').addEventListener('input', drawITo);
 renderPeople(); drawITo();
 
-$('iForm').addEventListener('submit', (e) => {
+$('iForm').addEventListener('submit', async (e) => {
   e.preventDefault();
   const miss = [];
   if (!val('iMeeting')) miss.push('列席會議');
@@ -996,6 +1053,13 @@ $('iForm').addEventListener('submit', (e) => {
   if (miss.length) { $('iErr').textContent = '請填寫：' + miss.join('、'); return; }
   if (!isMail(val('iMail'))) { $('iErr').textContent = '回覆信箱格式不正確。'; return; }
   const org = val('iOrg');
+  const ok = await confirmBox('確認邀請內容', [
+    ['列席會議', val('iMeeting')], ['受邀機關', org],
+    ['受邀人', people.map((p) => p.title.trim() + ' ' + p.name.trim()).join('\n')],
+    ['詢答主題', numbered($('iTopics').value)], ['補充說明', $('iNote').value.trim()],
+    ['邀請議員', val('iWho') + (val('iSeat') ? '（選區：' + val('iSeat') + '）' : '')], ['回覆信箱', val('iMail')],
+    ['寄送對象', '收件：' + org + '（' + (org === '學生法院' ? 'ntpucourt@gmail.com' : 'ntpusu@gm.ntpu.edu.tw') + '）\n副本：學生議會秘書處、' + val('iMail')]]);
+  if (!ok) return;
   submitFlow('i', { type: 'invite', meeting: val('iMeeting'), org: org,
     people: people.map((p) => ({ title: p.title.trim(), name: p.name.trim() })),
     topics: $('iTopics').value, note: $('iNote').value.trim(), who: val('iWho'), seat: val('iSeat'), mail: val('iMail') },
