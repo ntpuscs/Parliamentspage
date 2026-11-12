@@ -1,6 +1,6 @@
 {
-  "name": "國立臺北大學三峽校區學生議會",
-  "short_name": "學生議會",
+  "name": "議事系統",
+  "short_name": "議事系統",
   "description": "議案查詢、提案、議員索資與邀請列席備詢",
   "lang": "zh-Hant",
   "start_url": "./",
@@ -9,7 +9,17 @@
   "background_color": "#FFFFFF",
   "theme_color": "#1D2230",
   "icons": [
-    { "src": "icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any maskable" },
-    { "src": "icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable" }
+    {
+      "src": "icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
   ]
 }
