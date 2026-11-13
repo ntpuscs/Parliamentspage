@@ -266,7 +266,7 @@ dialog.cf::backdrop{background:rgba(29,34,48,.55)}
       <div class="topbtns"><button type="button" class="secbtn" id="installBtn" hidden><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 4v11M7 10l5 5 5-5"/><path d="M5 20h14"/></svg>安裝 App</button><a class="secbtn" href="#sec"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>秘書處</a></div>
     </div>
     <h1>議會服務</h1>
-    <p class="intro">查詢議案進度，或線上提出提案、索資與邀請列席備詢。</p>
+    <p class="intro">公開查詢議案進度。議員與學生會成員請由「會內系統」登入，使用提案、建議事項、索資與邀請列席備詢。</p>
   </header>
   <div class="notice" id="iosTip" hidden style="margin-top:24px">
     <strong>把議事系統加到主畫面：</strong>在 Safari 點下方的「分享」按鈕 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="vertical-align:-2px"><path d="M12 15V3M8 7l4-4 4 4"/><path d="M5 12v7a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-7"/></svg>，再選「加入主畫面」。
@@ -279,10 +279,56 @@ dialog.cf::backdrop{background:rgba(29,34,48,.55)}
       <span><span class="k">所有同學</span><h2>議案查詢</h2><p>查看每件議案的提案人、類別與審查進度。</p></span>
       <span class="go">查詢議案<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span>
     </a>
+    <a class="card" href="#member">
+      <span class="ic"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg></span>
+      <span><span class="k">議員・學生會</span><h2>會內系統</h2><p>登入後可提案、提出建議事項、議員索資與邀請列席備詢。</p></span>
+      <span class="go">登入使用<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span>
+    </a>
+  </nav>
+
+  <footer>
+    <div>系統問題請洽學生議會秘書處：ntpuscs@gmail.com</div>
+  </footer>
+</div>
+
+<!-- ====== 會內系統登入 ====== -->
+<div class="wrap" id="viewMLogin" hidden>
+  <header>
+    <div class="topbar"><div class="school">國立臺北大學三峽校區學生議會</div><a class="secbtn" href="#">返回首頁</a></div>
+    <h1>會內系統登入</h1>
+    <p class="intro">僅供學生議員與學生會成員使用。帳號密碼請洽學生議會秘書處。</p>
+  </header>
+  <form class="form" id="mLoginForm" autocomplete="off">
+    <label for="mu">帳號</label>
+    <input id="mu" type="text" autocapitalize="none" autocomplete="username" required>
+    <label for="mpw">密碼</label>
+    <input id="mpw" type="password" autocomplete="current-password" required>
+    <p class="err" id="mLoginErr" role="alert"></p>
+    <button type="submit" class="primary">登入</button>
+  </form>
+</div>
+
+<!-- ====== 會內系統首頁 ====== -->
+<div class="wrap" id="viewMember" hidden>
+  <header>
+    <div class="topbar">
+      <div class="school">國立臺北大學三峽校區學生議會　會內系統</div>
+      <div class="topbtns"><a class="secbtn" href="#">返回首頁</a><button type="button" class="secbtn" id="mLogout">登出</button></div>
+    </div>
+    <h1>會內系統</h1>
+    <div style="font-size:16px;font-weight:700;color:var(--accent)" id="mWho"></div>
+    <p class="intro">議員與學生會成員專用。送出的資料會登錄至議會秘書處，部分項目會自動寄信給受文單位。</p>
+  </header>
+  <nav class="cards" aria-label="會內系統">
     <a class="card" href="#proposal">
       <span class="ic"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 20h4L19 9l-4-4L4 16z"/><path d="M13.5 6.5l4 4"/></svg></span>
       <span><span class="k">議員・各機關</span><h2>提案</h2><p>填寫案由與說明、上傳附件，登錄後送交程序委員會審查。</p></span>
       <span class="go">提出議案<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span>
+    </a>
+    <a class="card" href="#suggest">
+      <span class="ic"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 18h6M10 21h4"/><path d="M12 3a6 6 0 0 0-3.6 10.8c.6.5 1 1.2 1 2V16h5.2v-.2c0-.8.4-1.5 1-2A6 6 0 0 0 12 3z"/></svg></span>
+      <span><span class="k">委員會委員</span><h2>建議事項</h2><p>向委員會所監督的部門提出建議，經委員會表決後編成建議報告。</p></span>
+      <span class="go">提出建議<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span>
     </a>
     <a class="card" href="#request">
       <span class="ic"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5"/><path d="M9 13h6M9 17h4"/></svg></span>
@@ -295,16 +341,13 @@ dialog.cf::backdrop{background:rgba(29,34,48,.55)}
       <span class="go">發出邀請<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span>
     </a>
   </nav>
-
-  <footer>
-    <div>系統問題請洽學生議會秘書處：ntpuscs@gmail.com</div>
-  </footer>
+  <footer><div>帳號或系統問題請洽學生議會秘書處：ntpuscs@gmail.com</div></footer>
 </div>
 
 <!-- ====== 提案 ====== -->
 <div class="wrap" id="viewProposal" hidden>
   <header>
-    <div class="topbar"><div class="school">國立臺北大學三峽校區學生議會</div><a class="secbtn" href="#">返回首頁</a></div>
+    <div class="topbar"><div class="school">國立臺北大學三峽校區學生議會　會內系統</div><a class="secbtn" href="#member">返回會內系統</a></div>
     <h1>提案</h1>
     <p class="intro">送出後，提案會登錄至學生議會秘書處的提案紀錄，送交程序委員會審查。</p>
   </header>
@@ -351,14 +394,54 @@ dialog.cf::backdrop{background:rgba(29,34,48,.55)}
   </div>
   <section class="done" id="pDone" hidden aria-live="polite">
     <h2>提案已送出</h2><p id="pDoneText"></p>
-    <div class="btnrow"><a class="primary" href="#">返回首頁</a><button type="button" class="secbtn" id="pAgain">再提一案</button></div>
+    <div class="btnrow"><a class="primary" href="#member">返回會內系統</a><button type="button" class="secbtn" id="pAgain">再提一案</button></div>
+  </section>
+</div>
+
+<!-- ====== 建議事項 ====== -->
+<div class="wrap" id="viewSuggest" hidden>
+  <header>
+    <div class="topbar"><div class="school">國立臺北大學三峽校區學生議會　會內系統</div><a class="secbtn" href="#member">返回會內系統</a></div>
+    <h1>建議事項</h1>
+    <p class="intro">各委員會委員得向該委員會所監督之部門提出建議事項，經委員會表決通過後編成建議報告送交各受建議部會。受建議部會應於一個月內回覆全部採納、部分採納或不採納及理由。</p>
+  </header>
+  <div class="fgrid" id="sMain">
+    <form class="f" id="sForm" novalidate>
+      <div class="notice" style="display:flex;flex-direction:column;gap:6px">
+        <div>一、本系統依國立臺北大學學生自治會三峽校區學生議會組織職權行使法第34條之1規定辦理。</div>
+        <div>二、敬請本會議員於欲提出建議之委員會開會<strong>五日前</strong>提交本表單，以利主席安排議程。</div>
+      </div>
+      <div class="fld"><label for="sWho">提案人 <span class="req">*</span></label>
+        <div class="sub" id="sWhoHint">可多位議員聯名提案。</div>
+        <input class="in" id="sWho" aria-describedby="sWhoHint" autocomplete="off"></div>
+      <div class="fld"><span class="lb">欲提請以哪個委員會之名義提出建議報告？ <span class="req">*</span></span>
+        <div class="row" role="group" aria-label="委員會" id="sCom"></div></div>
+      <div class="fld"><label for="sDept">您欲提出建議之部門 <span class="req">*</span></label>
+        <select class="in" id="sDept"></select>
+        <div class="sub" id="sCourtNote" hidden>學生法院對建議事項無回覆義務。</div></div>
+      <div class="fld"><span class="lb" style="font-family:'Noto Serif TC','Songti TC',serif;font-size:22px">建議事項內容</span></div>
+      <div class="fld" style="margin-top:-12px"><label for="sSubj">主旨 <span class="req">*</span></label><input class="in" id="sSubj" autocomplete="off"></div>
+      <div class="fld"><label for="sDesc">說明 <span class="req">*</span></label><textarea class="in" id="sDesc" rows="6"></textarea></div>
+      <div class="fld"><label for="sPlan">建議方案 <span class="req">*</span></label><textarea class="in" id="sPlan" rows="5"></textarea></div>
+      <p class="err" id="sErr" role="alert"></p>
+      <div><button type="submit" class="primary" id="sSend">送出建議事項</button></div>
+    </form>
+    <aside class="side"><h3>送出之後</h3><ol>
+      <li><strong>登錄</strong>：資料寫入本會試算表，並通知議會秘書處。</li>
+      <li><strong>委員會審議</strong>：主席排入議程，經委員會表決通過後編成建議報告。</li>
+      <li><strong>部會回覆</strong>：受建議部會應於一個月內回覆採納情形及理由。</li></ol>
+      <div class="sub">標示 <span class="req">*</span> 的欄位為必填。</div></aside>
+  </div>
+  <section class="done" id="sDone" hidden aria-live="polite">
+    <h2>建議事項已送出</h2><p id="sDoneText"></p>
+    <div class="btnrow"><a class="primary" href="#member">返回會內系統</a><button type="button" class="secbtn" id="sAgain">再提一項建議</button></div>
   </section>
 </div>
 
 <!-- ====== 議員索資 ====== -->
 <div class="wrap" id="viewRequest" hidden>
   <header>
-    <div class="topbar"><div class="school">國立臺北大學三峽校區學生議會</div><a class="secbtn" href="#">返回首頁</a></div>
+    <div class="topbar"><div class="school">國立臺北大學三峽校區學生議會　會內系統</div><a class="secbtn" href="#member">返回會內系統</a></div>
     <h1>議員索資</h1>
     <p class="intro">學生議員可透過此表單，直接向學生會各部門、學生議會秘書處或學生法院書記處調閱資料。送出後系統會自動寄信給受索單位，並同步副本給議會秘書處；受索單位回覆時，你也會收到。</p>
   </header>
@@ -395,14 +478,14 @@ dialog.cf::backdrop{background:rgba(29,34,48,.55)}
   </div>
   <section class="done" id="rDone" hidden aria-live="polite">
     <h2>索資已送出</h2><p id="rDoneText"></p>
-    <div class="btnrow"><a class="primary" href="#">返回首頁</a><button type="button" class="secbtn" id="rAgain">再提出一筆</button></div>
+    <div class="btnrow"><a class="primary" href="#member">返回會內系統</a><button type="button" class="secbtn" id="rAgain">再提出一筆</button></div>
   </section>
 </div>
 
 <!-- ====== 邀請列席備詢 ====== -->
 <div class="wrap" id="viewInvite" hidden>
   <header>
-    <div class="topbar"><div class="school">國立臺北大學三峽校區學生議會</div><a class="secbtn" href="#">返回首頁</a></div>
+    <div class="topbar"><div class="school">國立臺北大學三峽校區學生議會　會內系統</div><a class="secbtn" href="#member">返回會內系統</a></div>
     <h1>邀請列席備詢</h1>
     <p class="intro">邀請學生會或學生法院人員到議會會議列席，接受議員詢答。送出後系統會自動寄出邀請函，並副本給議會秘書處。</p>
   </header>
@@ -436,7 +519,7 @@ dialog.cf::backdrop{background:rgba(29,34,48,.55)}
   </div>
   <section class="done" id="iDone" hidden aria-live="polite">
     <h2>邀請已送出</h2><p id="iDoneText"></p>
-    <div class="btnrow"><a class="primary" href="#">返回首頁</a><button type="button" class="secbtn" id="iAgain">再邀請一個機關</button></div>
+    <div class="btnrow"><a class="primary" href="#member">返回會內系統</a><button type="button" class="secbtn" id="iAgain">再邀請一個機關</button></div>
   </section>
 </div>
 
@@ -815,24 +898,51 @@ wireOut('mnCopy', 'mnDown', 'mnOut', '會議記錄.txt', '已複製會議記錄�
 load();
 
 /* ====== 頁面切換（網址 #bills、#proposal、#request、#invite、#sec） ====== */
-const views = { home: $('viewHome'), pub: $('viewPublic'), login: $('viewLogin'), sec: $('viewSec'),
-  proposal: $('viewProposal'), request: $('viewRequest'), invite: $('viewInvite') };
+const views = { home: $('viewHome'), mlogin: $('viewMLogin'), member: $('viewMember'), pub: $('viewPublic'), login: $('viewLogin'), sec: $('viewSec'),
+  proposal: $('viewProposal'), suggest: $('viewSuggest'), request: $('viewRequest'), invite: $('viewInvite') };
 function show(name) {
   Object.keys(views).forEach((k) => { views[k].hidden = k !== name; });
   window.scrollTo(0, 0);
   if (name === 'login') { $('u').focus(); }
+  if (name === 'mlogin') { $('mu').focus(); }
+  if (name === 'member') { $('mWho').textContent = getName() ? '已登入：' + getName() : ''; }
 }
 const isAuthed = () => { try { return sessionStorage.getItem('sec') === '1'; } catch (e) { return false; } };
 const setAuthed = (v) => { try { v ? sessionStorage.setItem('sec', '1') : sessionStorage.removeItem('sec'); } catch (e) {} };
+/* ====== 會內系統登入 ======
+   帳號密碼放在秘書處試算表的「會內帳號」工作表，由 Apps Script 驗證；網頁裡不存任何帳密。 */
+const MEMBER_PAGES = ['member', 'proposal', 'suggest', 'request', 'invite'];
+const getTok = () => { try { return localStorage.getItem('memberToken') || ''; } catch (e) { return ''; } };
+const getName = () => { try { return localStorage.getItem('memberName') || ''; } catch (e) { return ''; } };
+const setTok = (t, n) => { try {
+  if (t) { localStorage.setItem('memberToken', t); localStorage.setItem('memberName', n || ''); }
+  else { localStorage.removeItem('memberToken'); localStorage.removeItem('memberName'); }
+} catch (e) {} };
+const isMember = () => !!getTok();
+let afterLogin = 'member';
 function route() {
   const h = location.hash.replace(/^#\/?/, '');
-  const map = { '': 'home', bills: 'pub', proposal: 'proposal', request: 'request', invite: 'invite', sec: isAuthed() ? 'sec' : 'login' };
+  if (MEMBER_PAGES.indexOf(h) !== -1 && !isMember()) { afterLogin = h; show('mlogin'); return; }
+  const map = { '': 'home', bills: 'pub', member: 'member', proposal: 'proposal', suggest: 'suggest', request: 'request', invite: 'invite', sec: isAuthed() ? 'sec' : 'login' };
   show(map[h] || 'home');
 }
 const go = (h) => { if (location.hash === '#' + h) route(); else location.hash = h; };
 window.addEventListener('hashchange', route);
 
 $('goSec').addEventListener('click', () => go('sec'));
+$('mLoginForm').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const btn = $('mLoginForm').querySelector('button[type="submit"]'), label = btn.textContent;
+  btn.disabled = true; btn.textContent = '登入中…'; $('mLoginErr').textContent = '';
+  try {
+    const out = await postForm({ type: 'login', user: $('mu').value.trim(), pass: $('mpw').value });
+    setTok(out.token, out.name); $('mpw').value = '';
+    const t = afterLogin; afterLogin = 'member'; go(t);
+  } catch (err) {
+    $('mLoginErr').textContent = err.message; $('mpw').value = ''; $('mpw').focus();
+  } finally { btn.disabled = false; btn.textContent = label; }
+});
+$('mLogout').addEventListener('click', () => { const t = getTok(); setTok(''); if (t && FORM_API_URL) postForm({ type: 'logout' }, t).catch(() => {}); go(''); });
 $('loginBack').addEventListener('click', () => go(''));
 $('secHome').addEventListener('click', () => go('bills'));
 $('logout').addEventListener('click', () => { setAuthed(false); go(''); });
@@ -859,10 +969,19 @@ const addDays = (n) => { const d = new Date(); d.setDate(d.getDate() + n); retur
 const slash = (v) => String(v || '').replace(/-/g, '/');
 const X_ICON = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>';
 
-async function postForm(data) {
+async function postForm(data, token) {
   if (!FORM_API_URL) throw new Error('系統尚未設定送出網址，請聯絡議會秘書處 ntpuscs@gmail.com。');
-  const res = await fetch(FORM_API_URL, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify(data) });
-  const out = await res.json();
+  let out;
+  try {
+    const res = await fetch(FORM_API_URL, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+      body: JSON.stringify(Object.assign({ token: token || getTok() }, data)) });
+    out = await res.json();
+  } catch (err) { throw new Error('連線失敗，請確認網路後再試一次。'); }
+  if (out.relogin) {
+    // 登入過期或帳號被停用：回到登入頁，重新登入後會回到原本的頁面（已填的內容還在）
+    setTok(''); afterLogin = location.hash.replace(/^#\/?/, '') || 'member';
+    show('mlogin'); $('mLoginErr').textContent = out.error;
+  }
   if (!out.ok) throw new Error(out.error || '送出失敗，請稍後再試。');
   return out;
 }
@@ -960,6 +1079,40 @@ $('pForm').addEventListener('submit', async (e) => {
   (out) => '收件編號 <strong>' + esc(out.id) + '</strong>。提案已登錄至本會提案紀錄，程序委員會審查後，秘書處會以 <strong>' + esc(val('pCmail')) + '</strong> 與聯絡人聯繫。');
 });
 again('p', () => { ['pTitle', 'pDesc'].forEach((id) => { $(id).value = ''; }); atts = [null]; renderAtts(); });
+
+/* ====== 建議事項（只寫入試算表，並通知秘書處） ====== */
+const COMS = {
+  '文務委員會': ['正副會長', '秘書處', '活動部', '公關部', '新聞部', '國際部'],
+  '法制委員會': ['正副會長', '學權暨學術部', '選舉委員會', '學生法院'],
+  '財務委員會': ['正副會長', '財務部']
+};
+let sCom = '';
+function fillDept() {
+  const d = $('sDept');
+  d.disabled = !sCom;
+  d.innerHTML = sCom
+    ? '<option value="">請選擇</option>' + COMS[sCom].map((x) => '<option value="' + esc(x) + '">' + esc(x) + (x === '學生法院' ? '（該院無回覆義務）' : '') + '</option>').join('')
+    : '<option value="">請先選擇委員會</option>';
+  $('sCourtNote').hidden = true;
+}
+const drawCom = chipGroup($('sCom'), Object.keys(COMS).map((v) => ({ v: v, t: v })), () => sCom, (v) => { sCom = v; fillDept(); });
+$('sDept').addEventListener('change', () => { $('sCourtNote').hidden = val('sDept') !== '學生法院'; });
+fillDept();
+
+$('sForm').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const miss = [['sWho', '提案人'], ['COM', '委員會'], ['sDept', '建議部門'], ['sSubj', '主旨'], ['sDesc', '說明'], ['sPlan', '建議方案']]
+    .filter((n) => (n[0] === 'COM' ? !sCom : !val(n[0]))).map((n) => n[1]);
+  if (miss.length) { $('sErr').textContent = '請填寫：' + miss.join('、'); return; }
+  const ok = await confirmBox('確認建議事項', [
+    ['提案人', val('sWho')], ['委員會', sCom], ['建議部門', val('sDept') + (val('sDept') === '學生法院' ? '（該院無回覆義務）' : '')],
+    ['主旨', val('sSubj')], ['說明', $('sDesc').value.trim()], ['建議方案', $('sPlan').value.trim()]]);
+  if (!ok) return;
+  submitFlow('s', { type: 'suggest', who: val('sWho'), committee: sCom, dept: val('sDept'),
+    subj: val('sSubj'), desc: $('sDesc').value.trim(), plan: $('sPlan').value.trim() },
+  (out) => '收件編號 <strong>' + esc(out.id) + '</strong>。建議事項已登錄，並已通知議會秘書處，將由' + esc(sCom) + '主席安排議程。');
+});
+again('s', () => { ['sSubj', 'sDesc', 'sPlan'].forEach((id) => { $(id).value = ''; }); });
 
 /* ====== 議員索資（寄信） ====== */
 let rMode = '電子檔', rDue = '';

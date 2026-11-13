@@ -1,5 +1,5 @@
 /* 學生議會 App 離線快取：只快取本站檔案；試算表與表單送出一律走網路 */
-const CACHE = 'ntpusp-app-v12'; // 改了檔案想讓大家立刻更新時，把版本號加一（例如 v2 改成 v3）
+const CACHE = 'ntpusp-app-v15'; // 改了檔案想讓大家立刻更新時，把版本號加一（例如 v2 改成 v3）
 const SHELL = ['./', './index.html', './manifest.json', './icon-192.png', './icon-512.png', './icon-maskable-192.png', './icon-maskable-512.png', './apple-touch-icon.png', './favicon.png', './logo.png'];
 
 self.addEventListener('install', (e) => {
