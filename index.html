@@ -451,7 +451,7 @@ dialog.cf::backdrop{background:rgba(29,34,48,.55)}
 /* ★ 設定一：議案資料來源。貼上「發布到網路」的 CSV 網址（設定二 FORM_API_URL 在檔案下方「表單共用」）
    取得方式：試算表 → 檔案 → 分享 → 發布到網路 → 選「議案」工作表與「逗號分隔值 (.csv)」→ 發布 */
 const SHEET_API_URL = '';  // ★ 貼上 Apps Script「網頁應用程式網址」（結尾 /exec），優先使用
-const SHEET_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vTpmcb-SNX4oNyKistKmsGQVmQrddPFijU-XKJ6vL7bF_Po11pqG_6cJzDPbYkCfGR7RjdPTgOjkID8/pub?gid=1254595337&single=true&output=csv';
+const SHEET_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQxa1jqHh48FhCrgPNU7cufov-Fy64eKeYzOYHY70H9-fCQIO647_YvAVMtQTDYFKQeMXYln_1g_67h/pub?gid=0&single=true&output=csv';
 
 // 欄位別名：試算表表頭只要符合其中一個名稱就能讀到（可自行增加）
 const ALIASES = {
@@ -849,7 +849,7 @@ $('loginForm').addEventListener('submit', (e) => {
 
 /* ====== 表單共用 ====== */
 /* ★ 貼上「議員專區_AppsScript.gs」部署後的網頁應用程式網址（結尾 /exec） */
-const FORM_API_URL = '';
+const FORM_API_URL = 'https://script.google.com/macros/s/AKfycbwZE63WWksqAi3wLooESVdFFwMyEpqEZIn5ez6EA-OaHtRznH0bFEANbFFrJDreazoR/exec';
 
 const val = (id) => $(id).value.trim();
 const lines = (s) => String(s || '').split('\n').map((x) => x.trim()).filter(Boolean);
