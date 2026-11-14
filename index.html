@@ -673,18 +673,19 @@ function parseCSV(text) {
   return rows;
 }
 
+// 附件欄表頭寬鬆比對：「附件1」「附件 1」「附件一」「附件(1)」都算
+const fileCol = (h) => { const m = String(h).normalize('NFKC').replace(/[\s()（）]/g, '').match(/^附件([1-9一二三四五])$/); return m ? ('一二三四五'.indexOf(m[1]) + 1 || +m[1]) : 0; };
 function parseFiles(head, r) {
   const out = [];
-  for (let n = 1; n <= MAX_FILES; n++) {
-    const i = head.indexOf('附件' + n);
-    if (i === -1) continue;
+  const cols = head.map((h, i) => [fileCol(h), i]).filter((x) => x[0] >= 1 && x[0] <= MAX_FILES).sort((a, b) => a[0] - b[0]);
+  cols.forEach(([n, i]) => {
     const raw = (r[i] || '').trim();
-    if (!raw) continue;
-    const parts = raw.split(/[|｜]/).map((x) => x.trim());
-    const url = parts.length > 1 ? parts[parts.length - 1] : parts[0];
-    if (!/^https?:\/\//i.test(url)) continue; // 只接受 http(s) 連結
-    out.push({ name: parts.length > 1 && parts[0] ? parts[0] : '附件' + n, url: url });
-  }
+    if (!raw) return;
+    const m = raw.match(/https?:\/\/[^\s|｜]+/i);  // 儲存格裡任何位置的網址都抓得到
+    const name = (m ? raw.slice(0, m.index) : raw).replace(/[|｜:：\s]+$/, '').trim();
+    // 沒有網址（例如貼成「智慧型方塊」或 HYPERLINK 公式，發布成 CSV 時只剩檔名）：仍列出名稱，提醒秘書處修正
+    out.push({ name: name || '附件' + n, url: m ? m[0] : '' });
+  });
   return out;
 }
 
@@ -801,7 +802,9 @@ function render() {
         '<dl><div><dt>提案人</dt><dd>' + esc(b.proposerFull) + '</dd></div>' +
         '<div><dt>審查單位</dt><dd>' + esc(b.committee) + '</dd></div></dl>' +
         (b.files.length ? '<div><div style="font-size:15px;font-weight:700;margin-bottom:4px">附件</div><ul class="files">' +
-          b.files.map((f) => '<li><a href="' + esc(f.url) + '" target="_blank" rel="noopener noreferrer"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 11.5l-8.6 8.6a5 5 0 0 1-7.1-7.1l8.6-8.6a3.3 3.3 0 0 1 4.7 4.7l-8.6 8.6a1.7 1.7 0 0 1-2.4-2.4l7.9-7.9"/></svg>' + esc(f.name) + '</a></li>').join('') +
+          b.files.map((f) => f.url
+            ? '<li><a href="' + esc(f.url) + '" target="_blank" rel="noopener noreferrer"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 11.5l-8.6 8.6a5 5 0 0 1-7.1-7.1l8.6-8.6a3.3 3.3 0 0 1 4.7 4.7l-8.6 8.6a1.7 1.7 0 0 1-2.4-2.4l7.9-7.9"/></svg>' + esc(f.name) + '</a></li>'
+            : '<li style="display:flex;flex-wrap:wrap;align-items:center;gap:4px 10px;min-height:44px;font-size:16px;color:#3A4050">' + esc(f.name) + '<span style="font-size:14px;color:#7A3200">（連結尚未提供，請洽議事組）</span></li>').join('') +
         '</ul></div>' : '') +
         '<div><div style="font-size:15px;font-weight:700;margin-bottom:12px">審查歷程</div><div class="steps">' +
           sp.map((s) => '<div class="step"><i style="background:' + s.bar + shadow(s) + '"></i><b style="color:' + s.lc + '">' + s.label + '</b><span class="t" style="color:' + s.tc + '">' + s.tag + '</span></div>').join('') +
