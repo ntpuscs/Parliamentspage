@@ -582,7 +582,8 @@ dialog.cf::backdrop{background:rgba(29,34,48,.55)}
       <div class="fld"><span class="lb" style="font-family:'Noto Serif TC','Noto Serif CJK TC','Songti TC','PMingLiU','MingLiU',serif;font-size:22px">陳情內容</span></div>
       <div class="fld" style="margin-top:-12px"><label for="ptDesc">簡述 <span class="req">*</span></label><textarea class="in" id="ptDesc" rows="8"></textarea></div>
       <div class="fld"><label for="ptFiles">附件 <span class="sub">（非必要，至多三個，合計 20MB 內）</span></label>
-        <input class="in" id="ptFiles" type="file" multiple style="padding:12px 16px;border-style:dashed">
+        <input class="in" id="ptFiles" type="file" multiple accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.odt,.ods,.odp,.txt,.csv,.jpg,.jpeg,.png,.gif,.heic,.webp" style="padding:12px 16px;border-style:dashed">
+        <div class="sub">可上傳 PDF、Word、Excel、PowerPoint、圖片（JPG、PNG 等）。</div>
         <ul class="flist" id="ptFileList" hidden></ul></div>
 
       <div class="fld"><span class="lb" style="font-family:'Noto Serif TC','Noto Serif CJK TC','Songti TC','PMingLiU','MingLiU',serif;font-size:22px">後續處理</span></div>
@@ -620,8 +621,9 @@ dialog.cf::backdrop{background:rgba(29,34,48,.55)}
 <script>
 /* ★ 設定一：議案資料來源。貼上「發布到網路」的 CSV 網址（設定二 FORM_API_URL 在檔案下方「表單共用」）
    取得方式：試算表 → 檔案 → 分享 → 發布到網路 → 選「議案」工作表與「逗號分隔值 (.csv)」→ 發布 */
-const SHEET_API_URL = '';  // ★ 貼上 Apps Script「網頁應用程式網址」（結尾 /exec），優先使用
-const SHEET_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQxa1jqHh48FhCrgPNU7cufov-Fy64eKeYzOYHY70H9-fCQIO647_YvAVMtQTDYFKQeMXYln_1g_67h/pub?gid=0&single=true&output=csv';
+// 議案改由 Apps Script 提供（會拿掉提案人信箱等個資欄位）；讀不到時才退回 CSV
+const SHEET_API_URL = 'https://script.google.com/macros/s/AKfycbwZE63WWksqAi3wLooESVdFFwMyEpqEZIn5ez6EA-OaHtRznH0bFEANbFFrJDreazoR/exec';
+const SHEET_CSV_URL = '';
 
 // 欄位別名：試算表表頭只要符合其中一個名稱就能讀到（可自行增加）
 const ALIASES = {
@@ -838,10 +840,14 @@ async function load() {
   try {
     let rows;
     if (SHEET_API_URL) {
-      const res = await fetch(SHEET_API_URL, { cache: 'no-store' });
-      if (!res.ok) throw new Error(res.status);
-      rows = (await res.json()).values;
-    } else {
+      try {
+        const res = await fetch(SHEET_API_URL, { cache: 'no-store' });
+        const out = await res.json();
+        if (!out.ok || !out.values) throw new Error(out.error || 'API');
+        rows = out.values;
+      } catch (e) { if (!SHEET_CSV_URL) throw e; }
+    }
+    if (!rows && SHEET_CSV_URL) {
       const res = await fetch(SHEET_CSV_URL, { cache: 'no-store' });
       if (!res.ok) throw new Error(res.status);
       rows = parseCSV(await res.text());
@@ -851,7 +857,7 @@ async function load() {
     $('updated').textContent = '資料載入時間：' + new Date().toLocaleString('zh-TW', { hour12: false });
     render();
   } catch (err) {
-    const why = err && err.headers ? err.message : '無法連到試算表（' + (err && err.message ? err.message : '未知原因') + '）。請確認已「發布到網路」且格式為 CSV。';
+    const why = err && err.headers ? err.message : '無法連到試算表（' + (err && err.message ? err.message : '未知原因') + '）。請稍後再試，或聯絡議會秘書處。';
     S.err = why;
     $('list').innerHTML = '<div class="empty">暫時讀不到議案資料。<br><span style="font-size:15px;color:#5A6070">' + esc(why) + '</span></div>';
     console.error(err);
@@ -1053,6 +1059,10 @@ const isMail = (s) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(s);
 const ymd = (d) => d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
 const addDays = (n) => { const d = new Date(); d.setDate(d.getDate() + n); return ymd(d); };
 const slash = (v) => String(v || '').replace(/-/g, '/');
+const OK_EXT = ['pdf', 'doc', 'docx', 'xls', 'xlsx', 'ppt', 'pptx', 'odt', 'ods', 'odp', 'txt', 'csv', 'jpg', 'jpeg', 'png', 'gif', 'heic', 'webp'];
+const ACCEPT = OK_EXT.map((x) => '.' + x).join(',');
+const badExt = (fs) => fs.find((f) => f.name.indexOf('.') === -1 || OK_EXT.indexOf(f.name.toLowerCase().split('.').pop()) === -1);
+const EXT_MSG = (f) => '附件「' + f.name + '」的格式不接受。可上傳：PDF、Word、Excel、PowerPoint、圖片（JPG、PNG 等）。';
 const X_ICON = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>';
 
 async function postForm(data, token) {
@@ -1140,12 +1150,13 @@ const NUM = ['一', '二', '三', '四', '五'];
 let atts = [null];
 function renderAtts() {
   $('pAtts').innerHTML = atts.map((f, i) => '<div class="arow"><label for="pa' + i + '">附件' + NUM[i] + '</label>' +
-    '<div style="min-width:0">' + (f ? '<div class="picked" style="font-size:15px;color:var(--ink)">' + esc(f.name) + '（' + Math.ceil(f.size / 1024) + ' KB）</div>' : '<input type="file" id="pa' + i + '" data-ai="' + i + '" style="max-width:100%">') + '</div>' +
+    '<div style="min-width:0">' + (f ? '<div class="picked" style="font-size:15px;color:var(--ink)">' + esc(f.name) + '（' + Math.ceil(f.size / 1024) + ' KB）</div>' : '<input type="file" id="pa' + i + '" data-ai="' + i + '" accept="' + ACCEPT + '" style="max-width:100%">') + '</div>' +
     '<button type="button" class="xbtn" data-arm="' + i + '" aria-label="移除附件' + NUM[i] + '">' + X_ICON + '</button></div>').join('');
   $('pAddAtt').hidden = atts.length >= 5;
   $('pAddAtt').textContent = '＋ 新增附件（' + atts.length + ' / 5）';
 }
-$('pAtts').addEventListener('change', (e) => { const t = e.target; if (t.dataset.ai == null) return; atts[+t.dataset.ai] = t.files[0] || null; renderAtts(); });
+$('pAtts').addEventListener('change', (e) => { const t = e.target; if (t.dataset.ai == null) return; const f = t.files[0] || null;
+  if (f && badExt([f])) { $('pErr').textContent = EXT_MSG(f); t.value = ''; return; } $('pErr').textContent = ''; atts[+t.dataset.ai] = f; renderAtts(); });
 $('pAtts').addEventListener('click', (e) => { const b = e.target.closest('[data-arm]'); if (!b) return; atts.splice(+b.dataset.arm, 1); if (!atts.length) atts = [null]; renderAtts(); });
 $('pAddAtt').addEventListener('click', () => { if (atts.length < 5) { atts.push(null); renderAtts(); } });
 renderAtts();
@@ -1255,14 +1266,15 @@ function replyForm(it) {
     '<div class="sub" id="rpTextHint">回覆將寄給 ' + esc(it.who) + ' 議員，並副本給議會秘書處。</div>' +
     '<textarea class="in" id="rpText" rows="6" aria-describedby="rpTextHint">' + esc(RP.text) + '</textarea></div>' +
     '<div class="fld"><span class="lb">附件（最多 5 個，合計 20MB 內）</span><div style="display:flex;flex-direction:column;gap:10px">' +
-    RP.files.map((f, i) => '<div class="arow"><label for="rpf' + i + '">附件' + NUM[i] + '</label><div style="min-width:0">' + (f ? '<div class="picked" style="font-size:15px;color:var(--ink)">' + esc(f.name) + '（' + Math.ceil(f.size / 1024) + ' KB）</div>' : '<input type="file" id="rpf' + i + '" data-rpfi="' + i + '" style="max-width:100%">') + '</div>' +
+    RP.files.map((f, i) => '<div class="arow"><label for="rpf' + i + '">附件' + NUM[i] + '</label><div style="min-width:0">' + (f ? '<div class="picked" style="font-size:15px;color:var(--ink)">' + esc(f.name) + '（' + Math.ceil(f.size / 1024) + ' KB）</div>' : '<input type="file" id="rpf' + i + '" data-rpfi="' + i + '" accept="' + ACCEPT + '" style="max-width:100%">') + '</div>' +
       '<button type="button" class="xbtn" data-rpfrm="' + i + '" aria-label="移除附件' + NUM[i] + '">' + X_ICON + '</button></div>').join('') + '</div>' +
     (RP.files.length < 5 ? '<button type="button" class="addbtn" data-rpfadd="1">＋ 新增附件（' + RP.files.length + ' / 5）</button>' : '') + '</div>' +
     '<p class="err" id="rpErr" role="alert"></p>' +
     '<div class="btnrow"><button type="button" class="secbtn" data-rpcancel="1">取消</button><button type="button" class="primary" style="margin-top:0" id="rpSend" data-rpsend="' + esc(it.id) + '">送出回覆</button></div></div>';
 }
 $('rpList').addEventListener('input', (e) => { if (e.target.id === 'rpText') RP.text = e.target.value; });
-$('rpList').addEventListener('change', (e) => { const t = e.target; if (t.dataset.rpfi == null) return; RP.files[+t.dataset.rpfi] = t.files[0] || null; renderReplies(); });
+$('rpList').addEventListener('change', (e) => { const t = e.target; if (t.dataset.rpfi == null) return; const f = t.files[0] || null;
+  if (f && badExt([f])) { $('rpErr').textContent = EXT_MSG(f); t.value = ''; return; } RP.files[+t.dataset.rpfi] = f; renderReplies(); });
 $('rpChips').addEventListener('click', (e) => { const b = e.target.closest('[data-rpf]'); if (!b) return; RP.filter = b.dataset.rpf; renderReplies(); });
 $('rpList').addEventListener('click', async (e) => {
   const b = e.target.closest('button'); if (!b) return;
@@ -1421,7 +1433,9 @@ async function loadCouncillors() {
 $('ptFiles').addEventListener('change', (e) => {
   const fs = [...(e.target.files || [])];
   $('ptErr').textContent = '';
+  const bad = badExt(fs);
   if (fs.length > 3) { $('ptErr').textContent = '附件至多三個，請重新選擇。'; e.target.value = ''; PT.files = []; }
+  else if (bad) { $('ptErr').textContent = EXT_MSG(bad); e.target.value = ''; PT.files = []; }
   else PT.files = fs;
   $('ptFileList').innerHTML = PT.files.map((f) => '<li>' + esc(f.name) + '（' + Math.ceil(f.size / 1024) + ' KB）</li>').join('');
   $('ptFileList').hidden = !PT.files.length;
