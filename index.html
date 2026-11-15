@@ -378,7 +378,7 @@ dialog.cf::backdrop{background:rgba(29,34,48,.55)}
   <header>
     <div class="topbar"><div class="school">國立臺北大學三峽校區學生議會　會內系統</div><a class="secbtn" href="#member">返回會內系統</a></div>
     <h1>提案</h1>
-    <p class="intro">送出後，提案會登錄至學生議會秘書處的提案紀錄，送交程序委員會審查。</p>
+    <p class="intro">送出後，提案會自動編上議案編號並立即出現在「議案查詢」，狀態為「提案送出」，再由程序委員會審查。</p>
   </header>
   <div class="fgrid" id="pMain">
     <form class="f" id="pForm" novalidate>
@@ -409,16 +409,16 @@ dialog.cf::backdrop{background:rgba(29,34,48,.55)}
         <div class="sub" id="pDescHint">請於說明欄中，註明所上傳附件的內容與檔案類型。範例：「一、...。二、辭呈如附件（附件一PDF、附件二DOCX）。」</div>
         <textarea class="in" id="pDesc" rows="8" aria-describedby="pDescHint"></textarea></div>
       <div class="fld"><span class="lb">附件（最多 5 個，選填）</span>
-        <div class="notice">關於附件：您上傳的附件將保存在本會雲端硬碟；一旦送出，即無法編輯該檔案。如上傳有誤，請通知本會秘書處並提供正確的檔案，由後台更正。</div>
+        <div class="notice">關於附件：您上傳的附件將保存在本會雲端硬碟，並在「議案查詢」公開供同學檢視，請確認內容可以公開（例如人事簡歷表請勿放身分證字號、電話等）；一旦送出，即無法編輯該檔案。如上傳有誤，請通知本會秘書處並提供正確的檔案，由後台更正。</div>
         <div id="pAtts" style="display:flex;flex-direction:column;gap:10px"></div>
         <button type="button" class="addbtn" id="pAddAtt"></button></div>
       <p class="err" id="pErr" role="alert"></p>
       <div><button type="submit" class="primary" id="pSend">送出提案</button></div>
     </form>
     <aside class="side"><h3>送出之後</h3><ol>
-      <li><strong>登錄提案</strong>：資料寫入本會提案試算表，附件存入本會雲端硬碟。</li>
+      <li><strong>編號並公開</strong>：自動編上議案編號，立即出現在「議案查詢」；附件存入本會雲端硬碟並公開連結。</li>
       <li><strong>程序委員會</strong>：審查提案程序與格式。</li>
-      <li><strong>編號與追蹤</strong>：通過後編上議案編號，可在「議案查詢」追蹤進度。</li></ol>
+      <li><strong>追蹤進度</strong>：審查進度會在「議案查詢」更新。提案人與聯絡人的信箱不會公開。</li></ol>
       <div class="sub">標示 <span class="req">*</span> 的欄位為必填。</div></aside>
   </div>
   <section class="done" id="pDone" hidden aria-live="polite">
@@ -623,7 +623,7 @@ dialog.cf::backdrop{background:rgba(29,34,48,.55)}
    取得方式：試算表 → 檔案 → 分享 → 發布到網路 → 選「議案」工作表與「逗號分隔值 (.csv)」→ 發布 */
 // 議案改由 Apps Script 提供（會拿掉提案人信箱等個資欄位）；讀不到時才退回 CSV
 const SHEET_API_URL = 'https://script.google.com/macros/s/AKfycbwZE63WWksqAi3wLooESVdFFwMyEpqEZIn5ez6EA-OaHtRznH0bFEANbFFrJDreazoR/exec';
-const SHEET_CSV_URL = '';
+const SHEET_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQxa1jqHh48FhCrgPNU7cufov-Fy64eKeYzOYHY70H9-fCQIO647_YvAVMtQTDYFKQeMXYln_1g_67h/pub?gid=0&single=true&output=csv';
 
 // 欄位別名：試算表表頭只要符合其中一個名稱就能讀到（可自行增加）
 const ALIASES = {
@@ -1184,7 +1184,7 @@ $('pForm').addEventListener('submit', async (e) => {
   catch (er) { $('pErr').textContent = '讀取附件失敗，請重新選擇檔案。'; return; }
   submitFlow('p', { type: 'proposal', unit: val('pUnit'), who: val('pWho'), wmail: val('pWmail'), cname: val('pCname'), cmail: val('pCmail'),
     ptype: pType, title: val('pTitle'), desc: $('pDesc').value.trim(), files: files },
-  (out) => '收件編號 <strong>' + esc(out.id) + '</strong>。提案已登錄至本會提案紀錄，程序委員會審查後，秘書處會以 <strong>' + esc(val('pCmail')) + '</strong> 與聯絡人聯繫。');
+  (out) => '議案編號 <strong>' + esc(out.id) + '</strong>。提案已出現在<a href="#bills">議案查詢</a>，程序委員會審查後，秘書處會以 <strong>' + esc(val('pCmail')) + '</strong> 與聯絡人聯繫。');
 });
 again('p', () => { ['pTitle', 'pDesc'].forEach((id) => { $(id).value = ''; }); atts = [null]; renderAtts(); });
 
