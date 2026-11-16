@@ -136,6 +136,13 @@ a.primary{display:inline-flex;align-items:center;text-decoration:none;margin-top
 .share{display:flex;flex-wrap:wrap;align-items:center;gap:10px;padding-top:16px;border-top:1px solid var(--line)}
 .share .lbl{font-size:15px;font-weight:700;margin-right:4px}
 .share .ok{font-size:15px;font-weight:500;color:#0F6B5C}
+.share .sbtns{display:flex;gap:10px}
+.share .sbtns .secbtn{white-space:nowrap;justify-content:center}
+@media (max-width:600px){
+  .share{flex-direction:column;align-items:stretch;gap:10px}
+  .share .sbtns .secbtn{flex:1 1 0;min-width:0;padding:0 12px}
+  .share .ok:empty{display:none}
+}
 article.focus{outline:3px solid var(--accent);outline-offset:8px;border-radius:2px}
 .hp{position:absolute;left:-9999px;width:1px;height:1px;overflow:hidden}
 .flist{margin:0;padding-left:1.4em;font-size:15px;line-height:1.8;color:#3A4050}
@@ -852,10 +859,10 @@ function render() {
           sp.map(stepLi).join('') +
         '</ol></div>' +
         (b.note ? '<div class="note"><strong>最新說明：</strong>' + esc(b.note) + '</div>' : '') +
-        '<div class="share"><span class="lbl">分享這個議案</span>' +
+        '<div class="share"><span class="lbl">分享這個議案</span><div class="sbtns">' +
           '<button type="button" class="secbtn" data-copy="' + esc(b.id) + '"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.7l-1 1"/><path d="M14 10a4 4 0 0 0-5.7 0l-3 3a4 4 0 0 0 5.7 5.7l1-1"/></svg>複製連結</button>' +
           (navigator.share ? '<button type="button" class="secbtn" data-share="' + esc(b.id) + '"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 15V3M8 7l4-4 4 4"/><path d="M5 12v7a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-7"/></svg>分享</button>' : '') +
-          '<span class="ok" role="status">' + (S.copied === b.id ? '已複製連結' : '') + '</span></div>' +
+          '</div><span class="ok" role="status">' + (S.copied === b.id ? '已複製連結' : '') + '</span></div>' +
       '</div>' : '') +
       '</article>';
   }).join('') : '<div class="empty">找不到符合的議案。<br>換個關鍵字，或把篩選改回「全部」試試。</div>';
