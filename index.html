@@ -596,7 +596,7 @@ dialog.cf::backdrop{background:rgba(29,34,48,.55)}
         <select class="in" id="ptCol"><option value="">不註明</option><option>法律學院</option><option>商學院</option><option>公共事務學院</option><option>社會科學學院</option><option>人文學院</option><option>電機資訊學院</option><option>永續創新國際學院</option></select></div>
 
       <div class="fld"><span class="lb" style="font-family:'Noto Serif TC','Noto Serif CJK TC','Songti TC','PMingLiU','MingLiU',serif;font-size:22px">陳情內容</span></div>
-      <div class="fld" style="margin-top:-12px"><label for="ptDesc">簡述 <span class="req">*</span></label><textarea class="in" id="ptDesc" rows="8"></textarea></div>
+      <div class="fld" style="margin-top:-12px"><label for="ptDesc">簡述 <span class="req">*</span></label><div class="sub" id="ptDescHint">請以文字說明，不能貼上網址或連結；相關資料請用附件上傳。</div><textarea class="in" id="ptDesc" rows="8" aria-describedby="ptDescHint"></textarea></div>
       <div class="fld"><label for="ptFiles">附件 <span class="sub">（非必要，至多三個，合計 20MB 內）</span></label>
         <input class="in" id="ptFiles" type="file" multiple accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.odt,.ods,.odp,.txt,.csv,.jpg,.jpeg,.png,.gif,.heic,.webp" style="padding:12px 16px;border-style:dashed">
         <div class="sub">可上傳 PDF、Word、Excel、PowerPoint、圖片（JPG、PNG 等）。</div>
@@ -1491,6 +1491,14 @@ $('iForm').addEventListener('submit', async (e) => {
 });
 again('i', () => { $('iOrg').value = ''; iPrev = ''; people = [{ title: '', name: '' }]; ['iTopics', 'iNote'].forEach((id) => { $(id).value = ''; }); renderPeople(); drawITo(); });
 
+/* 陳情不接受連結（和 Apps Script 的檢查相同；電子郵件地址不算） */
+const LINK_MSG = '為保護議員與資訊安全，陳情內容不能包含網址、連結或程式碼。若有相關資料，請改用附件上傳（PDF、圖片等）。';
+function hasLink(t) {
+  const s = String(t || '').normalize('NFKC').replace(/[。｡]/g, '.').replace(/[^\s@]+@[^\s@]+\.[a-z]{2,}/gi, '');
+  return /(https?|ftp|javascript|data|vbscript)\s*:|www\s*\./i.test(s) ||
+    /\b[a-z0-9-]+(\.[a-z0-9-]+)*\s*\.\s*(com|net|org|edu|gov|tw|io|ly|me|cc|co|xyz|info|top|app|link|site|gl|tk|ml|ga|cf|gq|ru|cn|shop|online|club|live|vip|biz|page|dev|lnkd|to)\b/i.test(s) ||
+    /<\s*\/?\s*(script|iframe|img|a|svg|object|embed|style|link|meta|form|input|button|body|html|base|frame|video|audio|math|details)\b|<!--/i.test(s);
+}
 /* ====== 陳情（公開，不需登入；議員名單由 Apps Script 的「議員名單」工作表提供，不含信箱） ====== */
 const PT = { type: '', role: '', reply: '', pub: '', files: [], cls: null };
 const PT_YES_R = '是（請填信箱）', PT_YES_P = '是（可以公開）', PT_NO_P = '否（請勿公開）';
@@ -1534,6 +1542,7 @@ $('ptForm').addEventListener('submit', async (e) => {
   else if (PT.reply === '是' && !val('ptMail')) miss.push('聯絡信箱');
   if (!PT.pub) miss.push('是否同意公開');
   if (miss.length) { $('ptErr').textContent = '請填寫：' + miss.join('、'); return; }
+  if (hasLink($('ptDesc').value) || hasLink(val('ptName'))) { $('ptErr').textContent = LINK_MSG; $('ptDesc').focus(); return; }
   if (PT.reply === '是' && !isMail(val('ptMail'))) { $('ptErr').textContent = '聯絡信箱格式不正確。'; return; }
   if (PT.files.reduce((n, f) => n + f.size, 0) > 20 * 1024 * 1024) { $('ptErr').textContent = '附件合計超過 20MB，請壓縮後再上傳。'; return; }
   const cl = $('ptCl').selectedOptions[0].textContent;
