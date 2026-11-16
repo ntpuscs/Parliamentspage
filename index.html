@@ -121,6 +121,10 @@ aside.side ol{margin:0;padding-left:1.4em;display:flex;flex-direction:column;gap
 a.primary{display:inline-flex;align-items:center;text-decoration:none;margin-top:0}
 .primary:disabled{opacity:.6;cursor:wait}
 .rad{display:flex;flex-wrap:wrap;gap:10px}
+.share{display:flex;flex-wrap:wrap;align-items:center;gap:10px;padding-top:16px;border-top:1px solid var(--line)}
+.share .lbl{font-size:15px;font-weight:700;margin-right:4px}
+.share .ok{font-size:15px;font-weight:500;color:#0F6B5C}
+article.focus{outline:3px solid var(--accent);outline-offset:8px;border-radius:2px}
 .hp{position:absolute;left:-9999px;width:1px;height:1px;overflow:hidden}
 .flist{margin:0;padding-left:1.4em;font-size:15px;line-height:1.8;color:#3A4050}
 /* ====== 送出前確認視窗 ====== */
@@ -789,7 +793,7 @@ function render() {
   $('count').textContent = '共 ' + list.length + ' 件議案';
   $('list').innerHTML = list.length ? list.map((b) => {
     const st = STATUS[b.status], sp = steps(b), open = S.open === b.id;
-    return '<article>' +
+    return '<article data-bid="' + esc(b.id) + '"' + (S.focus === b.id ? ' class="focus"' : '') + '>' +
       '<div class="head"><span class="id">議案 ' + esc(b.id) + '</span>' +
       '<span class="badge" style="background:' + st.bg + ';color:' + st.fg + '">' + esc(statusText(b.status, b.cat)) + '</span>' +
       '<span class="cat">' + esc(b.cat) + '</span></div>' +
@@ -812,9 +816,46 @@ function render() {
           sp.map((s) => '<div class="step"><i style="background:' + s.bar + shadow(s) + '"></i><b style="color:' + s.lc + '">' + s.label + '</b><span class="t" style="color:' + s.tc + '">' + s.tag + '</span></div>').join('') +
         '</div></div>' +
         (b.note ? '<div class="note"><strong>最新說明：</strong>' + esc(b.note) + '</div>' : '') +
+        '<div class="share"><span class="lbl">分享這個議案</span>' +
+          '<button type="button" class="secbtn" data-copy="' + esc(b.id) + '"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.7l-1 1"/><path d="M14 10a4 4 0 0 0-5.7 0l-3 3a4 4 0 0 0 5.7 5.7l1-1"/></svg>複製連結</button>' +
+          (navigator.share ? '<button type="button" class="secbtn" data-share="' + esc(b.id) + '"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 15V3M8 7l4-4 4 4"/><path d="M5 12v7a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-7"/></svg>分享</button>' : '') +
+          '<span class="ok" role="status">' + (S.copied === b.id ? '已複製連結' : '') + '</span></div>' +
       '</div>' : '') +
       '</article>';
   }).join('') : '<div class="empty">找不到符合的議案。<br>換個關鍵字，或把篩選改回「全部」試試。</div>';
+}
+
+/* ====== 分享議案：連結格式 …/#bills/NTPUSP-27-001 ====== */
+const billLink = (id) => location.origin + location.pathname + '#bills/' + encodeURIComponent(id);
+async function copyText(t) {
+  try { await navigator.clipboard.writeText(t); return true; }
+  catch (e) {
+    const ta = document.createElement('textarea'); ta.value = t; ta.setAttribute('readonly', ''); ta.style.position = 'fixed'; ta.style.opacity = '0';
+    document.body.appendChild(ta); ta.select(); let ok = false; try { ok = document.execCommand('copy'); } catch (er) {} ta.remove(); return ok;
+  }
+}
+document.addEventListener('click', async (e) => {
+  const t = e.target.closest('button[data-copy],button[data-share]'); if (!t) return;
+  e.stopImmediatePropagation();
+  const id = t.dataset.copy || t.dataset.share, b = S.bills.find((x) => x.id === id), url = billLink(id);
+  if (t.dataset.share) {
+    try { await navigator.share({ title: '議案 ' + id + (b ? '　' + b.title : ''), url: url }); } catch (er) {}
+    return;
+  }
+  S.copied = (await copyText(url)) ? id : null;
+  if (!S.copied) window.prompt('請複製這個連結：', url);
+  render();
+  setTimeout(() => { if (S.copied === id) { S.copied = null; render(); } }, 2500);
+}, true);
+// 從分享連結打開時：清掉篩選、展開該議案並捲過去
+function focusBill() {
+  if (!S.focus || !S.bills.length) return;
+  const b = S.bills.find((x) => normId(x.id) === normId(S.focus)) || S.bills.find((x) => normId(x.id).endsWith('-' + normId(S.focus)));
+  if (!b) { $('count').textContent = '找不到議案 ' + S.focus + '，以下列出全部議案。'; S.focus = null; return; }
+  S.focus = b.id; S.open = b.id; S.q = ''; S.cat = '全部'; S.status = '全部'; $('q').value = '';
+  render();
+  const el = document.querySelector('article[data-bid="' + CSS.escape(b.id) + '"]');
+  if (el) setTimeout(() => el.scrollIntoView({ block: 'start', behavior: 'smooth' }), 50);
 }
 
 document.addEventListener('click', (e) => {
@@ -825,7 +866,7 @@ document.addEventListener('click', (e) => {
     if (S.cat !== '全部' && S.status !== '全部' && !S.bills.some((b) => b.cat === S.cat && b.status === S.status)) S.status = '全部';
   }
   else if (t.dataset.status) S.status = t.dataset.status;
-  else if (t.dataset.open) S.open = S.open === t.dataset.open ? null : t.dataset.open;
+  else if (t.dataset.open) { S.open = S.open === t.dataset.open ? null : t.dataset.open; S.focus = null; }
   else return;
   render();
 });
@@ -856,6 +897,7 @@ async function load() {
     S.bills = toBills(rows).reverse();
     $('updated').textContent = '資料載入時間：' + new Date().toLocaleString('zh-TW', { hour12: false });
     render();
+    focusBill();
   } catch (err) {
     const why = err && err.headers ? err.message : '無法連到試算表（' + (err && err.message ? err.message : '未知原因') + '）。請稍後再試，或聯絡議會秘書處。';
     S.err = why;
@@ -1009,6 +1051,11 @@ let memberNote = '';
 let afterLogin = 'member';
 function route() {
   const h = location.hash.replace(/^#\/?/, '');
+  if (h.indexOf('bills/') === 0) {
+    let id = h.slice(6); try { id = decodeURIComponent(id); } catch (e) {}
+    S.focus = id; show('pub'); focusBill(); return;
+  }
+  if (S.focus) { S.focus = null; }
   if (MEMBER_PAGES.indexOf(h) !== -1 && !isMember()) { afterLogin = h; show('mlogin'); return; }
   if (PAGE_ROLES[h] && PAGE_ROLES[h].indexOf(getRole()) === -1) {
     memberNote = '您的帳號身分（' + (getRole() || '未設定') + '）不能使用這項功能。'; go('member'); return;
