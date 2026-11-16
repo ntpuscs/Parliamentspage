@@ -69,9 +69,21 @@ h2 button{display:block;width:100%;padding:0;margin:0;text-align:left;background
 .detail p{margin:0;font-size:15px;line-height:1.75;text-wrap:pretty;white-space:pre-line}
 dl{margin:0;display:grid;grid-template-columns:repeat(auto-fit,minmax(min(200px,100%),1fr));gap:16px 24px}
 dt{font-size:14px;color:var(--muted)}dd{margin:4px 0 0;font-size:17px;font-weight:500}
-.steps{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(110px,100%),1fr));gap:16px 12px}
-.step{display:flex;flex-direction:column;gap:6px}.step i{height:6px;border-radius:2px}
-.step b{font-size:16px}.step .t{font-size:14px;font-weight:500}.step .d{font-size:14px;color:var(--muted)}
+.steps{margin:0;padding:0;list-style:none;display:grid;grid-template-columns:repeat(7,minmax(0,1fr))}
+.steps li{position:relative;display:flex;flex-direction:column;align-items:center;gap:8px;text-align:center;padding:0 4px}
+.steps li+li::before{content:'';position:absolute;top:17px;left:-50%;right:50%;height:2px;background:var(--ln,#D9D3C4)}
+.steps .dot{position:relative;z-index:1;width:36px;height:36px;border-radius:50%;border:2px solid;display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:700}
+.steps .dot.na{border-style:dashed}
+.steps li b{font-size:15px;line-height:1.35;word-break:break-all}
+.steps li .t{font-size:13px;line-height:1.35;font-weight:500}
+.steps .txt{display:flex;flex-direction:column;gap:4px}
+@media (max-width:600px){
+  .steps{grid-template-columns:1fr}
+  .steps li{flex-direction:row;gap:14px;text-align:left;padding:6px 0}
+  .steps li+li::before{left:17px;right:auto;width:2px;height:auto;top:-50%;bottom:50%}
+  .steps .txt{flex-direction:row;align-items:baseline;gap:10px}
+  .steps li b{font-size:16px;word-break:normal}
+}
 .files{list-style:none;margin:0;padding:0}.files li{border-bottom:1px solid var(--line)}.files a{display:flex;align-items:center;gap:10px;min-height:44px;font-size:16px;font-weight:500;color:var(--accent);text-underline-offset:4px;word-break:break-all}
 .note{padding:16px 18px;background:var(--paper);border-radius:4px;font-size:16px;line-height:1.7}
 .empty{border-top:1px solid var(--line);padding:56px 0;text-align:center;font-size:18px;line-height:1.7;color:#3A4050}
@@ -733,7 +745,7 @@ const shadow = (s) => (s.na ? ';box-shadow:inset 0 0 0 1px #A9A395' : '');
 
 function steps(b) {
   return STAGES.map((label, i) => {
-    if (isNA(b, label)) return { label: label, bar: 'transparent', tag: '不適用', tc: '#5A6070', lc: '#5A6070', na: true };
+    if (isNA(b, label)) return { label: label, bar: 'transparent', tag: '不適用', tc: '#5A6070', lc: '#5A6070', na: true, st: 'na', reached: false };
     let st;
     if (b.status === '已通過' || i < b.stage) st = 'done';
     else if (i === b.stage) st = b.status === '審查中' ? 'current' : (b.status === '已退回' ? 'returned' : 'withdrawn');
@@ -745,8 +757,32 @@ function steps(b) {
       withdrawn:{bar:'#8A8F9C',tag:'於此撤案',tc:'#4A4F5C',lc:INK},
       pending:{bar:'#D9D3C4',tag:'尚未進行',tc:'#5A6070',lc:'#5A6070'}
     }[st];
-    return Object.assign({ label: label }, m);
+    const out = Object.assign({ label: label, st: st, reached: b.status === '已通過' || i <= b.stage }, m);
+    // 財務案一讀通過後，逕送財務委員會審查
+    if (st === 'done' && b.cat === '財務案' && label === '一讀') out.tag = '逕送財委會';
+    return out;
   });
+}
+// 審查歷程的圓形節點：已完成打勾、進行中沙漏加外圈、退回打叉、撤案橫線、尚未進行空心數字、不適用虛線
+const DOT_ICON = {
+  check: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>',
+  x: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg>',
+  dash: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><path d="M6 12h12"/></svg>',
+  hourglass: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3h12M6 21h12"/><path d="M8 3v3.5L12 12l4-5.5V3M8 21v-3.5L12 12l4 5.5V21"/><path d="M10 19h4l-2-2.5z" fill="currentColor"/></svg>'
+};
+const DOTS = {
+  done:      { bg: INK,       bd: INK,       fg: '#fff',    icon: 'check' },
+  current:   { bg: ACCENT,    bd: ACCENT,    fg: '#fff',    icon: 'hourglass', ring: '0 0 0 5px rgba(31,78,154,.2)' },
+  returned:  { bg: '#C2570C', bd: '#C2570C', fg: '#fff',    icon: 'x' },
+  withdrawn: { bg: '#8A8F9C', bd: '#8A8F9C', fg: '#fff',    icon: 'dash' },
+  pending:   { bg: '#fff',    bd: '#D9D3C4', fg: '#5A6070', icon: '' },
+  na:        { bg: '#fff',    bd: '#A9A395', fg: '#A9A395', icon: 'dash' }
+};
+function stepLi(s, i) {
+  const d = DOTS[s.st];
+  return '<li style="--ln:' + (s.reached && s.st !== 'na' ? INK : '#D9D3C4') + '">' +
+    '<span class="dot' + (s.st === 'na' ? ' na' : '') + '" aria-hidden="true" style="background:' + d.bg + ';border-color:' + d.bd + ';color:' + d.fg + (d.ring ? ';box-shadow:' + d.ring : '') + '">' + (d.icon ? DOT_ICON[d.icon] : (i + 1)) + '</span>' +
+    '<span class="txt"><b style="color:' + s.lc + '">' + s.label + '</b><span class="t" style="color:' + s.tc + '">' + s.tag + '</span></span></li>';
 }
 
 function currentLabel(b) {
@@ -812,9 +848,9 @@ function render() {
             ? '<li><a href="' + esc(f.url) + '" target="_blank" rel="noopener noreferrer"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 11.5l-8.6 8.6a5 5 0 0 1-7.1-7.1l8.6-8.6a3.3 3.3 0 0 1 4.7 4.7l-8.6 8.6a1.7 1.7 0 0 1-2.4-2.4l7.9-7.9"/></svg>' + esc(f.name) + '</a></li>'
             : '<li style="display:flex;flex-wrap:wrap;align-items:center;gap:4px 10px;min-height:44px;font-size:16px;color:#3A4050">' + esc(f.name) + '<span style="font-size:14px;color:#7A3200">（連結尚未提供，請洽議事組）</span></li>').join('') +
         '</ul></div>' : '') +
-        '<div><div style="font-size:15px;font-weight:700;margin-bottom:12px">審查歷程</div><div class="steps">' +
-          sp.map((s) => '<div class="step"><i style="background:' + s.bar + shadow(s) + '"></i><b style="color:' + s.lc + '">' + s.label + '</b><span class="t" style="color:' + s.tc + '">' + s.tag + '</span></div>').join('') +
-        '</div></div>' +
+        '<div><div style="font-size:15px;font-weight:700;margin-bottom:12px">審查歷程</div><ol class="steps">' +
+          sp.map(stepLi).join('') +
+        '</ol></div>' +
         (b.note ? '<div class="note"><strong>最新說明：</strong>' + esc(b.note) + '</div>' : '') +
         '<div class="share"><span class="lbl">分享這個議案</span>' +
           '<button type="button" class="secbtn" data-copy="' + esc(b.id) + '"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.7l-1 1"/><path d="M14 10a4 4 0 0 0-5.7 0l-3 3a4 4 0 0 0 5.7 5.7l1-1"/></svg>複製連結</button>' +
