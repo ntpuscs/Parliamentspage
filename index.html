@@ -133,6 +133,40 @@ aside.side ol{margin:0;padding-left:1.4em;display:flex;flex-direction:column;gap
 a.primary{display:inline-flex;align-items:center;text-decoration:none;margin-top:0}
 .primary:disabled{opacity:.6;cursor:wait}
 .rad{display:flex;flex-wrap:wrap;gap:10px}
+/* ====== 會議期程月曆 ====== */
+.cal{margin-top:48px;padding-top:32px;border-top:3px double var(--ink);display:flex;flex-direction:column;gap:20px}
+.cal h2.t{margin:0;font-family:'Noto Serif TC','Noto Serif CJK TC','Songti TC',serif;font-size:32px;font-weight:700}
+.calbar{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:12px}
+.calbar .m{font-size:22px;font-weight:700;min-width:7em}
+.calnav{display:flex;gap:8px}
+.calnav button{min-width:44px;min-height:44px;padding:0 14px;border:2px solid var(--ink);border-radius:4px;background:#fff;color:var(--ink);font-size:16px;font-weight:500;cursor:pointer;display:inline-flex;align-items:center;justify-content:center}
+.calnav button:hover{background:var(--paper)}
+.legend{display:flex;flex-wrap:wrap;gap:6px 16px;font-size:14px;color:var(--muted)}
+.legend i{display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:6px;vertical-align:0}
+.grid7{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));border-top:1px solid var(--line);border-left:1px solid var(--line)}
+.grid7 .wd{padding:8px 6px;font-size:14px;font-weight:700;color:var(--muted);text-align:center;border-right:1px solid var(--line);border-bottom:1px solid var(--line);background:var(--paper)}
+.grid7 .d{min-height:96px;padding:6px;border-right:1px solid var(--line);border-bottom:1px solid var(--line);display:flex;flex-direction:column;gap:4px;min-width:0}
+.grid7 .d.out{background:#FBFAF7;color:#A9A395}
+.grid7 .d .n{font-size:14px;font-weight:500;width:26px;height:26px;display:flex;align-items:center;justify-content:center;border-radius:50%}
+.grid7 .d.today .n{background:var(--accent);color:#fff;font-weight:700}
+.grid7 .ev{display:block;width:100%;text-align:left;font:inherit;font-size:13px;line-height:1.35;font-weight:500;padding:3px 6px;border-radius:3px;border:0;color:#fff;cursor:pointer;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.grid7 .dots{display:none;gap:3px;flex-wrap:wrap}
+.grid7 .dots i{width:7px;height:7px;border-radius:50%}
+.mlist{list-style:none;margin:0;padding:0;border-top:1px solid var(--line)}
+.mlist li{display:grid;grid-template-columns:5.5em 1fr;gap:4px 16px;padding:14px 4px;border-bottom:1px solid var(--line);scroll-margin-top:16px}
+.mlist li.hl{background:#E3ECF9}
+.mlist .dt{font-size:15px;font-weight:700;line-height:1.5}
+.mlist .dt span{display:block;font-size:13px;font-weight:500;color:var(--muted)}
+.mlist .nm{font-size:17px;font-weight:700;line-height:1.5}
+.mlist .tg{display:inline-block;font-size:13px;font-weight:700;color:#fff;padding:1px 8px;border-radius:3px;margin-right:8px;vertical-align:2px}
+.mlist .mt{font-size:15px;line-height:1.6;color:#3A4050}
+.mlist .del{margin-top:6px;min-height:36px;padding:0 12px;font-size:14px}
+@media (max-width:640px){
+  .grid7 .d{min-height:52px;padding:4px;align-items:center}
+  .grid7 .ev{display:none}.grid7 .dots{display:flex}
+  .grid7 .d.has{cursor:pointer}
+  .grid7 .wd{padding:6px 2px;font-size:13px}
+}
 /* 陳情頁跑馬燈：往下捲動時固定在畫面頂端；滑鼠移上去暫停；系統設定「減少動態效果」時改為靜態文字 */
 .mqbar{position:sticky;top:0;z-index:20;background:#fff;padding:calc(12px + env(safe-area-inset-top,0px)) 0 12px;margin-top:4px}
 .marquee{overflow:hidden;background:#FBE6D0;color:#7A3200;border-radius:4px;font-size:16px;font-weight:700;white-space:nowrap}
@@ -290,6 +324,25 @@ dialog.cf::backdrop{background:rgba(29,34,48,.55)}
       <button type="button" class="secbtn" id="mnDown">下載會議記錄</button>
     </div>
   </section>
+
+  <section class="agenda" aria-labelledby="mtT" style="border-top:3px double var(--ink)">
+    <h2 id="mtT" style="font-size:30px;font-weight:700">會議期程管理</h2>
+    <p class="hint" style="font-size:15px">新增的會議會立即出現在首頁的「會議期程」月曆（最多約 1 分鐘）。</p>
+    <form id="mtForm" class="fgrid" style="padding-top:8px;gap:20px 24px" novalidate>
+      <div class="fld"><label for="mtDate">日期 <span class="req">*</span></label><input class="in" id="mtDate" type="date"></div>
+      <div class="fld"><label for="mtStart">開始時間</label><input class="in" id="mtStart" type="time"></div>
+      <div class="fld"><label for="mtEnd">結束時間</label><input class="in" id="mtEnd" type="time"></div>
+      <div class="fld"><label for="mtType">類型 <span class="req">*</span></label><select class="in" id="mtType"><option value="">請選擇</option><option>常會</option><option>臨時會</option><option>委員會</option><option>其他</option></select></div>
+      <div class="fld" style="grid-column:1/-1"><label for="mtName">會議名稱 <span class="req">*</span></label><input class="in" id="mtName" maxlength="60" placeholder="例如：第 27 屆第 4 次常會" autocomplete="off"></div>
+      <div class="fld" style="grid-column:1/-1"><label for="mtPlace">地點</label><input class="in" id="mtPlace" maxlength="60" placeholder="例如：學生自治會聯合辦公室" autocomplete="off"></div>
+      <div class="fld" style="grid-column:1/-1"><label for="mtNote">備註</label><input class="in" id="mtNote" maxlength="200" placeholder="例如：開放旁聽、線上同步直播" autocomplete="off"></div>
+      <div style="grid-column:1/-1"><button type="submit" class="primary" id="mtSend" style="margin-top:0">新增到月曆</button></div>
+    </form>
+    <p class="msg" id="mtMsg" role="status"></p>
+    <div style="font-size:16px;font-weight:700;margin-top:8px">即將舉行的會議</div>
+    <ul class="mlist" id="mtList"></ul>
+    <button type="button" class="more" id="mtPast" style="align-self:flex-start">顯示過去的會議</button>
+  </section>
 </div>
 
 <!-- ====== 首頁 ====== -->
@@ -324,6 +377,17 @@ dialog.cf::backdrop{background:rgba(29,34,48,.55)}
       <span class="go">登入使用<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span>
     </a>
   </nav>
+
+  <section class="cal" aria-labelledby="calT">
+    <h2 class="t" id="calT">會議期程</h2>
+    <div class="calbar">
+      <div class="m" id="calM" aria-live="polite"></div>
+      <div class="calnav"><button type="button" id="calPrev" aria-label="上個月"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 18l-6-6 6-6"/></svg></button><button type="button" id="calToday">本月</button><button type="button" id="calNext" aria-label="下個月"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 18l6-6-6-6"/></svg></button></div>
+    </div>
+    <div class="legend" id="calLegend"></div>
+    <div class="grid7" id="calGrid" role="grid" aria-labelledby="calM"></div>
+    <div><div style="font-size:16px;font-weight:700;margin-bottom:8px" id="calListT">本月會議</div><ul class="mlist" id="calList"></ul></div>
+  </section>
 
   <footer>
     <div>系統問題請洽學生議會秘書處：ntpuscs@gmail.com</div>
@@ -1074,10 +1138,14 @@ function show(name) {
   }
   if (name === 'proposal') limitUnits();
   if (name === 'petition') loadCouncillors();
+  if (name === 'home') loadMeetings();
+  if (name === 'sec') loadMeetings(true);
   if (name === 'reply') { $('rpMsg').hidden = true; RP.open = null; RP.replying = null; loadReplies(); }
 }
-const isAuthed = () => { try { return sessionStorage.getItem('sec') === '1'; } catch (e) { return false; } };
-const setAuthed = (v) => { try { v ? sessionStorage.setItem('sec', '1') : sessionStorage.removeItem('sec'); } catch (e) {} };
+// 秘書處登入：存 Apps Script 發的通行碼（12 小時有效），新增／刪除會議時要帶上
+const secTok = () => { try { return sessionStorage.getItem('secTok') || ''; } catch (e) { return ''; } };
+const isAuthed = () => !!secTok();
+const setAuthed = (t) => { try { sessionStorage.removeItem('sec'); t ? sessionStorage.setItem('secTok', t) : sessionStorage.removeItem('secTok'); } catch (e) {} };
 /* ====== 會內系統登入 ======
    帳號密碼放在秘書處試算表的「會內帳號」工作表，由 Apps Script 驗證；網頁裡不存任何帳密。 */
 const MEMBER_PAGES = ['member', 'proposal', 'suggest', 'request', 'invite', 'reply'];
@@ -1140,8 +1208,9 @@ $('loginForm').addEventListener('submit', async (e) => {
   const btn = $('loginForm').querySelector('button[type="submit"]'), label = btn.textContent;
   btn.disabled = true; btn.textContent = '登入中…'; $('loginErr').textContent = '';
   try {
-    await postForm({ type: 'secLogin', user: $('u').value.trim(), pass: $('pw').value }, '-');
-    setAuthed(true); $('pw').value = ''; route();
+    const out = await postForm({ type: 'secLogin', user: $('u').value.trim(), pass: $('pw').value }, '-');
+    if (!out.token) throw new Error('系統尚未更新完成，請稍後再試。（管理者：請把 Apps Script 部署為「新版本」）');
+    setAuthed(out.token); $('pw').value = ''; route();
   } catch (err) {
     $('loginErr').textContent = err.message; $('pw').value = ''; $('pw').focus();
   } finally { btn.disabled = false; btn.textContent = label; }
@@ -1586,6 +1655,113 @@ $('ptAgain').addEventListener('click', () => {
   $('ptFileList').hidden = true; $('ptMailBox').hidden = true;
   drawPtType(); drawPtReply(); drawPtPub();
   $('ptDone').hidden = true; $('ptMain').hidden = false; window.scrollTo(0, 0);
+});
+
+/* ====== 會議期程（首頁月曆＋秘書處管理） ====== */
+const MT_COLOR = { '常會': '#1D2230', '臨時會': '#B54708', '委員會': '#1F4E9A', '其他': '#5A6070' };
+const WD = ['日', '一', '二', '三', '四', '五', '六'];
+const pad2 = (n) => String(n).padStart(2, '0');
+const MT = { items: null, y: new Date().getFullYear(), m: new Date().getMonth(), sel: '', past: false, loading: false };
+const mtDate = (iso) => { const p = iso.split('-').map(Number); return new Date(p[0], p[1] - 1, p[2]); };
+const mtWhen = (x) => (x.start ? x.start + (x.end ? '–' + x.end : '') : '時間未定');
+
+async function loadMeetings(force) {
+  if (MT.loading || (MT.items && !force)) { drawCal(); drawMtAdmin(); return; }
+  MT.loading = true;
+  try {
+    const res = await fetch(SHEET_API_URL + '?type=meetings', { cache: 'no-store' });
+    const out = await res.json();
+    if (!out.ok) throw new Error(out.error);
+    MT.items = out.items || [];
+  } catch (e) { MT.items = MT.items || []; MT.err = true; }
+  MT.loading = false; drawCal(); drawMtAdmin();
+}
+function drawCal() {
+  if (!$('calGrid')) return;
+  $('calLegend').innerHTML = Object.keys(MT_COLOR).map((k) => '<span><i style="background:' + MT_COLOR[k] + '"></i>' + k + '</span>').join('');
+  $('calM').textContent = MT.y + ' 年 ' + (MT.m + 1) + ' 月';
+  const first = new Date(MT.y, MT.m, 1), start = new Date(MT.y, MT.m, 1 - first.getDay());
+  const today = new Date(); const tKey = today.getFullYear() + '-' + pad2(today.getMonth() + 1) + '-' + pad2(today.getDate());
+  const byDay = {}; (MT.items || []).forEach((x) => { (byDay[x.date] = byDay[x.date] || []).push(x); });
+  let h = WD.map((w) => '<div class="wd" role="columnheader">' + w + '</div>').join('');
+  const weeks = Math.ceil((first.getDay() + new Date(MT.y, MT.m + 1, 0).getDate()) / 7);
+  for (let i = 0; i < weeks * 7; i++) {
+    const d = new Date(start.getFullYear(), start.getMonth(), start.getDate() + i);
+    const key = d.getFullYear() + '-' + pad2(d.getMonth() + 1) + '-' + pad2(d.getDate());
+    const ev = byDay[key] || [], out = d.getMonth() !== MT.m;
+    const label = (d.getMonth() + 1) + ' 月 ' + d.getDate() + ' 日' + (ev.length ? '，' + ev.length + ' 場會議' : '');
+    h += '<div class="d' + (out ? ' out' : '') + (key === tKey ? ' today' : '') + (ev.length ? ' has' : '') + '" role="gridcell" aria-label="' + label + '"' + (ev.length ? ' data-day="' + key + '"' : '') + '>' +
+      '<span class="n">' + d.getDate() + '</span>' +
+      ev.map((x) => '<button type="button" class="ev" data-day="' + key + '" style="background:' + (MT_COLOR[x.type] || '#5A6070') + '" title="' + esc(mtWhen(x) + ' ' + x.name) + '">' + esc((x.start ? x.start + ' ' : '') + x.name) + '</button>').join('') +
+      (ev.length ? '<span class="dots" aria-hidden="true">' + ev.map((x) => '<i style="background:' + (MT_COLOR[x.type] || '#5A6070') + '"></i>').join('') + '</span>' : '') +
+      '</div>';
+  }
+  $('calGrid').innerHTML = h;
+  const ym = MT.y + '-' + pad2(MT.m + 1);
+  const list = (MT.items || []).filter((x) => x.date.indexOf(ym) === 0);
+  $('calListT').textContent = (MT.m + 1) + ' 月會議（' + list.length + ' 場）';
+  $('calList').innerHTML = MT.items === null ? '<li style="display:block;color:var(--muted)">載入會議期程中…</li>'
+    : list.length ? list.map((x) => mtLi(x, false)).join('')
+    : '<li style="display:block;color:var(--muted)">' + (MT.err ? '暫時讀不到會議期程，請稍後再試。' : '這個月沒有排定的會議。') + '</li>';
+}
+function mtLi(x, admin) {
+  const d = mtDate(x.date);
+  return '<li id="' + (admin ? 'mta-' : 'mt-') + esc(x.id) + '" data-date="' + esc(x.date) + '"' + (!admin && MT.sel === x.date ? ' class="hl"' : '') + '>' +
+    '<div class="dt">' + (d.getMonth() + 1) + '/' + d.getDate() + '（' + WD[d.getDay()] + '）<span>' + esc(mtWhen(x)) + '</span></div>' +
+    '<div><div class="nm"><span class="tg" style="background:' + (MT_COLOR[x.type] || '#5A6070') + '">' + esc(x.type) + '</span>' + esc(x.name) + '</div>' +
+    (x.place ? '<div class="mt">地點：' + esc(x.place) + '</div>' : '') + (x.note ? '<div class="mt">' + esc(x.note) + '</div>' : '') +
+    (admin ? '<button type="button" class="secbtn del" data-mdel="' + esc(x.id) + '">刪除</button>' : '') + '</div></li>';
+}
+$('calPrev').addEventListener('click', () => { MT.m--; if (MT.m < 0) { MT.m = 11; MT.y--; } MT.sel = ''; drawCal(); });
+$('calNext').addEventListener('click', () => { MT.m++; if (MT.m > 11) { MT.m = 0; MT.y++; } MT.sel = ''; drawCal(); });
+$('calToday').addEventListener('click', () => { const t = new Date(); MT.y = t.getFullYear(); MT.m = t.getMonth(); MT.sel = ''; drawCal(); });
+$('calGrid').addEventListener('click', (e) => {
+  const c = e.target.closest('[data-day]'); if (!c) return;
+  MT.sel = c.dataset.day; drawCal();
+  const li = document.querySelector('#calList li[data-date="' + MT.sel + '"]');
+  if (li) li.scrollIntoView({ block: 'center', behavior: 'smooth' });
+});
+
+// 秘書處：新增／刪除
+function drawMtAdmin() {
+  if (!$('mtList')) return;
+  const t = new Date(), tKey = t.getFullYear() + '-' + pad2(t.getMonth() + 1) + '-' + pad2(t.getDate());
+  const items = (MT.items || []).filter((x) => MT.past || x.date >= tKey);
+  $('mtList').innerHTML = MT.items === null ? '<li style="display:block;color:var(--muted)">載入中…</li>'
+    : items.length ? items.map((x) => mtLi(x, true)).join('') : '<li style="display:block;color:var(--muted)">目前沒有' + (MT.past ? '' : '即將舉行的') + '會議。</li>';
+  $('mtPast').textContent = MT.past ? '只顯示即將舉行的會議' : '顯示過去的會議';
+}
+$('mtPast').addEventListener('click', () => { MT.past = !MT.past; drawMtAdmin(); });
+async function secPost(data) {
+  const out = await postForm(Object.assign({ secToken: secTok() }, data), '-').catch((e) => { throw e; });
+  return out;
+}
+function secFail(err) {
+  $('mtMsg').textContent = err.message;
+  if (/重新登入/.test(err.message)) { setAuthed(''); setTimeout(() => go('sec'), 1200); }
+}
+$('mtForm').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const miss = [];
+  if (!val('mtDate')) miss.push('日期'); if (!val('mtType')) miss.push('類型'); if (!val('mtName')) miss.push('會議名稱');
+  if (miss.length) { $('mtMsg').textContent = '請填寫：' + miss.join('、'); return; }
+  if (val('mtStart') && val('mtEnd') && val('mtEnd') <= val('mtStart')) { $('mtMsg').textContent = '結束時間要晚於開始時間。'; return; }
+  const btn = $('mtSend'); btn.disabled = true; btn.textContent = '新增中…'; $('mtMsg').textContent = '';
+  try {
+    await secPost({ type: 'meetingAdd', date: val('mtDate'), start: val('mtStart'), end: val('mtEnd'), name: val('mtName'), mtype: val('mtType'), place: val('mtPlace'), note: val('mtNote') });
+    $('mtMsg').textContent = '已新增「' + val('mtName') + '」（' + slash(val('mtDate')) + '）。';
+    ['mtName', 'mtNote'].forEach((id) => { $(id).value = ''; });
+    await loadMeetings(true);
+  } catch (er) { secFail(er); }
+  finally { btn.disabled = false; btn.textContent = '新增到月曆'; }
+});
+$('mtList').addEventListener('click', async (e) => {
+  const b = e.target.closest('[data-mdel]'); if (!b) return;
+  const x = (MT.items || []).find((i) => i.id === b.dataset.mdel); if (!x) return;
+  if (!(await confirmBox('確定刪除這場會議？', [['日期', slash(x.date) + ' ' + mtWhen(x)], ['會議', x.type + '　' + x.name], ['地點', x.place]]))) return;
+  b.disabled = true; b.textContent = '刪除中…';
+  try { await secPost({ type: 'meetingDel', id: x.id }); $('mtMsg').textContent = '已刪除「' + x.name + '」。'; await loadMeetings(true); }
+  catch (er) { secFail(er); b.disabled = false; b.textContent = '刪除'; }
 });
 
 route();
