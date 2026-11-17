@@ -133,6 +133,12 @@ aside.side ol{margin:0;padding-left:1.4em;display:flex;flex-direction:column;gap
 a.primary{display:inline-flex;align-items:center;text-decoration:none;margin-top:0}
 .primary:disabled{opacity:.6;cursor:wait}
 .rad{display:flex;flex-wrap:wrap;gap:10px}
+/* 陳情頁跑馬燈：滑鼠移上去暫停；系統設定「減少動態效果」時改為靜態文字 */
+.marquee{margin-top:16px;overflow:hidden;background:#FBE6D0;color:#7A3200;border-radius:4px;font-size:16px;font-weight:700;white-space:nowrap}
+.marquee span{display:inline-block;padding:12px 0 12px 100%;animation:mq 24s linear infinite}
+.marquee:hover span{animation-play-state:paused}
+@keyframes mq{to{transform:translateX(-100%)}}
+@media (prefers-reduced-motion:reduce){.marquee{white-space:normal}.marquee span{animation:none;padding:12px 18px;line-height:1.6}}
 .share{display:flex;flex-wrap:wrap;align-items:center;gap:10px;padding-top:16px;border-top:1px solid var(--line)}
 .share .lbl{font-size:15px;font-weight:700;margin-right:4px}
 .share .ok{font-size:15px;font-weight:500;color:#0F6B5C}
@@ -577,7 +583,8 @@ dialog.cf::backdrop{background:rgba(29,34,48,.55)}
 
 <!-- ====== 陳情（公開） ====== -->
 <div class="wrap" id="viewPetition" hidden>
-  <header>
+  <div class="marquee" role="note"><span>本系統為學生議員接收陳情之用，會直接發信給議員，請同學不要用來嬉鬧朋友，避免佔據公共資源。</span></div>
+  <header style="padding-top:40px">
     <div class="topbar"><div class="school">國立臺北大學三峽校區學生議會</div><a class="secbtn" href="#">返回首頁</a></div>
     <h1>陳情</h1>
     <p class="intro">對學生會或臺北大學的作為、不作為有意見，可以直接向你的學生議員陳情。送出後，系統會自動寄信通知你選擇的議員。</p>
@@ -603,7 +610,7 @@ dialog.cf::backdrop{background:rgba(29,34,48,.55)}
         <select class="in" id="ptCol"><option value="">不註明</option><option>法律學院</option><option>商學院</option><option>公共事務學院</option><option>社會科學學院</option><option>人文學院</option><option>電機資訊學院</option><option>永續創新國際學院</option></select></div>
 
       <div class="fld"><span class="lb" style="font-family:'Noto Serif TC','Noto Serif CJK TC','Songti TC','PMingLiU','MingLiU',serif;font-size:22px">陳情內容</span></div>
-      <div class="fld" style="margin-top:-12px"><label for="ptDesc">簡述 <span class="req">*</span></label><div class="sub" id="ptDescHint">請以文字說明，不能貼上網址或連結；相關資料請用附件上傳。</div><textarea class="in" id="ptDesc" rows="8" aria-describedby="ptDescHint"></textarea></div>
+      <div class="fld" style="margin-top:-12px"><label for="ptDesc">簡述 <span class="req">*</span></label><div class="notice" id="ptDescHint" style="display:flex;flex-direction:column;gap:6px"><div>請清楚描述您所遇到的問題，並清楚描述地點，否則學生議員恐無法處理您的陳情。「社科院設備好爛」、「商院廁所好臭」均不夠清楚，議員無法處理即不會處理。</div><div class="sub">請以文字說明，不能貼上網址或連結；相關資料請用附件上傳。</div></div><textarea class="in" id="ptDesc" rows="8" aria-describedby="ptDescHint"></textarea></div>
       <div class="fld"><label for="ptFiles">附件 <span class="sub">（非必要，至多三個，合計 20MB 內）</span></label>
         <input class="in" id="ptFiles" type="file" multiple accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.odt,.ods,.odp,.txt,.csv,.jpg,.jpeg,.png,.gif,.heic,.webp" style="padding:12px 16px;border-style:dashed">
         <div class="sub">可上傳 PDF、Word、Excel、PowerPoint、圖片（JPG、PNG 等）。</div>
