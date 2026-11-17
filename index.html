@@ -133,8 +133,9 @@ aside.side ol{margin:0;padding-left:1.4em;display:flex;flex-direction:column;gap
 a.primary{display:inline-flex;align-items:center;text-decoration:none;margin-top:0}
 .primary:disabled{opacity:.6;cursor:wait}
 .rad{display:flex;flex-wrap:wrap;gap:10px}
-/* 陳情頁跑馬燈：滑鼠移上去暫停；系統設定「減少動態效果」時改為靜態文字 */
-.marquee{margin-top:16px;overflow:hidden;background:#FBE6D0;color:#7A3200;border-radius:4px;font-size:16px;font-weight:700;white-space:nowrap}
+/* 陳情頁跑馬燈：往下捲動時固定在畫面頂端；滑鼠移上去暫停；系統設定「減少動態效果」時改為靜態文字 */
+.mqbar{position:sticky;top:0;z-index:20;background:#fff;padding:calc(12px + env(safe-area-inset-top,0px)) 0 12px;margin-top:4px}
+.marquee{overflow:hidden;background:#FBE6D0;color:#7A3200;border-radius:4px;font-size:16px;font-weight:700;white-space:nowrap}
 .marquee span{display:inline-block;padding:12px 0 12px 100%;animation:mq 24s linear infinite}
 .marquee:hover span{animation-play-state:paused}
 @keyframes mq{to{transform:translateX(-100%)}}
@@ -583,8 +584,8 @@ dialog.cf::backdrop{background:rgba(29,34,48,.55)}
 
 <!-- ====== 陳情（公開） ====== -->
 <div class="wrap" id="viewPetition" hidden>
-  <div class="marquee" role="note"><span>本系統為學生議員接收陳情之用，會直接發信給議員，請同學不要用來嬉鬧朋友，避免佔據公共資源。</span></div>
-  <header style="padding-top:40px">
+  <div class="mqbar"><div class="marquee" role="note"><span>本系統為學生議員接收陳情之用，會直接發信給議員，請同學不要用來嬉鬧朋友，避免佔據公共資源。</span></div></div>
+  <header style="padding-top:28px">
     <div class="topbar"><div class="school">國立臺北大學三峽校區學生議會</div><a class="secbtn" href="#">返回首頁</a></div>
     <h1>陳情</h1>
     <p class="intro">對學生會或臺北大學的作為、不作為有意見，可以直接向你的學生議員陳情。送出後，系統會自動寄信通知你選擇的議員。</p>
