@@ -144,7 +144,9 @@ input[type=file].input{padding:12px 16px;font-size:16px;border-style:dashed}
 const CONFIG = {
   API_URL: 'https://script.google.com/macros/s/AKfycbwGjm5EHNMvjrHDvqf7w6bLiMcyy4BCPtyYDodVlZF8ObHylDr4ZybVCMPhMX-hR2Yf/exec',
   CLIENT_ID: '1000829426446-0is953f3pr8dp8fkf34oem5d1q8lo78r.apps.googleusercontent.com',
-  DOMAIN: 'gm.ntpu.edu.tw'
+  DOMAIN: 'gm.ntpu.edu.tw',
+  // 訪客模式：不登入也能瀏覽連署區（須與 Code.gs 的 GUEST_MODE 一致）
+  GUEST: true
 };
 // ===============================================================
 
@@ -292,7 +294,7 @@ function consentHtml() {
     '<p style="margin:0;font-size:16px;line-height:1.75;color:var(--body)">使用請願系統前，請閱讀並同意本會的隱私權政策。重點如下：</p>' +
     '<ul style="margin:0;padding-left:1.3em;font-size:15px;line-height:1.75;color:var(--body);display:flex;flex-direction:column;gap:4px">' +
     '<li>登入時只取得您的姓名與學校信箱，用來確認身分與會員資格，不會讀取其他 Google 資料。</li>' +
-    '<li>連署名單、學號與信箱不會公開；請願人姓名依您的選擇公開。</li>' +
+    '<li>通過審查的請願內容公開在連署區，未登入的訪客也看得到；請願人姓名依您的選擇公開，且只對登入的北大帳號顯示。連署名單、學號與信箱不會公開。</li>' +
     '<li>資料存放在學生議會的 Google 試算表，只有秘書處授權人員能存取，不提供給第三方。</li></ul>' +
     '<a href="privacy.html" target="_blank" rel="noopener" style="font-size:16px;font-weight:700;color:var(--blue);text-underline-offset:3px">閱讀完整的隱私權政策（另開視窗）</a>' +
     '<label class="box" style="display:flex;gap:12px;align-items:flex-start;font-size:16px;line-height:1.6;cursor:pointer"><input type="checkbox" id="cs-ok" style="width:22px;height:22px;margin:1px 0 0;flex:0 0 auto;accent-color:var(--ink)">' +
@@ -425,13 +427,14 @@ function shell(inner, opts) {
   const u = auth && auth.user;
   const nav = [
     ['#/list', '連署區'], ['#/mine', '我的請願']
-  ].map((n) => '<a class="btn sm' + (location.hash === n[0] ? ' on' : '') + '" href="' + n[0] + '">' + n[1] + '</a>').join('') +
+  ].filter((n) => u || n[0] === '#/list').map((n) => '<a class="btn sm' + (location.hash === n[0] ? ' on' : '') + '" href="' + n[0] + '">' + n[1] + '</a>').join('') +
+    (u ? '' : '<button type="button" class="btn sm primary" data-act="loginHere">登入</button>') +
     (u && u.isSec ? '<a class="btn sm' + (location.hash.indexOf('#/sec') === 0 ? ' on' : '') + '" href="#/sec">' + LOCK + '秘書處</a>' : '') +
     (u && u.isMember ? '<a class="btn sm primary" href="#/plea">' + PLUS + '提出請願</a>' : '');
   return (opts.marquee ? '<div class="wrap" style="padding-bottom:0"><div class="mq" role="note"><div><span>' + esc(opts.marquee) + '</span></div></div></div>' : '') +
     '<div class="wrap' + (opts.wide ? ' wide' : '') + '">' +
     '<header class="hdr"><div class="hdr-top"><div class="stack" style="gap:6px"><a href="#/" class="org" style="text-decoration:none">國立臺北大學三峽校區學生議會</a>' +
-    (u ? '<div class="who">已登入：' + esc(u.email) + '・<a href="#" data-act="logout">登出</a></div>' : '') + '</div>' +
+    (u ? '<div class="who">已登入：' + esc(u.email) + '・<a href="#" data-act="logout">登出</a></div>' : '<div class="who">訪客瀏覽中・<a href="#" data-act="loginHere">登入北大帳號</a></div>') + '</div>' +
     '<nav class="nav" aria-label="主要功能">' + nav + '</nav></div>' +
     '<h1 class="t">' + esc(opts.title || '') + '</h1>' + (opts.lead ? '<p class="lead">' + opts.lead + '</p>' : '') + '</header>' +
     inner + '<footer class="foot">系統問題請洽學生議會秘書處：ntpuscs@gmail.com・<a href="privacy.html" style="color:inherit">隱私權政策</a></footer></div>';
@@ -448,7 +451,8 @@ function route() {
 async function render() {
   closeModal();
   const r = route();
-  if (r.a && !authed()) {
+  const guestOk = CONFIG.GUEST && (r.a === 'list' || r.a === 'p');
+  if (r.a && !authed() && !guestOk) {
     sessionStorage.setItem('pt_next', location.hash);
     pendingLogin = true;
     if (location.hash !== '#/') { location.hash = '#/'; return; }
@@ -481,6 +485,8 @@ const ACTS = {
   logout: (el, e) => { e.preventDefault(); logout(); },
   openLogin: () => { if (authed()) { location.hash = auth.user.isStudent ? '#/list' : '#/sec'; } else openLogin(); },
   afterLogin: () => afterLogin(),
+  // 訪客在連署區按登入：登入後回到原本的頁面
+  loginHere: (el, e) => { if (e) e.preventDefault(); sessionStorage.setItem('pt_next', location.hash); openLogin(); },
   retryLogin: () => { try { google.accounts.id.disableAutoSelect(); } catch (e) {} $('#lg-body').innerHTML = loginIdle(); mountGisButton(); },
   tab: (el) => { S.tab = el.dataset.v; drawList(); },
   cat: (el) => { S.cat = el.dataset.v; drawList(); },
@@ -522,7 +528,8 @@ function viewLanding() {
     '<h1 class="hero-h">一個人提出<br>一群人推動</h1>' +
     '<p style="margin:0;max-width:28em;font-size:clamp(17px,1.6vw,20px);line-height:1.8;color:rgba(247,244,236,.82)">對學生會、學校政策或自治法規有想法？提出請願，邀請同學連署。連署人數越多，議會處理的層級越高，直到校方或學生會必須正式回應。</p>' +
     '<div style="display:flex;flex-wrap:wrap;align-items:center;gap:16px 24px"><button type="button" class="cta" data-act="openLogin" style="color:var(--ink);background:var(--cream)">' + enter + ARROW + '</button>' +
-    '<span style="font-size:14px;color:rgba(247,244,236,.7)">須以北大 Google 帳號（@' + CONFIG.DOMAIN + '）登入</span></div></div></div>' +
+    (CONFIG.GUEST && !authed() ? '<a href="#/list" style="font-size:16px;font-weight:700;color:var(--cream);text-underline-offset:4px">先以訪客身分瀏覽連署區</a>' : '') +
+    '<span style="font-size:14px;color:rgba(247,244,236,.7)">提出請願與連署須以北大 Google 帳號（@' + CONFIG.DOMAIN + '）登入</span></div></div></div>' +
     '<figure style="margin:0;display:flex;flex-direction:column;gap:14px"><figcaption style="font-size:14px;font-weight:700;letter-spacing:.2em;color:var(--gold)">連署人數 → 處理層級</figcaption>' +
     '<ul class="stair" aria-label="連署門檻">' + steps.map((s) => '<li style="height:' + s[2] + ';background:' + s[3] + ';color:' + s[4] + '"><b>' + s[0] + '<small>人</small></b><span>' + s[1] + '</span></li>').join('') + '</ul>' +
     '<div aria-hidden="true" style="height:3px;background:var(--cream)"></div></figure></div></div></section>' +
@@ -545,8 +552,10 @@ function viewLanding() {
 // 連署區
 // =====================================================================
 async function loadList(force) {
-  if (S.list && !force) return;
-  const d = await api('list');
+  // 登入狀態改變（訪客 → 登入）時重新載入，才拿得到「已連署」和請願人姓名
+  if (S.list && !force && S.listAuthed === authed()) return;
+  const d = await api(authed() ? 'list' : 'guestList');
+  S.listAuthed = authed();
   S.list = d.items;
   S.signed = new Set(d.signed);
 }
@@ -631,7 +640,8 @@ async function viewDetail(pid) {
   const L = lvlOf(p);
   const color = L.top ? L.top.color : (p.open ? '#1D2230' : '#5A6070');
   const signed = S.signed.has(p.pid);
-  const canSign = p.open && !signed && auth.user.isMember;
+  const guest = !authed();
+  const canSign = !guest && p.open && !signed && auth.user.isMember;
   let resp = '';
   if (p.count >= 150) {
     if (p.resp) {
@@ -660,7 +670,8 @@ async function viewDetail(pid) {
     '<div style="font-size:15px;line-height:1.6;color:var(--body)">' + timeText(p) + (L.next && p.open ? '<br>再 ' + (L.next.n - p.count) + ' 人：' + L.next.d : (!L.next ? '<br>已達最高門檻' : '')) + '</div></div>' +
     '<button type="button" class="btn" data-act="share" data-pid="' + esc(p.pid) + '" data-title="' + esc(p.title) + '">' + SHARE + '分享這件請願</button>' +
     '<div style="padding-top:16px;border-top:1px solid var(--line)" class="stack">' +
-    (canSign ? '<div class="h3" style="margin-bottom:8px">我要連署</div><p style="margin:0 0 14px;font-size:15px;line-height:1.7;color:var(--body)">將以 <strong style="word-break:break-all">' + esc(auth.user.email) + '</strong> 連署。每個帳號每件請願只能連署一次，送出後無法撤回；連署名單不會公開。</p>' +
+    (guest && p.open ? '<div class="h3" style="margin-bottom:8px">我要連署</div><p style="margin:0 0 14px;font-size:15px;line-height:1.7;color:var(--body)">您目前以訪客身分瀏覽。連署須以北大帳號（@' + CONFIG.DOMAIN + '）登入，登入後會回到這件請願。</p><button type="button" class="btn primary lg" data-act="loginHere">登入北大帳號後連署</button>'
+      : canSign ? '<div class="h3" style="margin-bottom:8px">我要連署</div><p style="margin:0 0 14px;font-size:15px;line-height:1.7;color:var(--body)">將以 <strong style="word-break:break-all">' + esc(auth.user.email) + '</strong> 連署。每個帳號每件請願只能連署一次，送出後無法撤回；連署名單不會公開。</p>' +
       '<button type="button" class="btn primary lg" data-act="sign">以學校帳號連署</button>'
       : signed ? '<div class="ok-box">✓ 您已連署這件請願</div>'
         : !p.open ? '<div style="font-size:15px;line-height:1.7;color:var(--body)">連署期間已結束，不再開放連署。</div>'
@@ -732,7 +743,7 @@ function viewPlea() {
     '<div id="co-group" class="box"' + (dr.kind === '團體' ? '' : ' hidden') + '>以團體名義提出的請願<strong>免經 10 人連署</strong>，送出後直接送程序委員會審查。</div>' +
     '<div class="h3" style="margin-bottom:-10px">審查與公開</div>' +
     '<div class="field"><span class="label">審查時是否願意到場說明 <span class="req">*</span></span><div class="hint">請願交委員會審查或送大會辯論時，秘書處會以信箱通知您會議日期。不到場也不影響審查。</div>' + pills('att', ['願意到場說明', '不到場'], dr.att) + '</div>' +
-    '<div class="field"><span class="label">連署頁面是否顯示請願人姓名 <span class="req">*</span></span><div class="hint">請願案由、事項與理由會公開在連署區，審查結果列入議事紀錄。學號與信箱一律不公開；您可以選擇是否公開姓名（團體則為團體名稱）。</div>' + pills('pub', ['顯示姓名', '不顯示姓名'], dr.pubName) + '</div>' +
+    '<div class="field"><span class="label">連署頁面是否顯示請願人姓名 <span class="req">*</span></span><div class="hint">請願案由、事項與理由會公開在連署區（未登入的訪客也看得到），審查結果列入議事紀錄。學號與信箱一律不公開；您可以選擇是否公開姓名（團體則為團體名稱），選擇公開時，姓名只對登入的北大帳號顯示。</div>' + pills('pub', ['顯示姓名', '不顯示姓名'], dr.pubName) + '</div>' +
     '<div class="field"><span class="label">連署達 400 人時，是否請求啟動公投審查程序 <span class="req">*</span></span><div class="hint">選「請求」：連署達 400 人時，由學生議會函知選委會啟動公投審查程序。選「不請求」：本案只適用 40、100、150 人三個門檻。公開連署後不能更改。</div>' + pills('vote', ['請求', '不請求'], dr.vote) + '</div>' +
     '<label class="box" style="display:flex;gap:12px;align-items:flex-start;font-size:16px;line-height:1.7;cursor:pointer"><input type="checkbox" name="decl" style="width:22px;height:22px;margin:3px 0 0;flex:0 0 auto;accent-color:var(--ink)">' +
     '<span>我確認以上資料屬實，且本請願事項不屬於依法須由本校申訴評議委員會及性別平等教育委員會處置之事項，也不是學生法院審理中、應向學生法院提起或應依法提出訴願的案件，亦非個人私事或依法應由教師評審委員會審議之事項。 <span class="req">*</span></span></label>' +
