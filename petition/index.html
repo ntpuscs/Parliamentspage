@@ -154,7 +154,7 @@ const CATS = ['自治法規之制定、修正或廢止', '學生會政策', '學
 const T = [
   { n: 40, d: '交有關委員會審查', tag: '委員會審查', color: '#0F6B5C' },
   { n: 100, d: '送入大會辯論', tag: '大會辯論', color: '#1F4E9A' },
-  { n: 150, d: '要求校方或學生會提出正面的書面答覆', tag: '要求書面答覆', color: '#7A2E8E' },
+  { n: 150, d: '要求校方或學生會提出正式的書面答覆', tag: '要求書面答覆', color: '#7A2E8E' },
   { n: 400, d: '由學生議會函知選委會啟動公投審查程序', tag: '啟動公投審查', color: '#B42318' }
 ];
 const NOT_ALLOWED = [
@@ -345,9 +345,10 @@ async function onCredential(resp) {
   } catch (err) {
     if (!body) return;
     const domainErr = err.code === 'DOMAIN';
-    body.innerHTML = '<div role="alert" class="box warn"><b class="h">' + (domainErr ? '這不是北大帳號' : '登入失敗') + '</b>' +
+    const busy = err.code === 'BUSY';
+    body.innerHTML = '<div role="alert" class="box warn"><b class="h">' + (domainErr ? '這不是北大帳號' : busy ? '目前登入人數較多' : '登入失敗') + '</b>' +
       (domainErr ? '您登入的是 ' + esc(payload.email || '其他帳號') + '。請改用 @' + CONFIG.DOMAIN + ' 的學校帳號登入。' : esc(err.message)) + '</div>' +
-      '<button type="button" class="btn primary lg" data-act="retryLogin">改用學校帳號登入</button>';
+      '<button type="button" class="btn primary lg" data-act="retryLogin">' + (busy ? '稍後再試一次' : '改用學校帳號登入') + '</button>';
   }
 }
 function loginDone(user) {
@@ -651,8 +652,8 @@ async function viewDetail(pid) {
         (p.resp.file ? '<div><a class="btn" style="font-weight:700" href="' + esc(p.resp.file.url) + '" target="_blank" rel="noopener">' + esc(p.resp.file.name) + '</a></div>' : '') + '</div></div>';
     } else {
       resp = '<div style="padding:18px 20px;border:2px dashed var(--orange);border-radius:4px;background:#FFF8F1;display:flex;flex-direction:column;gap:6px;font-size:16px;line-height:1.7">' +
-        (p.req ? '<div style="font-weight:700;color:var(--warn)">等待' + esc(p.req.to) + '回應</div><div>本會已於 ' + fmt(p.req.date) + ' 函請' + esc(p.req.to) + '提出正面的書面答覆' + (p.req.due ? '，答覆期限為 ' + fmt(p.req.due) + '。' : '。') + '</div>'
-          : '<div style="font-weight:700;color:var(--warn)">已達回應門檻</div><div>秘書處將依程序函請校方或學生會提出正面的書面答覆。</div>') +
+        (p.req ? '<div style="font-weight:700;color:var(--warn)">等待' + esc(p.req.to) + '回應</div><div>本會已於 ' + fmt(p.req.date) + ' 函請' + esc(p.req.to) + '提出正式的書面答覆' + (p.req.due ? '，答覆期限為 ' + fmt(p.req.due) + '。' : '。') + '</div>'
+          : '<div style="font-weight:700;color:var(--warn)">已達回應門檻</div><div>秘書處將依程序函請校方或學生會提出正式的書面答覆。</div>') +
         '<div style="font-size:15px;color:var(--muted)">收到正式回應後會公告在這裡。</div></div>';
     }
     resp = '<section class="stack" style="gap:10px"><h3 class="h4">正式回應</h3>' + resp + '</section>';
@@ -849,7 +850,9 @@ async function viewMine() {
   app.innerHTML = shell('<div class="stack" style="gap:16px;margin-top:32px">' + (d.items.length ? d.items.map((p) => {
     const ok = p.cosign.filter((c) => c.ok).length;
     let body = '';
-    if (p.status === '連署人確認中') {
+    if (p.status === '連署人確認中' && p.expired) {
+      body = '<div class="box warn"><b class="h">已超過連署人確認期限</b>送件後 14 天內未完成 10 位連署人確認，確認連結已失效。如仍要提出，請重新填寫請願書送出。</div>';
+    } else if (p.status === '連署人確認中') {
       body = '<div class="stack" style="gap:8px"><div style="font-size:15px">連署人確認：<strong>' + ok + ' ／ ' + p.cosign.length + '</strong></div>' +
         '<ol style="margin:0;padding-left:1.6em;display:grid;grid-template-columns:repeat(auto-fit,minmax(min(200px,100%),1fr));gap:2px 20px;font-size:15px;line-height:1.7">' +
         p.cosign.map((c) => '<li>' + esc(c.name) + '　<span style="font-weight:700;color:' + (c.ok ? 'var(--green)' : 'var(--orange)') + '">' + (c.ok ? '已確認' : '未確認') + '</span></li>').join('') + '</ol>' +
@@ -1003,7 +1006,7 @@ async function viewSecPetition(id) {
     right = '<div class="stack" style="gap:10px"><div class="h3">程序審查結果</div><dl class="dl"><dt>會次</dt><dd>' + esc(p.mt) + '</dd><dt>審查日期</dt><dd>' + fmt(p.md) + '</dd><dt>結果</dt><dd>' + esc(p.res) + '</dd>' +
       (p.why ? '<dt>理由</dt><dd>' + esc(p.why) + '</dd>' : '') + (p.note ? '<dt>說明</dt><dd>' + esc(p.note) + '</dd>' : '') + '</dl></div>';
   } else {
-    right = '<div class="stack" style="gap:8px"><div class="h3">連署人確認中</div><div class="hint">還有連署人未確認，10 位都確認後才會進入待程序審查。</div></div>';
+    right = '<div class="stack" style="gap:8px"><div class="h3">連署人確認中</div><div class="hint">' + (p.expired ? '已超過 14 天的連署人確認期限，確認連結已失效，視為撤回。' : '還有連署人未確認，10 位都確認後才會進入待程序審查。') + '</div></div>';
   }
   app.innerHTML = shell('<div style="margin-top:28px"><a class="btn" href="#/sec">' + BACK + '回到列表</a></div><div class="grid-main" style="margin-top:20px">' + left +
     '<aside class="card" style="gap:16px">' + right + '</aside></div>', { title: '請願後台', wide: true });
@@ -1060,7 +1063,7 @@ async function viewSecResp(pid) {
   const editReq = !p.req || S.editReq === pid;
   const editResp = !!p.req && !editReq && (!p.resp || S.editResp === pid);
   const reqHtml = editReq
-    ? '<form id="rq" class="stack" style="gap:14px" novalidate><div class="hint">連署達 150 人後，依程序函請校方或學生會提出正面的書面答覆。儲存後，連署頁會顯示「等待回應」與答覆期限。</div>' +
+    ? '<form id="rq" class="stack" style="gap:14px" novalidate><div class="hint">連署達 150 人後，依程序函請校方或學生會提出正式的書面答覆。儲存後，連署頁會顯示「等待回應」與答覆期限。</div>' +
       '<div class="field"><span class="label" style="font-size:15px">函請對象 <span class="req">*</span></span>' + pills('to', ['校方', '學生會'], q.to) + '</div>' +
       '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(min(200px,100%),1fr));gap:14px 20px">' +
       '<div class="field"><label class="label" for="qd" style="font-size:15px">函請日期 <span class="req">*</span></label><input id="qd" name="date" type="date" class="input sm" value="' + esc(q.date || todayIso()) + '"></div>' +
