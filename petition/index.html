@@ -163,7 +163,11 @@ const NOT_ALLOWED = [
 const RES = { PASS: '通過，開放公開連署', FIX: '退回補正', REJ: '不予受理' };
 const WHYS = NOT_ALLOWED.map((s) => s.replace(/。$/, '')).concat(['其他（請於說明欄敘明）']);
 const ST_COLOR = { '連署人確認中': '#5A6070', '待程序審查': '#B54708', '已開放連署': '#0F6B5C', '退回補正': '#1F4E9A', '不予受理': '#B42318' };
-const MAX_MB = 10;
+const MAX_MB = 20;      // 單一檔案上限，與 Code.gs 的 MAX_FILE_MB 一致
+const MAX_TOTAL_MB = 30; // 附件合計上限，與 Code.gs 的 MAX_TOTAL_MB 一致
+// 與 Code.gs 的 ALLOWED_EXT 一致
+const ALLOWED_EXT = ['pdf', 'jpg', 'jpeg', 'png', 'heic', 'doc', 'docx', 'xls', 'xlsx', 'ppt', 'pptx', 'odt', 'txt'];
+const extOf = (n) => ((String(n).match(/\.([a-z0-9]+)$/i) || [])[1] || '').toLowerCase();
 
 const app = document.getElementById('app');
 const modalRoot = document.getElementById('modal');
@@ -281,6 +285,46 @@ function mountGisButton(tries) {
   el.innerHTML = '';
   google.accounts.id.renderButton(el, { theme: 'filled_black', size: 'large', text: 'signin_with', shape: 'rectangular', width: 300, locale: 'zh-TW' });
 }
+// ---------- 隱私權政策同意 ----------
+function consentHtml() {
+  return '<div class="stack" style="gap:14px">' +
+    '<div class="h3" style="font-size:22px">請先同意隱私權政策</div>' +
+    '<p style="margin:0;font-size:16px;line-height:1.75;color:var(--body)">使用請願系統前，請閱讀並同意本會的隱私權政策。重點如下：</p>' +
+    '<ul style="margin:0;padding-left:1.3em;font-size:15px;line-height:1.75;color:var(--body);display:flex;flex-direction:column;gap:4px">' +
+    '<li>登入時只取得您的姓名與學校信箱，用來確認身分與會員資格，不會讀取其他 Google 資料。</li>' +
+    '<li>連署名單、學號與信箱不會公開；請願人姓名依您的選擇公開。</li>' +
+    '<li>資料存放在學生議會的 Google 試算表，只有秘書處授權人員能存取，不提供給第三方。</li></ul>' +
+    '<a href="privacy.html" target="_blank" rel="noopener" style="font-size:16px;font-weight:700;color:var(--blue);text-underline-offset:3px">閱讀完整的隱私權政策（另開視窗）</a>' +
+    '<label class="box" style="display:flex;gap:12px;align-items:flex-start;font-size:16px;line-height:1.6;cursor:pointer"><input type="checkbox" id="cs-ok" style="width:22px;height:22px;margin:1px 0 0;flex:0 0 auto;accent-color:var(--ink)">' +
+    '<span>我已閱讀並同意<a href="privacy.html" target="_blank" rel="noopener" style="color:var(--blue);font-weight:700">隱私權政策</a></span></label>' +
+    '<div id="cs-err" role="alert"></div>' +
+    '<div style="display:flex;flex-wrap:wrap;gap:10px"><button type="button" class="btn primary lg" id="cs-agree" disabled>同意並繼續</button>' +
+    '<button type="button" class="btn lg" id="cs-decline">不同意，登出</button></div></div>';
+}
+function bindConsent(root, onDone, tokenOverride) {
+  const ok = $('#cs-ok', root), agree = $('#cs-agree', root);
+  ok.addEventListener('change', () => { agree.disabled = !ok.checked; });
+  $('#cs-decline', root).addEventListener('click', () => { closeModal(); logout(); });
+  agree.addEventListener('click', async () => {
+    agree.disabled = true; agree.textContent = '處理中…';
+    try {
+      await api('consent', {}, tokenOverride);
+      auth.user.consented = true;
+      sessionStorage.setItem('pt_auth', JSON.stringify(auth));
+      onDone();
+    } catch (e) {
+      agree.disabled = false; agree.textContent = '同意並繼續';
+      $('#cs-err', root).innerHTML = '<div class="alert">' + esc(e.message) + '</div>';
+    }
+  });
+}
+function showConsent() {
+  modalRoot.innerHTML = '<div class="modal-bg"><div class="modal" role="dialog" aria-modal="true" aria-label="同意隱私權政策" style="max-width:560px"><div id="cs-box" style="padding:28px 32px 32px"></div></div></div>';
+  const box = $('#cs-box');
+  box.innerHTML = consentHtml();
+  bindConsent(box, () => { closeModal(); toast('已同意隱私權政策'); render(); });
+}
+
 async function onCredential(resp) {
   const token = resp.credential;
   const body = $('#lg-body');
@@ -291,12 +335,11 @@ async function onCredential(resp) {
     const d = await api('me', {}, token);
     auth = { token: token, exp: payload.exp || Math.floor(Date.now() / 1000) + 3000, user: d.user };
     sessionStorage.setItem('pt_auth', JSON.stringify(auth));
-    if (body) {
-      body.innerHTML = '<div class="ok-box" style="display:flex;flex-direction:column;gap:4px" aria-live="polite"><span style="font-size:17px">登入成功</span>' +
-        '<span style="font-size:15px;font-weight:500;color:var(--body);word-break:break-all">' + esc(d.user.name) + '・' + esc(d.user.email) + '</span></div>' +
-        '<button type="button" class="btn primary lg" data-act="afterLogin">前往連署區' + ARROW + '</button>';
+    if (!d.user.consented) {
+      if (body) { body.innerHTML = consentHtml(); bindConsent(body, () => loginDone(d.user)); }
+      return;
     }
-    setTimeout(afterLogin, 700);
+    loginDone(d.user);
   } catch (err) {
     if (!body) return;
     const domainErr = err.code === 'DOMAIN';
@@ -304,6 +347,15 @@ async function onCredential(resp) {
       (domainErr ? '您登入的是 ' + esc(payload.email || '其他帳號') + '。請改用 @' + CONFIG.DOMAIN + ' 的學校帳號登入。' : esc(err.message)) + '</div>' +
       '<button type="button" class="btn primary lg" data-act="retryLogin">改用學校帳號登入</button>';
   }
+}
+function loginDone(user) {
+  const body = $('#lg-body');
+  if (body) {
+    body.innerHTML = '<div class="ok-box" style="display:flex;flex-direction:column;gap:4px" aria-live="polite"><span style="font-size:17px">登入成功</span>' +
+      '<span style="font-size:15px;font-weight:500;color:var(--body);word-break:break-all">' + esc(user.name) + '・' + esc(user.email) + '</span></div>' +
+      '<button type="button" class="btn primary lg" data-act="afterLogin">前往連署區' + ARROW + '</button>';
+  }
+  setTimeout(afterLogin, 700);
 }
 function afterLogin() {
   if (!$('#lg-body')) return;
@@ -331,6 +383,11 @@ async function api(action, payload, tokenOverride) {
   if (!d.ok) {
     const err = new Error(d.error || '發生錯誤');
     err.code = d.code;
+    if (d.code === 'CONSENT' && auth) {
+      auth.user.consented = false;
+      sessionStorage.setItem('pt_auth', JSON.stringify(auth));
+      showConsent();
+    }
     if (d.code === 'AUTH' && !tokenOverride) {
       auth = null; sessionStorage.removeItem('pt_auth');
       sessionStorage.setItem('pt_next', location.hash);
@@ -396,6 +453,7 @@ async function render() {
     pendingLogin = true;
     if (location.hash !== '#/') { location.hash = '#/'; return; }
   }
+  if (r.a && authed() && !auth.user.consented) { viewLanding(); showConsent(); return; }
   if (r.a.indexOf('sec') === 0 && authed() && !auth.user.isSec) { location.hash = '#/list'; return; }
   window.scrollTo(0, 0);
   try {
@@ -659,7 +717,7 @@ function viewPlea() {
     '<textarea id="ask" name="ask" class="input" rows="6" aria-describedby="ask-h">' + esc(dr.ask || '') + '</textarea></div>' +
     '<div class="field"><label class="label" for="reason">理由 <span class="req">*</span></label><div class="hint" id="reason-h">說明現況、問題所在，以及為什麼這樣改比較好。</div>' +
     '<textarea id="reason" name="reason" class="input" rows="8" aria-describedby="reason-h">' + esc(dr.reason || '') + '</textarea></div>' +
-    '<div class="field"><label class="label" for="files">附件 <span class="opt">（非必要，至多三個，每個 ' + MAX_MB + ' MB 以內）</span></label><input id="files" type="file" multiple class="input"><div id="files-h" class="hint" aria-live="polite"></div></div>' +
+    '<div class="field"><label class="label" for="files">附件 <span class="opt">（非必要，至多三個，每個 ' + MAX_MB + ' MB、合計 ' + MAX_TOTAL_MB + ' MB 以內）</span></label><input id="files" type="file" multiple accept="' + ALLOWED_EXT.map((x) => '.' + x).join(',') + '" class="input" aria-describedby="files-t"><div id="files-t" class="hint">可上傳 PDF、圖片（JPG、PNG、HEIC）、Word、Excel、PowerPoint、純文字檔。</div><div id="files-h" class="hint" aria-live="polite"></div></div>' +
     '<div class="h3" style="margin-bottom:-10px">連署人</div>' +
     '<div id="co-box" class="stack" style="gap:12px"' + (dr.kind === '團體' ? ' hidden' : '') + '><div class="box">個人請願須有 <strong>10 位</strong>本校同學連署（不含您本人）才能送程序委員會審查。只要填姓名和學號，系統會自動對應學校帳號（s＋學號）。送出後，請連署人用自己的學校帳號打開確認連結並按「確認連署」，10 位都確認後即送審。進修學士班等非本會會員不能擔任連署人。連署人資料不會公開。</div>' +
     '<div class="cs-row" aria-hidden="true" style="font-size:14px;font-weight:700;color:var(--muted)"><span></span><span>姓名</span><span>學號（9 碼）</span></div>' +
@@ -692,7 +750,9 @@ function viewPlea() {
     if (e.target.id === 'files') {
       const fs = Array.from(e.target.files || []);
       const big = fs.find((f) => f.size > MAX_MB * 1048576);
-      if (fs.length > 3 || big) { e.target.value = ''; $('#files-h').textContent = fs.length > 3 ? '附件至多三個，請重新選擇。' : '「' + big.name + '」超過 ' + MAX_MB + ' MB，請重新選擇。'; }
+      const bad = fs.find((f) => ALLOWED_EXT.indexOf(extOf(f.name)) < 0);
+      const over = fs.reduce((n, f) => n + f.size, 0) > MAX_TOTAL_MB * 1048576;
+      if (fs.length > 3 || big || bad || over) { e.target.value = ''; $('#files-h').textContent = fs.length > 3 ? '附件至多三個，請重新選擇。' : bad ? '不接受「' + bad.name + '」這種檔案類型，請上傳 PDF、圖片或 Office 文件。' : !big ? '附件合計超過 ' + MAX_TOTAL_MB + ' MB，請壓縮或減少檔案。' : '「' + big.name + '」超過 ' + MAX_MB + ' MB，請重新選擇。'; }
       else $('#files-h').textContent = fs.map((f) => f.name).join('、');
     }
   });
@@ -1033,6 +1093,7 @@ async function viewSecResp(pid) {
     const miss = [];
     if (!resp.from) miss.push('回應機關'); if (!resp.unit) miss.push('回應單位'); if (!resp.date) miss.push('回應日期'); if (!resp.text) miss.push('回應內容');
     if (f && f.size > MAX_MB * 1048576) miss.push('回應公文須在 ' + MAX_MB + ' MB 以內');
+    if (f && extOf(f.name) !== 'pdf') miss.push('回應公文只接受 PDF 檔');
     if (miss.length) { $('#rs-err').innerHTML = '<div class="alert">請確認：' + esc(miss.join('、')) + '</div>'; return; }
     showModal('預覽：連署頁將顯示', '<div style="border:2px solid var(--ink);border-radius:4px;overflow:hidden"><div style="padding:14px 18px;background:var(--ink);color:var(--cream);display:flex;flex-wrap:wrap;justify-content:space-between;align-items:baseline;gap:6px 16px">' +
       '<div class="serif" style="font-size:20px;font-weight:700">' + esc(resp.from) + '書面回應</div><div style="font-size:14px">' + esc(resp.unit) + '・' + fmt(resp.date) + '</div></div>' +
