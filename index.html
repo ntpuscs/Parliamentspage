@@ -1633,7 +1633,7 @@ async function loadCouncillors() {
     const out = await postForm({ type: 'councillors' }, '-');
     PT.cls = out.items || [];
     sel.innerHTML = PT.cls.length
-      ? '<option value="">請選擇議員</option>' + PT.cls.map((c) => '<option value="' + esc(c.id) + '">' + esc(c.seat + '　' + c.name) + '</option>').join('')
+      ? '<option value="">請選擇議員</option>' + PT.cls.map((c) => '<option value="' + esc(c.id) + '">' + esc((c.seat ? c.seat + '　' : '') + c.name) + '</option>').join('')
       : '<option value="">目前沒有可選的議員，請洽議會秘書處</option>';
   } catch (e) {
     sel.innerHTML = '<option value="">議員名單載入失敗，請重新整理頁面</option>';
