@@ -383,7 +383,7 @@ dialog.cf::backdrop{background:rgba(29,34,48,.55)}
       <div class="fld" style="grid-column:1/-1"><label for="mtName">會議名稱 <span class="req">*</span></label><input class="in" id="mtName" maxlength="60" placeholder="例如：第 27 屆第 4 次常會" autocomplete="off"></div>
       <div class="fld" style="grid-column:1/-1"><label for="mtPlace">地點</label><input class="in" id="mtPlace" maxlength="60" placeholder="例如：學生自治會聯合辦公室" autocomplete="off"></div>
       <div class="fld" style="grid-column:1/-1"><label for="mtNote">備註</label><input class="in" id="mtNote" maxlength="200" placeholder="例如：開放旁聽、線上同步直播" autocomplete="off"></div>
-      <div style="grid-column:1/-1"><button type="submit" class="primary" id="mtSend" style="margin-top:0">新增到月曆</button></div>
+      <div style="grid-column:1/-1;display:flex;gap:12px;flex-wrap:wrap"><button type="submit" class="primary" id="mtSend" style="margin-top:0">新增到月曆</button><button type="button" class="secbtn" id="mtCancel" hidden>取消修改</button></div>
     </form>
     <p class="msg" id="mtMsg" role="status"></p>
     <div style="font-size:16px;font-weight:700;margin-top:8px">即將舉行的會議</div>
@@ -1796,7 +1796,7 @@ function mtLi(x, admin) {
     '<div class="dt">' + (d.getMonth() + 1) + '/' + d.getDate() + '（' + WD[d.getDay()] + '）<span>' + esc(mtWhen(x)) + '</span></div>' +
     '<div><div class="nm"><span class="tg" style="background:' + (MT_COLOR[x.type] || 'var(--muted)') + '">' + esc(x.type) + '</span>' + esc(x.name) + '</div>' +
     (x.place ? '<div class="mt">地點：' + esc(x.place) + '</div>' : '') + (x.note ? '<div class="mt">' + esc(x.note) + '</div>' : '') +
-    (admin ? '<button type="button" class="secbtn del" data-mdel="' + esc(x.id) + '">刪除</button>' : '') + '</div></li>';
+    (admin ? '<button type="button" class="secbtn" data-medit="' + esc(x.id) + '">修改</button> <button type="button" class="secbtn del" data-mdel="' + esc(x.id) + '">刪除</button>' : '') + '</div></li>';
 }
 $('calPrev').addEventListener('click', () => { MT.m--; if (MT.m < 0) { MT.m = 11; MT.y--; } MT.sel = ''; drawCal(); });
 $('calNext').addEventListener('click', () => { MT.m++; if (MT.m > 11) { MT.m = 0; MT.y++; } MT.sel = ''; drawCal(); });
@@ -1834,14 +1834,40 @@ $('mtForm').addEventListener('submit', async (e) => {
   if (val('mtStart') && val('mtEnd') && val('mtEnd') <= val('mtStart')) { $('mtMsg').textContent = '結束時間要晚於開始時間。'; return; }
   const btn = $('mtSend'); btn.disabled = true; btn.textContent = '新增中…'; $('mtMsg').textContent = '';
   try {
-    await secPost({ type: 'meetingAdd', date: val('mtDate'), start: val('mtStart'), end: val('mtEnd'), name: val('mtName'), mtype: val('mtType'), place: val('mtPlace'), note: val('mtNote') });
-    $('mtMsg').textContent = '已新增「' + val('mtName') + '」（' + slash(val('mtDate')) + '）。';
-    ['mtName', 'mtNote'].forEach((id) => { $(id).value = ''; });
+    const body = { date: val('mtDate'), start: val('mtStart'), end: val('mtEnd'), name: val('mtName'), mtype: val('mtType'), place: val('mtPlace'), note: val('mtNote') };
+    if (MT.editId) {
+      await secPost(Object.assign({ type: 'meetingEdit', id: MT.editId }, body));
+      $('mtMsg').textContent = '已修改為「' + val('mtName') + '」（' + slash(val('mtDate')) + '）。';
+      mtExitEdit();
+    } else {
+      await secPost(Object.assign({ type: 'meetingAdd' }, body));
+      $('mtMsg').textContent = '已新增「' + val('mtName') + '」（' + slash(val('mtDate')) + '）。';
+      ['mtName', 'mtNote'].forEach((id) => { $(id).value = ''; });
+    }
     await loadMeetings(true);
   } catch (er) { secFail(er); }
-  finally { btn.disabled = false; btn.textContent = '新增到月曆'; }
+  finally { btn.disabled = false; btn.textContent = MT.editId ? '儲存修改' : '新增到月曆'; }
 });
+// 修改模式：把該場會議載入表單；取消或儲存後退出
+function mtStartEdit(x) {
+  MT.editId = x.id;
+  $('mtDate').value = x.date; $('mtStart').value = x.start || ''; $('mtEnd').value = x.end || '';
+  $('mtType').value = x.type || ''; $('mtName').value = x.name || ''; $('mtPlace').value = x.place || ''; $('mtNote').value = x.note || '';
+  $('mtSend').textContent = '儲存修改';
+  $('mtCancel').hidden = false;
+  $('mtMsg').textContent = '正在修改「' + x.name + '」，改好後按「儲存修改」，不改請按「取消修改」。';
+  $('mtForm').scrollIntoView({ block: 'center', behavior: 'smooth' });
+}
+function mtExitEdit() {
+  MT.editId = '';
+  ['mtDate', 'mtStart', 'mtEnd', 'mtType', 'mtName', 'mtPlace', 'mtNote'].forEach((id) => { $(id).value = ''; });
+  $('mtSend').textContent = '新增到月曆';
+  $('mtCancel').hidden = true;
+}
+$('mtCancel').addEventListener('click', () => { mtExitEdit(); $('mtMsg').textContent = '已取消修改。'; });
 $('mtList').addEventListener('click', async (e) => {
+  const ed = e.target.closest('[data-medit]');
+  if (ed) { const x = (MT.items || []).find((i) => i.id === ed.dataset.medit); if (x) mtStartEdit(x); return; }
   const b = e.target.closest('[data-mdel]'); if (!b) return;
   const x = (MT.items || []).find((i) => i.id === b.dataset.mdel); if (!x) return;
   if (!(await confirmBox('確定刪除這場會議？', [['日期', slash(x.date) + ' ' + mtWhen(x)], ['會議', x.type + '　' + x.name], ['地點', x.place]]))) return;
