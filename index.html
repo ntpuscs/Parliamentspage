@@ -59,6 +59,10 @@ header{padding:56px 0 32px;border-bottom:3px double var(--ink);display:flex;flex
 .agenda input,.agenda textarea{width:100%;padding:14px 16px;font-size:18px;font-family:inherit;color:var(--ink);background:var(--bg);border:2px solid var(--ink);border-radius:4px}
 .agenda input{min-height:56px}
 .agenda textarea{min-height:420px;font-size:17px;line-height:1.9;resize:vertical}
+.secopt{margin:4px 0 0;border:2px solid var(--ink);border-radius:4px;padding:12px 16px 14px;display:flex;flex-wrap:wrap;gap:10px 22px}
+.secopt legend{font-size:15px;font-weight:700;padding:0 6px}
+.secopt label{display:flex;align-items:center;gap:8px;font-size:16px;font-weight:400;cursor:pointer}
+.secopt input{width:20px;height:20px;min-height:0;padding:0;margin:0;accent-color:var(--ink)}
 .hint{margin:0;font-size:14px;color:var(--muted)}
 .msg{margin:0;font-size:15px;line-height:1.7;color:var(--warn)}
 .btnrow{display:flex;flex-wrap:wrap;gap:10px}
@@ -341,6 +345,15 @@ dialog.cf::backdrop{background:rgba(29,34,48,.55)}
     <label for="agDisc" style="margin-top:8px">討論事項　議案編號</label>
     <input id="agDisc" type="text" placeholder="例如：27-003、27-004" autocomplete="off">
     <p class="hint">用頓號、逗號或空格分開，依輸入的順序排列。編號可以省略前綴，打 27-001 即可。</p>
+    <fieldset class="secopt">
+      <legend>本次會議要列入的項目（預設全部列入，該次沒有就取消勾選）</legend>
+      <label><input type="checkbox" id="agSec_chair" checked> 主席致詞</label>
+      <label><input type="checkbox" id="agSec_report" checked> 報告事項（含確認前次會議紀錄）</label>
+      <label><input type="checkbox" id="agSec_qa" checked> 答問時段</label>
+      <label><input type="checkbox" id="agSec_disc" checked> 討論事項</label>
+      <label><input type="checkbox" id="agSec_query" checked> 會務質詢</label>
+      <label><input type="checkbox" id="agSec_motion" checked> 臨時動議</label>
+    </fieldset>
     <div class="btnrow"><button type="button" class="primary" id="agMake" style="margin-top:4px">產生議程與會議記錄</button></div>
     <p class="msg" id="agMsg" role="status"></p>
 
@@ -1086,34 +1099,71 @@ function resolveIds(text, seen) {
 
 const SP2 = '　　', SP5 = '　　　　　';
 
-function buildAgenda(rep, disc) {
-  return ['【議程】', '一、開會', '二、主席致詞', '三、確認議程', '四、報告事項', '　（一）確認前次會議紀錄']
-    .concat(rep.map((it, i) => '　（' + cn(i + 2) + '）報告【' + it.b.title + '】'))
-    .concat(['五、答問時段', '六、討論事項'])
-    .concat(disc.map((it, i) => '　（' + cn(i + 1) + '）審查【' + it.b.title + '】'))
-    .concat(['七、會務質詢', '八、臨時動議', '九、散會']).join('\n');
+// 項目開關：開會、確認議程、散會為必列；其餘依勾選決定，章節序號自動重排
+function buildAgenda(rep, disc, o) {
+  const L = ['【議程】'];
+  let n = 0;
+  const head = (t) => L.push(cn(++n) + '、' + t);
+  head('開會');
+  if (o.chair) head('主席致詞');
+  head('確認議程');
+  if (o.report) {
+    head('報告事項');
+    L.push('　（一）確認前次會議紀錄');
+    rep.forEach((it, i) => L.push('　（' + cn(i + 2) + '）報告【' + it.b.title + '】'));
+  }
+  if (o.qa) head('答問時段');
+  if (o.disc) {
+    head('討論事項');
+    disc.forEach((it, i) => L.push('　（' + cn(i + 1) + '）審查【' + it.b.title + '】'));
+  }
+  if (o.query) head('會務質詢');
+  if (o.motion) head('臨時動議');
+  head('散會');
+  return L.join('\n');
 }
 
-function buildMinutes(rep, disc) {
-  const L = ['一、開會。', '二、主席致詞。', '三、確認議程。', SP2 + '本次議程認可。', '四、報告事項。',
-    SP2 + '（一）確認前次會議紀錄。', SP5 + '決議：前次會議紀錄認可。'];
-  rep.forEach((it, i) => {
-    L.push(SP2 + '（' + cn(i + 2) + '）' + it.orig + '【' + it.b.title + '】');
-    L.push(SP5 + '決議：' + (it.b.cat === '備查案' ? '准予備查。' : '已洽悉。'));
-  });
-  L.push('五、答問時段', SP2 + '詳見會議影音。', '六、討論事項。');
-  disc.forEach((it, i) => {
-    L.push('　第' + cn(i + 1) + '案',
-      SP2 + '審查' + it.orig + '【' + it.b.title + '】',
-      SP2 + '說明：',
-      SP2 + '附件：詳見提案系統',
-      SP2 + '決議：',
-      SP2 + '一、經提案者說明、本會議員詢答完畢。',
-      SP2 + '二、議員提案包裹表決，議員附議，通過。',
-      SP2 + '三、全案，同意票0票，不同意票0票，贊成者多數，通過。');
-  });
-  L.push('七、會務質詢。', SP2 + '詳見會議影音。', '八、臨時動議。', '九、散會。');
+function buildMinutes(rep, disc, o) {
+  const L = [];
+  let n = 0;
+  const head = (t) => L.push(cn(++n) + '、' + t + '。');
+  head('開會');
+  if (o.chair) head('主席致詞');
+  head('確認議程');
+  L.push(SP2 + '本次議程認可。');
+  if (o.report) {
+    head('報告事項');
+    L.push(SP2 + '（一）確認前次會議紀錄。', SP5 + '決議：前次會議紀錄認可。');
+    rep.forEach((it, i) => {
+      L.push(SP2 + '（' + cn(i + 2) + '）' + it.orig + '【' + it.b.title + '】');
+      L.push(SP5 + '決議：' + (it.b.cat === '備查案' ? '准予備查。' : '已洽悉。'));
+    });
+  }
+  if (o.qa) { head('答問時段'); L.push(SP2 + '詳見會議影音。'); }
+  if (o.disc) {
+    head('討論事項');
+    disc.forEach((it, i) => {
+      L.push('　第' + cn(i + 1) + '案',
+        SP2 + '審查' + it.orig + '【' + it.b.title + '】',
+        SP2 + '說明：',
+        SP2 + '附件：詳見提案系統',
+        SP2 + '決議：',
+        SP2 + '一、經提案者說明、本會議員詢答完畢。',
+        SP2 + '二、議員提案包裹表決，議員附議，通過。',
+        SP2 + '三、全案，同意票0票，不同意票0票，贊成者多數，通過。');
+    });
+  }
+  if (o.query) { head('會務質詢'); L.push(SP2 + '詳見會議影音。'); }
+  if (o.motion) head('臨時動議');
+  head('散會');
   return L.join('\n');
+}
+
+// 讀取勾選狀態（預設全部勾選）
+function agOpts() {
+  const o = {};
+  ['chair', 'report', 'qa', 'disc', 'query', 'motion'].forEach((k) => { o[k] = $('agSec_' + k).checked; });
+  return o;
 }
 
 function makeAgenda() {
@@ -1124,8 +1174,9 @@ function makeAgenda() {
   if (S.noIdCol) { msg.textContent = '試算表裡找不到「編號」欄（表頭請寫「編號」），所以無法依編號查詢。'; return; }
   const seen = {};
   const rep = resolveIds(rText, seen), disc = resolveIds(dText, seen);
-  $('agOut').value = buildAgenda(rep.items, disc.items);
-  $('mnOut').value = buildMinutes(rep.items, disc.items);
+  const opts = agOpts();
+  $('agOut').value = buildAgenda(rep.items, disc.items, opts);
+  $('mnOut').value = buildMinutes(rep.items, disc.items, opts);
   const notes = [];
   const missing = rep.missing.concat(disc.missing), dup = rep.dup.concat(disc.dup);
   if (missing.length) {
