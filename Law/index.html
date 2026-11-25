@@ -81,7 +81,9 @@ mark{background:var(--hl);color:var(--ink);font-weight:700;padding:0 2px;border-
 
 /* home */
 .hero{padding-top:72px;padding-bottom:48px;display:flex;flex-direction:column;gap:28px}
-.hero h1{margin:0;font-family:var(--serif);font-weight:900;font-size:clamp(40px,7vw,76px);line-height:1.15;letter-spacing:.02em}
+.hero h1{margin:0;font-family:var(--serif);display:flex;flex-direction:column;gap:14px}
+.hero .h-main{font-weight:900;font-size:clamp(44px,7.2vw,80px);line-height:1.1;letter-spacing:.08em}
+.hero .h-sub{font-weight:600;font-size:clamp(20px,2.6vw,30px);line-height:1.4;letter-spacing:.18em;color:var(--ink2)}
 .sec{padding-bottom:64px}
 .sec-head{border-top:2px solid var(--ink);padding:20px 0 8px;display:flex;flex-wrap:wrap;justify-content:space-between;align-items:baseline;gap:8px}
 .sec-head h2{margin:0;font-family:var(--serif);font-weight:900;font-size:26px;letter-spacing:.04em}
@@ -258,8 +260,69 @@ h1 .fei{border-width:2.5px;border-radius:5px;font-size:.72em;margin-right:.3em}
 .toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:var(--ink);color:var(--paper);padding:12px 20px;border-radius:4px;font-size:15px;box-shadow:0 6px 24px rgba(0,0,0,.2);z-index:10;max-width:calc(100% - 32px)}
 .loading{padding:80px 0;text-align:center;color:var(--muted)}
 
+/* ---------- 平板（≤1000px） ---------- */
+.tocd summary{display:flex;align-items:center;justify-content:space-between;gap:12px;min-height:48px;padding:0 4px;font-size:15px;font-weight:700;letter-spacing:.12em;cursor:pointer;list-style:none}
+.tocd summary::-webkit-details-marker{display:none}
+.tocd summary::after{content:'＋';font-weight:400;color:var(--muted)}
+.tocd[open] summary::after{content:'－'}
+.totop{position:fixed;right:16px;bottom:20px;width:52px;height:52px;border-radius:50%;border:0;background:var(--ink);color:var(--paper);font-size:22px;cursor:pointer;box-shadow:0 6px 18px rgba(0,0,0,.18);z-index:5}
+@media (min-width:1001px){ .tocd summary{pointer-events:none;letter-spacing:.24em;font-weight:500;color:var(--muted);font-size:14px;min-height:0;padding:0 0 10px} .tocd summary::after,.tocd summary .muted{display:none} .totop{display:none} }
+@media (max-width:1000px){
+  .body{gap:24px;padding-top:24px}
+  .side{max-width:none;flex-basis:100%;background:var(--card);border:1px solid var(--stone);border-radius:6px;padding:4px 14px}
+  .side .toc{padding-bottom:10px;max-height:60vh;overflow:auto}
+  .admin{flex-direction:column;min-height:0}
+  .aside{max-width:none;min-width:0;flex:none;flex-direction:row;flex-wrap:wrap;align-items:center;gap:8px 16px;padding:14px 20px}
+  .aside nav{flex-direction:row;flex-wrap:wrap;gap:4px}
+  .aside nav a,.aside nav button{min-height:40px}
+  .aside .who{margin:0 0 0 auto;padding:0;border:0;text-align:right}
+  .amain{padding:28px 24px 56px}
+  .atable .row{min-width:0;gap:10px}
+  .atable .ops{gap:2px 14px}
+}
+/* ---------- 手機（≤640px） ---------- */
 @media (max-width:640px){
   .wrap{padding:0 16px}
+  .brand svg{width:34px;height:34px}
+  .brand-org{font-size:12px}
+  .hero .h-main{font-size:46px;letter-spacing:.06em}
+  .hero .h-sub{font-size:20px;letter-spacing:.14em}
+  .hero .eyebrow{font-size:12px;letter-spacing:.18em}
+  .searchbar .btn{flex:1 1 100%;height:52px}
+  .searchbar .input{height:52px;font-size:17px}
+  .seg{width:100%}
+  .seg a,.seg button{flex:1 1 auto;justify-content:center;padding:0 10px;font-size:15px}
+  .sec-head h2{font-size:23px}
+  .lawlist li{gap:2px 12px;padding:14px 0}
+  .lawlist .no{width:24px}
+  .lawlist a.name{font-size:18px;flex-basis:calc(100% - 40px)}
+  .lawlist .date{padding-left:36px;font-size:14px}
+  .lv-head .desc{flex-basis:100%}
+  .law-head{padding:20px 0 24px;gap:16px}
+  .actions{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+  .actions .btn{padding:0 10px;min-height:46px;font-size:15px}
+  .actions .btn.primary{grid-column:1/-1}
+  .meta{gap:10px 24px}
+  .art{padding:18px 0}
+  .art-body{font-size:17px}
+  .lv2{padding-left:1.2em}.lv3{padding-left:2.4em}.lv4{padding-left:3.6em}
+  .ch-head h2{font-size:24px}
+  .pills{flex-wrap:nowrap;overflow-x:auto;margin:0 -16px;padding:0 16px 4px;scrollbar-width:none}
+  .pill{flex:none}
+  .aside{padding:12px 16px}
+  .aside .who{display:none}
+  .amain h1{font-size:28px}
+  .atable{border-top-width:2px;overflow:visible}
+  .atable .row{min-width:0;grid-template-columns:1fr;gap:6px;padding:16px 4px}
+  .atable .row.h{display:none}
+  .filters .field{flex-basis:calc(50% - 6px)}
+  .filters .field.wide{flex-basis:100%}
+  .ed-row{flex-wrap:wrap}
+  .ed-row textarea{order:3;flex-basis:100%}
+  .ed-row.l2{padding-left:14px}.ed-row.l3{padding-left:28px}.ed-row.l4{padding-left:42px}
+  .ed-panel{padding:16px}
+  .bar{flex-direction:column-reverse;align-items:stretch}
+  .bar .btn{width:100%}
   .site-nav{gap:0}
   .site-nav a{padding:10px 8px;font-size:14.5px}
   .site-nav a.admin-btn{margin-left:4px;padding:0 10px}
@@ -520,7 +583,7 @@ const scopeLabel = (law) => law.region === REGION_COMMON ? REGION_COMMON : (law.
 const LEVELS = ['章程', '法律', '命令', '行政規則'];
 const LEVEL_CLASS = { 章程: 'charter', 法律: 'law', 命令: 'order', 行政規則: 'rule' };
 const LEVEL_DESC_COMMON = { 法律: '經兩校區學生議會通過、兩校區會長聯名公布' };
-const LEVEL_DESC = { 章程: '學生自治的最高規範', 法律: '經學生議會審議通過、會長公布', 命令: '依職權或法律授權訂定發布', 行政規則: '機關內部的作業規定' };
+const LEVEL_DESC = { 章程: '學生自治會的最高規範', 法律: '經學生議會審議通過、會長公布', 命令: '依職權或法律授權訂定發布', 行政規則: '機關內部的作業規定' };
 function guessLevel(name) {
   const n = String(name || '').trim();
   if (/章程$/.test(n)) return '章程';
@@ -613,8 +676,8 @@ function renderHome(params) {
 
   return page('home', `
     <section class="wrap hero">
-      <div class="eyebrow">REGULATIONS DATABASE</div>
-      <h1>條文清楚，<br>一查即得。</h1>
+      <div class="eyebrow">LAWS &amp; REGULATIONS DATABASE</div>
+      <h1><span class="h-main">法規資料庫</span><span class="h-sub">屬於你的學生自治</span></h1>
       ${searchForm('')}
       <div class="seg" role="group" aria-label="法規範圍">${tabs.map(([k, t]) => `<a href="#/?scope=${k}" class="${scope === k ? 'on' : ''}" ${scope === k ? 'aria-current="true"' : ''}>${t}</a>`).join('')}</div>
     </section>
@@ -680,8 +743,9 @@ function renderDetail(id, artKey, params) {
       <ol>${hist.slice(1).map((h) => `<li>${esc(h.text)}</li>`).join('')}</ol></details>` : ''}
     </section>` : '';
 
-  const toc = parsed.chapters.length ? `<div><h2 class="eyebrow" style="margin:0 0 10px;font-size:14px">目錄</h2><ol class="toc">${parsed.chapters.map((ch) => `
-      <li class="${ch.kind === '節' ? 'sub' : ''}"><a href="#" data-act="goto-ch" data-idx="${ch.idx}"><span class="n">${esc(ch.label)}</span><span>${esc(ch.title)}</span></a></li>`).join('')}</ol></div>` : '';
+  const wide = window.innerWidth > 1000; // 桌機展開目錄；平板、手機預設收合，避免目錄把條文推到很下面
+  const toc = parsed.chapters.length ? `<details class="tocd" ${wide ? 'open' : ''}><summary><span>目錄</span><span class="muted" style="font-size:14px;font-weight:400">${parsed.chapters.filter((c) => c.kind === '章').length} 章</span></summary><ol class="toc">${parsed.chapters.map((ch) => `
+      <li class="${ch.kind === '節' ? 'sub' : ''}"><a href="#" data-act="goto-ch" data-idx="${ch.idx}"><span class="n">${esc(ch.label)}</span><span>${esc(ch.title)}</span></a></li>`).join('')}</ol></details>` : '';
 
   const bodyHTML = parsed.articles.length || parsed.preamble.length
     ? lawBodyHTML(parsed, q, true, only)
@@ -1484,8 +1548,9 @@ async function onClick(e) {
   if (!t) return;
   const act = t.dataset.act;
   const { parts } = parseHash();
+  if (act === 'totop') { window.scrollTo({ top: 0, behavior: 'smooth' }); return; }
   if (act === 'goto-kids') { const el = document.getElementById('kids'); if (el) { el.scrollIntoView({ block: 'start' }); el.focus({ preventScroll: true }); } return; }
-  if (act === 'goto-ch') { e.preventDefault(); const el = document.getElementById('ch-' + t.dataset.idx); if (el) el.scrollIntoView({ block: 'start' }); return; }
+  if (act === 'goto-ch') { e.preventDefault(); const el = document.getElementById('ch-' + t.dataset.idx); if (window.innerWidth <= 1000) { const d = t.closest('details'); if (d) d.open = false; } if (el) el.scrollIntoView({ block: 'start' }); return; }
   if (act === 'copy-art') { const ok = await copyText(`${baseUrl()}#/law/${encodeURIComponent(parts[1])}/${encodeURIComponent(t.dataset.key)}`); toast(ok ? '已複製本條連結' : '複製失敗，請手動複製網址'); return; }
   if (act === 'copy-law') { const ok = await copyText(`${baseUrl()}#/law/${encodeURIComponent(parts[1])}`); toast(ok ? '已複製法規連結' : '複製失敗，請手動複製網址'); return; }
   if (act === 'print') { const l = lawById(parts[1]); if (l) printLaw(l); return; }
@@ -1583,7 +1648,7 @@ function route() {
     return;
   }
   if (parts[0] === 'law' && parts[1]) {
-    app.innerHTML = renderDetail(parts[1], parts[2], params);
+    app.innerHTML = renderDetail(parts[1], parts[2], params) + '<button type="button" class="totop" data-act="totop" aria-label="回到頁首" hidden>↑</button>';
     if (parts[2]) afterDetail(parts[1], parts[2]); else window.scrollTo(0, 0);
     return;
   }
@@ -1678,6 +1743,7 @@ const demo = (() => {
   });
   document.addEventListener('change', onChange);
   window.addEventListener('hashchange', route);
+  window.addEventListener('scroll', () => { const b = document.querySelector('.totop'); if (b) b.hidden = window.scrollY < 900; }, { passive: true });
   route();
   loadData();
 })();
