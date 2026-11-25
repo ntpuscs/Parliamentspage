@@ -110,6 +110,7 @@ mark{background:var(--hl);color:var(--ink);font-weight:700;padding:0 2px;border-
 .lv-head .cnt{font-size:14px;font-weight:700;color:var(--ink)}
 .lv-head .desc{font-size:14px;color:var(--muted)}
 .lv-sec .lawlist li:first-child{border-top-color:var(--ink2)}
+.kids{scroll-margin-top:16px;outline:none}
 .kids .lawlist li{gap:6px 16px}
 .kids .lawlist a.name{font-size:19px}
 .law-lv{display:flex;flex-wrap:wrap;align-items:center;gap:10px 14px}
@@ -705,9 +706,10 @@ function renderDetail(id, artKey, params) {
       </div>
       <div class="actions">
         ${law.url ? `<a class="btn primary" href="${esc(law.url)}" target="_blank" rel="noopener">查看原始頁面</a>` : ''}
-        <button class="btn" type="button" data-act="print">列印／另存 PDF</button>
+        <button class="btn" type="button" data-act="print">下載 PDF</button>
         <button class="btn" type="button" data-act="word">下載 Word</button>
         <button class="btn" type="button" data-act="copy-law">複製連結</button>
+        ${childrenOf(id).length ? `<button class="btn" type="button" data-act="goto-kids">子法（${childrenOf(id).length}）↓</button>` : ''}
       </div>
     </section>
     <div class="body">
@@ -723,7 +725,7 @@ function renderDetail(id, artKey, params) {
           ${q ? `<div class="infind-msg" role="status"><span>「${esc(q)}」符合 ${only.size} 條</span><a href="#/law/${encodeURIComponent(id)}">顯示全部條文</a></div>` : ''}
         </div>` : ''}
         <div>${bodyHTML}</div>
-        ${(() => { const kids = sortLaws(childrenOf(id)); return kids.length ? `<section class="kids" aria-labelledby="h-kids">
+        ${(() => { const kids = sortLaws(childrenOf(id)); return kids.length ? `<section class="kids" id="kids" aria-labelledby="h-kids" tabindex="-1">
           <div class="ch-head"><span class="n">子法</span><h2 id="h-kids">依本法訂定的法規</h2><span class="muted" style="font-size:14px;margin-left:auto">${kids.length} 部</span></div>
           <ol class="lawlist">${kids.map((k) => `<li>${levelTag(k)}<a class="name" href="#/law/${encodeURIComponent(k.id)}">${feiName(k)}</a><span class="date">${esc(k.date)}</span></li>`).join('')}</ol>
         </section>` : ''; })()}
@@ -740,16 +742,60 @@ function afterDetail(id, artKey) {
     setTimeout(() => el.classList.remove('flash'), 1800);
   } else toast('找不到第 ' + artKey.replace('-', ' 條之 ') + ' 條');
 }
-function downloadWord(law) {
+/* ---------- 下載 PDF／Word：比照正式法規文件格式（標楷體、A4） ----------
+   標題置中 → 編號沿革（由舊到新，最新一筆紅色粗體）→ 分隔線 → 章名置中 → 條號粗體 → 項首行縮排、款目懸掛縮排 */
+const KAI = "'DFKai-SB','標楷體','BiauKai','TW-Kai','LXGW WenKai TC','Kaiti TC',serif";
+function lawDocParts(law) {
   const p = parseLaw(law.text);
-  const hist = histOf(law.id);
-  const para = (t, lv) => `<p style="margin:0 0 4pt ${(lv - 1) * 2}em;line-height:1.7">${esc(t)}</p>`;
-  const art = (a) => `<p style="margin:10pt 0 4pt;font-weight:bold">${esc(a.label)}</p>${a.paras.map((x) => para(x.text, x.level)).join('')}`;
-  let body = p.preamble.map((t) => para(t, 1)).join('') + p.articles.filter((a) => a.chapter === -1).map(art).join('');
-  p.chapters.forEach((ch) => { body += `<h2 style="font-size:14pt;margin:16pt 0 6pt">${esc(ch.label)}　${esc(ch.title)}</h2>` + ch.articles.map(art).join(''); });
+  let hist = state.data.history.filter((h) => h.id === law.id);
+  // 每筆都有日期時依日期由舊到新；有「日期不可考」的紀錄時保留試算表順序，讓它們留在原本的位置
+  if (hist.every((h) => h.date)) hist = hist.slice().sort((x, y) => x.date.localeCompare(y.date));
+  const para = (x) => x.level === 1 ? `<p class="x">${esc(x.text)}</p>`
+    : `<p class="k${x.level}">${esc(x.text)}</p>`;
+  const art = (a) => `<div class="an">${esc(keyHead(a.key))}</div>${a.paras.map(para).join('')}`;
+  let body = p.preamble.map((t) => `<p class="x">${esc(t)}</p>`).join('') + p.articles.filter((a) => a.chapter === -1).map(art).join('');
+  p.chapters.forEach((ch) => { body += `<h2>${esc(ch.label)}${ch.title ? '　' + esc(ch.title) : ''}</h2>` + ch.articles.map(art).join(''); });
+  const head = `<h1>${esc(law.name)}</h1>${isRepealed(law) ? `<p class="rep">本法已廢止${law.date ? `（${esc(law.date)}）` : ''}</p>` : ''}
+    ${hist.length ? `<ol class="hist">${hist.map((h, i) => `<li${i === hist.length - 1 ? ' class="last"' : ''}>${esc(h.text)}</li>`).join('')}</ol>` : ''}<hr>`;
+  return { head, body };
+}
+const DOC_CSS = `
+  body{margin:0;color:#000;font-family:${KAI};font-size:12pt;line-height:1.75}
+  h1{margin:0 0 12pt;text-align:center;font-size:20pt;font-weight:bold;letter-spacing:.06em;line-height:1.4}
+  .rep{text-align:center;color:#C00000;font-weight:bold;margin:0 0 8pt}
+  ol.hist{margin:0;padding:0 0 0 2.4em;font-size:9.5pt;line-height:1.6}
+  ol.hist li{padding-left:.4em}
+  ol.hist li.last{color:#C00000;font-weight:bold}
+  hr{border:0;border-top:1.2pt solid #000;margin:16pt 0 18pt}
+  h2{margin:18pt 0 12pt;text-align:center;font-size:15pt;font-weight:bold;letter-spacing:.08em;break-after:avoid;page-break-after:avoid}
+  .an{font-weight:bold;font-size:11.5pt;margin:12pt 0 5pt;break-after:avoid;page-break-after:avoid}
+  p{margin:0 0 4pt;text-align:justify}
+  p.x{text-indent:1em}
+  p.k2{padding-left:3em;text-indent:-2em;margin-bottom:2pt}
+  p.k3{padding-left:4.5em;text-indent:-2.5em;margin-bottom:2pt}
+  p.k4{padding-left:5.5em;text-indent:-1.5em;margin-bottom:2pt}`;
+function printLaw(law) {
+  const { head, body } = lawDocParts(law);
+  const html = `<!doctype html><html lang="zh-Hant"><head><meta charset="utf-8"><title>${esc(law.name)}</title>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=LXGW+WenKai+TC:wght@400;700&display=swap">
+    <style>@page{size:A4;margin:22mm 25mm 20mm;@bottom-center{content:counter(page) " / " counter(pages);font-size:9pt;font-family:${KAI}}}${DOC_CSS}</style></head>
+    <body>${head}${body}</body></html>`;
+  const old = document.getElementById('print-frame'); if (old) old.remove();
+  const f = document.createElement('iframe');
+  f.id = 'print-frame'; f.setAttribute('aria-hidden', 'true');
+  f.style.cssText = 'position:fixed;right:0;bottom:0;width:0;height:0;border:0;visibility:hidden';
+  document.body.appendChild(f);
+  const doc = f.contentDocument; doc.open(); doc.write(html); doc.close();
+  const go = () => { try { f.contentWindow.focus(); f.contentWindow.print(); } catch (e) { toast('無法開啟列印視窗'); } };
+  const ready = doc.fonts && doc.fonts.ready ? Promise.race([doc.fonts.ready, new Promise((r) => setTimeout(r, 2500))]) : Promise.resolve();
+  ready.then(() => setTimeout(go, 150));
+  toast('在列印視窗的「目的地」選「另存為 PDF」即可下載');
+}
+function downloadWord(law) {
+  const { head, body } = lawDocParts(law);
   const html = `<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:w="urn:schemas-microsoft-com:office:word"><head><meta charset="utf-8"><title>${esc(law.name)}</title>
-    <style>body{font-family:"標楷體","DFKai-SB","Noto Serif TC",serif;font-size:12pt}h1{font-size:18pt;text-align:center}</style></head><body>
-    <h1>${isRepealed(law) ? '（廢）' : ''}${esc(law.name)}</h1>${isRepealed(law) ? `<p style="text-align:center;font-weight:bold">本法已廢止${law.date ? `（${esc(law.date)}）` : ''}</p>` : ''}${hist.length ? `<p style="font-size:10pt;color:#444">${esc(hist[0].text)}</p>` : ''}${body}</body></html>`;
+    <style>@page WordSection1{size:595.3pt 841.9pt;margin:62pt 71pt 57pt 71pt}div.WordSection1{page:WordSection1}${DOC_CSS.replace(KAI, '"標楷體","DFKai-SB",serif')}</style></head>
+    <body><div class="WordSection1">${head}${body}</div></body></html>`;
   const blob = new Blob(['﻿' + html], { type: 'application/msword' });
   const a = document.createElement('a');
   a.href = URL.createObjectURL(blob); a.download = law.name + '.doc';
@@ -1438,10 +1484,11 @@ async function onClick(e) {
   if (!t) return;
   const act = t.dataset.act;
   const { parts } = parseHash();
+  if (act === 'goto-kids') { const el = document.getElementById('kids'); if (el) { el.scrollIntoView({ block: 'start' }); el.focus({ preventScroll: true }); } return; }
   if (act === 'goto-ch') { e.preventDefault(); const el = document.getElementById('ch-' + t.dataset.idx); if (el) el.scrollIntoView({ block: 'start' }); return; }
   if (act === 'copy-art') { const ok = await copyText(`${baseUrl()}#/law/${encodeURIComponent(parts[1])}/${encodeURIComponent(t.dataset.key)}`); toast(ok ? '已複製本條連結' : '複製失敗，請手動複製網址'); return; }
   if (act === 'copy-law') { const ok = await copyText(`${baseUrl()}#/law/${encodeURIComponent(parts[1])}`); toast(ok ? '已複製法規連結' : '複製失敗，請手動複製網址'); return; }
-  if (act === 'print') { window.print(); return; }
+  if (act === 'print') { const l = lawById(parts[1]); if (l) printLaw(l); return; }
   if (act === 'reload') { location.reload(); return; }
   if (act === 'word') { const l = lawById(parts[1]); if (l) downloadWord(l); return; }
   if (act === 'logout') { logout(); go('#/admin'); return; }
