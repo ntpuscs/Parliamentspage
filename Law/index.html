@@ -13,7 +13,7 @@
 :root{
   --ink:#1B2A41; --ink2:#3D4858; --red:#B3372B; --red-dark:#8E2B22;
   --paper:#F6F3EC; --card:#FCFAF6; --stone:#D9D3C5; --stone2:#E9E3D4;
-  --muted:#5A6372; --hl:#F3DFA2; --side-muted:#C9CFDA;
+  --muted:#5A6372; --artno:#7A5A2E; /* 條號、章號：赭褐 */ --hl:#F3DFA2; --side-muted:#C9CFDA;
   --serif:'Noto Serif TC','Songti TC','PMingLiU',serif;
   --sans:'Noto Sans TC','PingFang TC','Microsoft JhengHei',system-ui,sans-serif;
 }
@@ -155,13 +155,13 @@ h1 .fei{border-width:2.5px;border-radius:5px;font-size:.72em;margin-right:.3em}
 .hist ol li{padding:14px 0;border-top:1px solid var(--stone);line-height:1.9}
 .hist .d{font-size:14px;color:var(--muted);margin-right:8px}
 .ch-head{display:flex;align-items:baseline;gap:16px;padding:8px 0 18px;border-bottom:1px solid var(--stone);scroll-margin-top:16px}
-.ch-head .n{font-size:15px;letter-spacing:.2em;color:var(--red);font-weight:700;white-space:nowrap}
+.ch-head .n{font-size:15px;letter-spacing:.2em;color:var(--artno);font-weight:700;white-space:nowrap}
 .ch-head h2{margin:0;font-family:var(--serif);font-weight:900;font-size:30px;letter-spacing:.04em}
 .ch-head.sec2 h2{font-size:22px}
 .art{display:flex;flex-wrap:wrap;gap:6px 32px;padding:24px 0;border-bottom:1px solid var(--stone);scroll-margin-top:16px;transition:background .6s}
 .art.flash{background:#F7EBC9}
 .art-no{flex:0 0 124px;display:flex;flex-direction:column;align-items:flex-start;gap:2px}
-.art-no .l{white-space:nowrap;font-family:var(--serif);font-weight:600;font-size:20px;color:var(--red);line-height:1.8}
+.art-no .l{white-space:nowrap;font-family:var(--serif);font-weight:600;font-size:20px;color:var(--artno);line-height:1.8}
 .linkbtn{display:inline-flex;align-items:center;gap:6px;min-height:44px;padding:0;font-size:13px;color:var(--muted);background:transparent;border:0;cursor:pointer}
 .linkbtn:hover{color:var(--red)}
 .art-body{flex:1 1 360px;min-width:0;font-size:18px;line-height:1.9;display:flex;flex-direction:column;gap:6px}
@@ -178,7 +178,7 @@ h1 .fei{border-width:2.5px;border-radius:5px;font-size:.72em;margin-right:.3em}
 .result a.name{font-family:var(--serif);font-weight:600;font-size:22px;line-height:1.5;text-decoration:none}
 .hits{list-style:none;margin:4px 0 0;padding:0}
 .hits li{display:flex;flex-wrap:wrap;gap:2px 24px;padding:12px 0;border-top:1px solid var(--stone)}
-.hits a{flex:0 0 124px;white-space:nowrap;font-family:var(--serif);font-weight:600;font-size:17px;color:var(--red);text-decoration:none;line-height:1.9}
+.hits a{flex:0 0 124px;white-space:nowrap;font-family:var(--serif);font-weight:600;font-size:17px;color:var(--artno);text-decoration:none;line-height:1.9}
 .hits span{flex:1 1 360px;min-width:0;line-height:1.9}
 
 /* footer */
