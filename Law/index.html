@@ -43,6 +43,7 @@ mark{background:var(--hl);color:var(--ink);font-weight:700;padding:0 2px;border-
 .site-nav{align-items:center}
 .site-nav a.admin-btn{margin-left:8px;padding:0 16px;min-height:40px;border-radius:4px;background:var(--ink);border-color:var(--ink);color:var(--paper);font-weight:700}
 .site-nav a.admin-btn:hover{background:#0f1a2b;color:var(--paper)}
+.admin-btn .sm{display:none}
 .demo-bar{background:var(--ink);color:var(--paper);font-size:14px;text-align:center;padding:8px 16px}
 .stale-bar{background:#FBE9C6;color:var(--ink);font-size:15px;text-align:center;padding:10px 16px;border-bottom:1px solid #E6CC8F;line-height:1.7}
 .stale-bar button{margin-left:10px;min-height:36px;padding:0 14px;border:1.5px solid var(--ink);border-radius:4px;background:transparent;cursor:pointer;font-weight:700}
@@ -97,6 +98,11 @@ mark{background:var(--hl);color:var(--ink);font-weight:700;padding:0 2px;border-
 .lawlist a.name{flex:1 1 360px;min-width:0;font-family:var(--serif);font-weight:600;font-size:21px;line-height:1.5;text-decoration:none}
 .lawlist li.off a.name{color:var(--muted)}
 .lawlist .date{font-size:15px;color:var(--muted)}
+/* 「廢」字章：與朱紅方印標誌呼應，改用細框表示已失效 */
+.fei{display:inline-flex;align-items:center;justify-content:center;width:1.45em;height:1.45em;margin-right:.4em;border:1.5px solid var(--red-dark);border-radius:3px;color:var(--red-dark);background:rgba(179,55,43,.06);font-family:var(--serif);font-weight:900;font-size:.78em;line-height:1;vertical-align:.14em}
+h1 .fei{border-width:2.5px;border-radius:5px;font-size:.72em;margin-right:.3em}
+.repealed-entry{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:12px;padding:20px 24px;background:var(--card);border:1px solid var(--stone);border-radius:6px;text-decoration:none}
+.repealed-entry:hover{border-color:var(--ink)}
 .empty{padding:20px 0;color:var(--muted);border-top:1px solid var(--stone)}
 
 /* detail */
@@ -212,8 +218,9 @@ mark{background:var(--hl);color:var(--ink);font-weight:700;padding:0 2px;border-
 @media (max-width:640px){
   .wrap{padding:0 16px}
   .site-nav{gap:0}
-  .site-nav a{padding:10px 9px}
-  .site-nav a.admin-btn{margin-left:4px;padding:0 12px}
+  .site-nav a{padding:10px 8px;font-size:14.5px}
+  .site-nav a.admin-btn{margin-left:4px;padding:0 10px}
+  .admin-btn .lg{display:none}.admin-btn .sm{display:inline}
   .hero{padding-top:48px;padding-bottom:36px}
   .amain{padding:28px 16px 48px}
   .art-no{flex-basis:100%;flex-direction:row;align-items:center;gap:12px}
@@ -451,6 +458,9 @@ function fmtTime(ms) {
 }
 
 const dispName = (l) => (l && (l.short || l.name)) || '';
+const isRepealed = (l) => !!l && l.status === '已廢止';
+const FEI = '<span class="fei" aria-hidden="true">廢</span><span class="sr">已廢止：</span>';
+const feiName = (l, inner) => (isRepealed(l) ? FEI : '') + (inner == null ? esc(dispName(l)) : inner);
 const lawById = (id) => state.data.laws.find((l) => l.id === id);
 const histOf = (id) => state.data.history.filter((h) => h.id === id).sort((a, b) => (b.date || '').localeCompare(a.date || ''));
 const renamesOf = (id) => state.data.renames.filter((r) => r.id === id).sort((a, b) => (b.date || '').localeCompare(a.date || ''));
@@ -465,7 +475,7 @@ const sortLaws = (arr) => arr.slice().sort((a, b) => (a.status === '已廢止') 
 
 /* ---------- 版面 ---------- */
 function header(active) {
-  const nav = [['#/', '全部法規', 'home'], ['#/latest', '最新異動', 'latest'], ['#/search', '搜尋', 'search']];
+  const nav = [['#/', '全部法規', 'home'], ['#/latest', '最新異動', 'latest'], ['#/repealed', '廢止法規', 'repealed'], ['#/search', '搜尋', 'search']];
   const staleBar = state.stale
     ? `<div class="stale-bar" role="alert">目前無法連線到資料庫，以下是 ${state.cachedAt ? esc(fmtTime(state.cachedAt)) + ' ' : '先前'}同步的資料，可能不是最新。<button type="button" data-act="reload">重新整理</button></div>`
     : '';
@@ -473,7 +483,7 @@ function header(active) {
   <header class="site-header"><div class="wrap">
     <a class="brand" href="#/">${LOGO('#B3372B', '#F6F3EC', '#F6F3EC', 40)}<span class="brand-text"><span class="brand-org">國立臺北大學學生自治會</span><span class="brand-name">跨校區及三峽校區法規資料庫</span></span></a>
     <nav class="site-nav" aria-label="主選單">${nav.map(([h, t, k]) => `<a href="${h}" class="${k === active ? 'on' : ''}">${t}</a>`).join('')}
-      <a class="btn small admin-btn" href="#/admin">${state.admin.token ? '回到後台' : '管理後台'}</a></nav>
+      <a class="btn small admin-btn" href="#/admin"><span class="lg">${state.admin.token ? '回到後台' : '管理後台'}</span><span class="sm" aria-hidden="true">後台</span></a></nav>
   </div></header>`;
 }
 function footer() {
@@ -493,13 +503,13 @@ function searchForm(q, extraClass) {
 /* ---------- 首頁 ---------- */
 function renderHome(params) {
   const scope = ['all', 'common', 'sanxia'].indexOf(params.get('scope')) >= 0 ? params.get('scope') : 'all';
-  const laws = state.data.laws;
+  const laws = state.data.laws.filter((l) => !isRepealed(l));
+  const repealedCount = state.data.laws.length - laws.length;
   const latest = state.data.history.slice().sort((a, b) => (b.date || '').localeCompare(a.date || '')).filter((h) => h.date && lawById(h.id)).slice(0, 4);
   const tabs = [['all', '全部'], ['common', REGION_COMMON], ['sanxia', REGION_SANXIA]];
   const list = (arr) => arr.length ? `<ol class="lawlist">${sortLaws(arr).map((l, i) => `
-      <li class="${l.status === '已廢止' ? 'off' : ''}"><span class="no">${String(i + 1).padStart(2, '0')}</span>
+      <li><span class="no">${String(i + 1).padStart(2, '0')}</span>
       <a class="name" href="#/law/${encodeURIComponent(l.id)}">${esc(dispName(l))}</a>
-      ${l.status === '已廢止' ? '<span class="tag stone">已廢止</span>' : ''}
       <span class="date">${esc(l.date)}</span></li>`).join('')}</ol>` : '<div class="empty">目前沒有法規。</div>';
 
   const common = laws.filter((l) => scopeOf(l) === 'common');
@@ -522,7 +532,10 @@ function renderHome(params) {
     <div class="cards">${latest.map((h) => { const l = lawById(h.id); return `
       <a class="card" href="#/law/${encodeURIComponent(l.id)}">
         <span style="display:flex;align-items:center;gap:10px;font-size:14px" class="muted"><span class="tag red">${esc(h.type || '異動')}</span>${esc(h.date)}</span>
-        <span class="t">${esc(dispName(l))}</span></a>`; }).join('')}</div></section>` : '';
+        <span class="t">${feiName(l)}</span></a>`; }).join('')}</div></section>` : '';
+  const repealedSec = repealedCount ? `<section class="sec wrap"><a class="repealed-entry" href="#/repealed">
+      <span style="display:flex;align-items:center;gap:12px"><span class="serif" style="font-size:24px;font-weight:900">${FEI}廢止法規</span><span class="muted" style="font-size:15px">共 ${repealedCount} 部，條文與沿革仍可查考</span></span>
+      <span style="font-weight:700">查看 →</span></a></section>` : '';
 
   return page('home', `
     <section class="wrap hero">
@@ -533,7 +546,21 @@ function renderHome(params) {
     </section>
     ${scope === 'all' ? latestSec : ''}
     ${scope !== 'sanxia' ? secCommon : ''}
-    ${scope !== 'common' ? secSanxia : ''}`);
+    ${scope !== 'common' ? secSanxia : ''}
+    ${repealedSec}`);
+}
+
+/* ---------- 廢止法規 ---------- */
+function renderRepealed() {
+  const arr = state.data.laws.filter(isRepealed).sort((a, b) => (b.date || '').localeCompare(a.date || ''));
+  return page('repealed', `<div class="wrap" style="padding:48px 24px 96px">
+    <div class="sec-head"><h1 style="margin:0;font-family:var(--serif);font-weight:900;font-size:32px;letter-spacing:.04em">${FEI}廢止法規</h1><span class="muted" style="font-size:14px">共 ${arr.length} 部</span></div>
+    <p class="muted" style="margin:0 0 8px;font-size:15px">以下法規已廢止，不再適用；條文與沿革保留供查考。依廢止日期排列，最近的在前。</p>
+    ${arr.length ? `<ol class="lawlist">${arr.map((l) => `<li style="flex-direction:column;align-items:stretch;gap:6px">
+      <a class="name" href="#/law/${encodeURIComponent(l.id)}">${feiName(l)}</a>
+      <div class="muted" style="display:flex;flex-wrap:wrap;gap:4px 20px;font-size:15px"><span>${esc(scopeLabel(l))}</span><span>廢止日期 ${esc(l.date || '不可考')}</span></div></li>`).join('')}</ol>`
+      : '<div class="empty">目前沒有廢止的法規。</div>'}
+  </div>`);
 }
 
 /* ---------- 法規內頁 ---------- */
@@ -570,7 +597,7 @@ function renderDetail(id, artKey, params) {
   const hist = histOf(id);
   const ren = renamesOf(id);
   const isSanxia = law.region === REGION_SANXIA;
-  document.title = dispName(law) + '｜跨校區及三峽校區法規資料庫';
+  document.title = (isRepealed(law) ? '（廢）' : '') + dispName(law) + '｜跨校區及三峽校區法規資料庫';
 
   const histHTML = hist.length ? `<section class="hist" aria-labelledby="h-hist">
       <div style="display:flex;flex-wrap:wrap;justify-content:space-between;align-items:baseline;gap:8px"><h2 id="h-hist">法規沿革</h2><span class="muted" style="font-size:14px">最近一次</span></div>
@@ -588,11 +615,11 @@ function renderDetail(id, artKey, params) {
 
   return page('', `<div class="wrap">
     <nav class="crumbs" aria-label="麵包屑"><a href="#/">法規資料庫首頁</a><span>/</span>
-      <a href="#/?scope=${law.region === REGION_COMMON ? 'common' : 'sanxia'}">${esc(law.region || '未分類')}</a>
+      ${isRepealed(law) ? '<a href="#/repealed">廢止法規</a><span>/</span>' : ''}<a href="#/?scope=${law.region === REGION_COMMON ? 'common' : 'sanxia'}">${esc(law.region || '未分類')}</a>
       ${isSanxia && law.agency ? `<span>/</span><span>${esc(law.agency)}主管</span>` : ''}</nav>
     <section class="law-head">
       <div class="eyebrow">${esc(scopeLabel(law))}</div>
-      <h1>${esc(law.name)}</h1>
+      <h1>${feiName(law, esc(law.name))}</h1>
       ${law.short && law.short !== law.name ? `<div style="font-size:17px"><span class="muted" style="font-size:14px;letter-spacing:.12em;margin-right:10px">簡稱</span>${esc(law.short)}</div>` : ''}
       ${ren.length ? `<div class="hint" style="font-size:15px">名稱變更：${ren.map((r) => `原名稱「${esc(r.oldName)}」${r.date ? `，${esc(r.date)} 更名` : ''}`).join('；')}</div>` : ''}
       ${law.status === '已廢止' ? `<div class="banner">本法已廢止${law.date ? `（${esc(law.date)}）` : ''}，以下條文僅供查考。</div>` : ''}
@@ -643,7 +670,7 @@ function downloadWord(law) {
   p.chapters.forEach((ch) => { body += `<h2 style="font-size:14pt;margin:16pt 0 6pt">${esc(ch.label)}　${esc(ch.title)}</h2>` + ch.articles.map(art).join(''); });
   const html = `<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:w="urn:schemas-microsoft-com:office:word"><head><meta charset="utf-8"><title>${esc(law.name)}</title>
     <style>body{font-family:"標楷體","DFKai-SB","Noto Serif TC",serif;font-size:12pt}h1{font-size:18pt;text-align:center}</style></head><body>
-    <h1>${esc(law.name)}</h1>${hist.length ? `<p style="font-size:10pt;color:#444">${esc(hist[0].text)}</p>` : ''}${body}</body></html>`;
+    <h1>${isRepealed(law) ? '（廢）' : ''}${esc(law.name)}</h1>${isRepealed(law) ? `<p style="text-align:center;font-weight:bold">本法已廢止${law.date ? `（${esc(law.date)}）` : ''}</p>` : ''}${hist.length ? `<p style="font-size:10pt;color:#444">${esc(hist[0].text)}</p>` : ''}${body}</body></html>`;
   const blob = new Blob(['﻿' + html], { type: 'application/msword' });
   const a = document.createElement('a');
   a.href = URL.createObjectURL(blob); a.download = law.name + '.doc';
@@ -657,7 +684,7 @@ function runSearch(q, scope, mode) {
   if (!q) return res;
   state.data.laws.forEach((law) => {
     const sc = scopeOf(law);
-    if (scope !== 'all' && sc !== scope) return;
+    if (scope === 'repealed') { if (!isRepealed(law)) return; } else if (scope !== 'all' && sc !== scope) return;
     const nameHit = mode !== 'text' && (law.name.includes(q) || (law.short || '').includes(q));
     const oldHit = mode !== 'text' ? renamesOf(law.id).filter((r) => (r.oldName || '').includes(q)) : [];
     let hits = [];
@@ -674,12 +701,12 @@ function runSearch(q, scope, mode) {
 function renderSearch(params) {
   const q = (params.get('q') || '').trim();
   const pick = (v, ok, d) => (ok.indexOf(v) >= 0 ? v : d); // 只接受固定值，防止網址參數被拿來注入
-  const scope = pick(params.get('scope'), ['all', 'common', 'union', 'council'], 'all');
+  const scope = pick(params.get('scope'), ['all', 'common', 'union', 'council', 'repealed'], 'all');
   const mode = pick(params.get('in'), ['all', 'name', 'text'], 'all');
   const res = runSearch(q, scope, mode);
   const artCount = res.reduce((n, r) => n + r.hits.length, 0);
   const link = (s, m) => `#/search?q=${encodeURIComponent(q)}&scope=${encodeURIComponent(s)}&in=${encodeURIComponent(m)}`;
-  const scopes = [['all', '全部'], ['common', REGION_COMMON], ['union', '三峽・學生會主管'], ['council', '三峽・學生議會主管']];
+  const scopes = [['all', '全部'], ['common', REGION_COMMON], ['union', '三峽・學生會主管'], ['council', '三峽・學生議會主管'], ['repealed', '已廢止']];
   const SHOW = 5;
   return page('search', `<div class="wrap" style="padding:40px 24px 96px;display:flex;flex-direction:column;gap:24px">
     <h1 class="sr">搜尋法規</h1>
@@ -697,11 +724,10 @@ function renderSearch(params) {
     <ol style="list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:18px">
     ${res.map((r) => { const id = encodeURIComponent(r.law.id); return `<li class="result">
       <div class="top"><span>${esc(scopeLabel(r.law))}</span>
-        ${r.law.status === '已廢止' ? '<span class="tag stone">已廢止</span>' : ''}
         ${r.nameHit ? '<span class="tag ink">名稱符合</span>' : ''}
         ${r.oldHit.length ? '<span class="tag stone">舊名稱符合</span>' : ''}
         ${r.hits.length ? `<span class="tag line">條文符合 ${r.hits.length} 條</span>` : ''}</div>
-      <a class="name" href="#/law/${id}">${hl(dispName(r.law), r.nameHit ? q : '')}</a>
+      <a class="name" href="#/law/${id}">${feiName(r.law, hl(dispName(r.law), r.nameHit ? q : ''))}</a>
       ${r.law.short && r.law.short !== r.law.name ? `<div class="hint" style="font-size:15px">全稱：${hl(r.law.name, r.nameHit ? q : '')}</div>` : ''}
       ${r.oldHit.map((o) => `<div class="hint" style="font-size:15px">原名稱「${hl(o.oldName, q)}」${o.date ? `，${esc(o.date)} 更名` : ''}</div>`).join('')}
       ${r.hits.length ? `<ul class="hits">${r.hits.slice(0, SHOW).map((h) => `<li><a href="#/law/${id}/${encodeURIComponent(h.key)}">${esc(h.label)}</a><span>${hl(h.snip, q)}</span></li>`).join('')}</ul>
@@ -718,7 +744,7 @@ function renderLatest() {
     <div class="sec-head"><h1 style="margin:0;font-family:var(--serif);font-weight:900;font-size:32px">最新異動</h1><span class="muted" style="font-size:14px">共 ${all.length} 筆</span></div>
     ${all.length ? `<ol class="lawlist">${all.map((h) => { const l = lawById(h.id); return `<li style="flex-direction:column;align-items:stretch;gap:8px">
       <div style="display:flex;flex-wrap:wrap;align-items:center;gap:10px"><span class="tag red">${esc(h.type || '異動')}</span><span class="muted" style="font-size:15px">${esc(h.date || '日期不可考')}</span></div>
-      <a class="name" href="#/law/${encodeURIComponent(l.id)}">${esc(dispName(l))}</a>
+      <a class="name" href="#/law/${encodeURIComponent(l.id)}">${feiName(l)}</a>
       <div class="muted" style="line-height:1.8">${esc(h.text)}</div></li>`; }).join('')}</ol>` : '<div class="empty">目前沒有異動紀錄。</div>'}
   </div>`);
 }
@@ -791,7 +817,7 @@ function renderAdminList() {
     </div>
     <div class="atable" role="table" aria-label="法規列表">
       <div class="row h" role="row"><span role="columnheader">法規名稱</span><span role="columnheader">所屬區／主管</span><span role="columnheader">最近異動</span><span role="columnheader">狀態</span><span role="columnheader">操作</span></div>
-      ${rows.map((l) => `<div class="row" role="row"><span class="nm" role="cell">${esc(dispName(l))}<br><span class="muted" style="font-family:var(--sans);font-size:13px;font-weight:400">${esc(l.id)}</span></span>
+      ${rows.map((l) => `<div class="row" role="row"><span class="nm" role="cell">${feiName(l)}<br><span class="muted" style="font-family:var(--sans);font-size:13px;font-weight:400">${esc(l.id)}</span></span>
         <span role="cell" style="font-size:14px">${esc(l.region || '—')}${l.agency ? `<br>${esc(l.agency)}` : ''}</span>
         <span role="cell" class="muted" style="font-size:15px">${esc(l.date || '—')}</span>
         <span role="cell">${badge(l.status)}</span>
@@ -1179,6 +1205,7 @@ function route() {
   }
   if (parts[0] === 'search') app.innerHTML = renderSearch(params);
   else if (parts[0] === 'latest') app.innerHTML = renderLatest();
+  else if (parts[0] === 'repealed') app.innerHTML = renderRepealed();
   else app.innerHTML = renderHome(params);
   if (!(parts.length === 0 && params.get('scope'))) window.scrollTo(0, 0);
 }
