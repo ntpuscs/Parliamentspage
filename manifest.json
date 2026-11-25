@@ -1,6 +1,6 @@
 {
-  "name": "議事系統",
-  "short_name": "議事系統",
+  "name": "議會服務",
+  "short_name": "議會服務",
   "description": "議案查詢、提案、議員索資與邀請列席備詢",
   "lang": "zh-Hant",
   "start_url": "./",
