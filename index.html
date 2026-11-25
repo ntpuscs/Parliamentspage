@@ -10,7 +10,7 @@
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-title" content="議事系統">
+<meta name="apple-mobile-web-app-title" content="議會服務">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <script>
 /* 夜間模式：記得使用者的選擇；沒選過就跟著手機／電腦的深色設定（放在最前面，避免畫面先白後黑閃一下） */
@@ -403,7 +403,7 @@ dialog.cf::backdrop{background:rgba(29,34,48,.55)}
     <p class="intro">公開查詢議案進度，或向學生議員陳情。議員與學生會成員請由「會內系統」登入，使用提案、建議事項、索資與邀請列席備詢。</p>
   </header>
   <div class="notice" id="iosTip" hidden style="margin-top:24px">
-    <strong>把議事系統加到主畫面：</strong>在 Safari 點下方的「分享」按鈕 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="vertical-align:-2px"><path d="M12 15V3M8 7l4-4 4 4"/><path d="M5 12v7a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-7"/></svg>，再選「加入主畫面」。
+    <strong>把議會服務加到主畫面：</strong>在 Safari 點下方的「分享」按鈕 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="vertical-align:-2px"><path d="M12 15V3M8 7l4-4 4 4"/><path d="M5 12v7a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-7"/></svg>，再選「加入主畫面」。
     <button type="button" class="more" id="iosTipClose" style="display:block;min-height:36px">知道了</button>
   </div>
 
@@ -426,6 +426,11 @@ dialog.cf::backdrop{background:rgba(29,34,48,.55)}
       <span class="go">進入請願系統<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span>
     </a>
     -->
+    <a class="card" href="https://ntpuscs.github.io/Parliamentspage/Law">
+      <span class="ic"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 19.5V5a2 2 0 0 1 2-2h13v16H6a2 2 0 0 0-2 2.5z"/><path d="M6 19h13v3H6a2 2 0 0 1 0-4"/><path d="M9 7h6M9 11h6"/></svg></span>
+      <span><span class="k">所有同學</span><h2>法規資料庫</h2><p>查詢跨校區及三峽校區的學生自治法規。</p></span>
+      <span class="go">查詢法規<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span>
+    </a>
     <a class="card" href="#member">
       <span class="ic"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg></span>
       <span><span class="k">議員・學生會</span><h2>會內系統</h2><p>登入後可提案、提出建議事項、議員索資與邀請列席備詢。</p></span>
