@@ -479,7 +479,7 @@ function searchForm(q, extraClass) {
 function renderHome(params) {
   const scope = params.get('scope') || 'all';
   const laws = state.data.laws;
-  const latest = state.data.history.slice().sort((a, b) => (b.date || '').localeCompare(a.date || '')).filter((h) => lawById(h.id)).slice(0, 4);
+  const latest = state.data.history.slice().sort((a, b) => (b.date || '').localeCompare(a.date || '')).filter((h) => h.date && lawById(h.id)).slice(0, 4);
   const tabs = [['all', '全部'], ['common', REGION_COMMON], ['sanxia', REGION_SANXIA]];
   const list = (arr) => arr.length ? `<ol class="lawlist">${sortLaws(arr).map((l, i) => `
       <li class="${l.status === '已廢止' ? 'off' : ''}"><span class="no">${String(i + 1).padStart(2, '0')}</span>
@@ -701,7 +701,7 @@ function renderLatest() {
   return page('latest', `<div class="wrap" style="padding:48px 24px 96px">
     <div class="sec-head"><h1 style="margin:0;font-family:var(--serif);font-weight:900;font-size:32px">最新異動</h1><span class="muted" style="font-size:14px">共 ${all.length} 筆</span></div>
     ${all.length ? `<ol class="lawlist">${all.map((h) => { const l = lawById(h.id); return `<li style="flex-direction:column;align-items:stretch;gap:8px">
-      <div style="display:flex;flex-wrap:wrap;align-items:center;gap:10px"><span class="tag red">${esc(h.type || '異動')}</span><span class="muted" style="font-size:15px">${esc(h.date)}</span></div>
+      <div style="display:flex;flex-wrap:wrap;align-items:center;gap:10px"><span class="tag red">${esc(h.type || '異動')}</span><span class="muted" style="font-size:15px">${esc(h.date || '日期不可考')}</span></div>
       <a class="name" href="#/law/${encodeURIComponent(l.id)}">${esc(dispName(l))}</a>
       <div class="muted" style="line-height:1.8">${esc(h.text)}</div></li>`; }).join('')}</ol>` : '<div class="empty">目前沒有異動紀錄。</div>'}
   </div>`);
@@ -830,9 +830,10 @@ function renderAdminEdit(id) {
       <section style="display:flex;flex-direction:column;gap:20px">
         <div class="step"><span class="n">三</span><h2>沿革紀錄</h2><span class="muted" style="font-size:14px">發布時必填${isNew || isDraft ? '，儲存草稿可不填' : ''}</span></div>
         <div class="grid2">
-          <div class="field"><label for="e-date">公布日期</label><input id="e-date" name="date" class="input" type="date" value="${todayISO()}"></div>
+          <div class="field"><label for="e-date">公布日期</label><input id="e-date" name="date" class="input" type="date" value="${todayISO()}">
+            ${isAmend ? '' : '<label class="check" style="margin-top:6px"><input type="checkbox" name="unknown" id="e-unknown"><span>制定日期不可考（不填日期，沿革寫「制定日期不可考。」）</span></label>'}</div>
           <div class="field"><label for="e-type">異動類型</label><select id="e-type" name="type" class="select">${(isAmend ? ['修正'] : ['制定']).map((t) => `<option ${t === type ? 'selected' : ''}>${t}</option>`).join('')}</select></div>
-          <div class="field span-all"><label for="e-hist">沿革文字（比照全國法規資料庫格式）</label>
+          <div class="field span-all"><label for="e-hist">沿革文字</label>
             <textarea id="e-hist" name="hist" class="textarea" rows="3" placeholder="${ph}"></textarea>
             <div class="hint">寫明通過日期、第幾屆第幾次常會／臨時會、公布日期，以及修正、增訂或廢止第幾條。發布後會接在前台「法規沿革」最上方。</div></div>
         </div>
@@ -901,7 +902,7 @@ function renderAdminHistory(id) {
     </div>
     <section style="display:flex;flex-direction:column;gap:12px">
       <div class="step"><span class="n">一</span><h2>目前已有的沿革</h2><span class="muted" style="font-size:14px">${existing.length} 筆</span></div>
-      ${existing.length ? `<ol class="lawlist">${existing.map((h) => `<li style="flex-direction:column;align-items:stretch;gap:6px"><div style="display:flex;gap:10px;align-items:center"><span class="tag red">${esc(h.type || '異動')}</span><span class="muted" style="font-size:14px">${esc(h.date)}</span></div><div style="line-height:1.8">${esc(h.text)}</div></li>`).join('')}</ol>` : '<div class="empty">還沒有沿革紀錄。</div>'}
+      ${existing.length ? `<ol class="lawlist">${existing.map((h) => `<li style="flex-direction:column;align-items:stretch;gap:6px"><div style="display:flex;gap:10px;align-items:center"><span class="tag red">${esc(h.type || '異動')}</span><span class="muted" style="font-size:14px">${esc(h.date || '日期不可考')}</span></div><div style="line-height:1.8">${esc(h.text)}</div></li>`).join('')}</ol>` : '<div class="empty">還沒有沿革紀錄。</div>'}
     </section>
     <form data-form="histimport" data-id="${esc(id)}" novalidate style="display:flex;flex-direction:column;gap:24px">
       <section style="display:flex;flex-direction:column;gap:12px">
@@ -918,7 +919,7 @@ function renderAdminHistory(id) {
             <div class="field" style="width:200px"><label for="hd-${i}">公布日期</label><input id="hd-${i}" name="date-${i}" class="input" type="date" value="${esc(it.date)}" style="min-height:48px;font-size:16px"></div>
             <div class="field" style="width:140px"><label for="ht-${i}">異動類型</label><select id="ht-${i}" name="type-${i}" class="select" style="min-height:48px;font-size:16px">${types.map((t) => `<option ${t === it.type ? 'selected' : ''}>${t}</option>`).join('')}</select></div>
           </div>
-          ${!it.date ? '<div class="err" style="font-size:14px">沒有辨識到日期，請手動填寫。</div>' : ''}
+          ${!it.date ? '<div class="err" style="font-size:14px">沒有辨識到日期。可以手動填寫；留空代表日期不可考，會排在最舊。</div>' : ''}
           ${it.dup ? '<div class="muted" style="font-size:14px">這筆跟已有的沿革相同，預設不匯入。</div>' : ''}
           <div class="field"><label for="hx-${i}">沿革文字</label><textarea id="hx-${i}" name="text-${i}" class="textarea" rows="2" style="font-size:16px">${esc(it.text)}</textarea></div>
         </div>`).join('') : '<div class="empty">沒有辨識到任何沿革，請確認每筆以「中華民國」或「民國」開頭。</div>'}
@@ -1015,11 +1016,12 @@ async function onSubmit(e) {
       const submitter = e.submitter && e.submitter.dataset.submit || 'publish';
       const f = form.elements;
       const law = { id: form.dataset.id || '', name: f.name.value.trim(), short: f.short.value.trim(), region: f.region.value, agency: f.region.value === REGION_COMMON ? '' : f.agency.value, url: f.url.value.trim(), text: f.text.value };
-      const history = { date: f.date.value, type: f.type.value, text: f.hist.value.trim() };
+      const unknown = !!(f.unknown && f.unknown.checked);
+      const history = { date: unknown ? '' : f.date.value, type: f.type.value, text: f.hist.value.trim() || (unknown ? '制定日期不可考。' : ''), unknown };
       if (!law.name) return showErr(form, '請填寫法規全稱。');
       if (submitter === 'publish') {
         if (!parseLaw(law.text).articles.length) return showErr(form, '全文沒有辨識到任何條文，請確認每條以「第 X 條」開頭。');
-        if (!history.date) return showErr(form, '請填寫公布日期。');
+        if (!history.date && !unknown) return showErr(form, '請填寫公布日期，或勾選「制定日期不可考」。');
         if (!history.text) return showErr(form, '發布前請填寫沿革文字。');
       }
       showErr(form, ''); lock(true);
@@ -1044,7 +1046,6 @@ async function onSubmit(e) {
       for (let i = 0; i < state.admin.histDraft.items.length; i++) {
         if (!f['use-' + i].checked) continue;
         const it = { date: f['date-' + i].value, type: f['type-' + i].value, text: f['text-' + i].value.trim() };
-        if (!it.date) return showErr(form, `第 ${i + 1} 筆沒有公布日期。`);
         if (!it.text) return showErr(form, `第 ${i + 1} 筆沒有沿革文字。`);
         items.push(it);
       }
@@ -1131,6 +1132,12 @@ function onChange(e) {
     const { params } = parseHash();
     go(`#/search?q=${encodeURIComponent(params.get('q') || '')}&scope=${params.get('scope') || 'all'}&in=${t.value}`);
   }
+  if (t.id === 'e-unknown') {
+    const d = $('#e-date'); const h = $('#e-hist');
+    d.disabled = t.checked;
+    if (t.checked && !h.value.trim()) h.value = '制定日期不可考。';
+    if (!t.checked && h.value.trim() === '制定日期不可考。') h.value = '';
+  }
   if (t.id === 'e-region') {
     const fld = $('[data-agency-field]'); if (fld) fld.hidden = t.value === REGION_COMMON;
   }
@@ -1205,7 +1212,7 @@ const demo = (() => {
             db.history.push({ id: law.id, date: isoToSlash(b.history.date), type: b.history.type, text: b.history.text });
           } else if (!law) { law = { id: nextId(), date: '' }; db.laws.push(law); }
           Object.assign(law, { name: L.name, short: L.short, region: L.region, agency: L.agency, url: L.url, text: L.text, status: b.mode === 'publish' ? '現行' : '草稿' });
-          if (b.mode === 'publish') law.date = isoToSlash(b.history.date);
+          if (b.mode === 'publish') law.date = b.history.unknown ? '' : isoToSlash(b.history.date);
           return resolve({ ok: true, id: law.id });
         }
         if (b.action === 'repeal') {
