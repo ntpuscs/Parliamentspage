@@ -98,6 +98,19 @@ mark{background:var(--hl);color:var(--ink);font-weight:700;padding:0 2px;border-
 .lawlist a.name{flex:1 1 360px;min-width:0;font-family:var(--serif);font-weight:600;font-size:21px;line-height:1.5;text-decoration:none}
 .lawlist li.off a.name{color:var(--muted)}
 .lawlist .date{font-size:15px;color:var(--muted)}
+.lv{display:inline-block;padding:0 8px;font-size:12px;font-weight:700;line-height:22px;border-radius:3px;white-space:nowrap;font-family:var(--sans);letter-spacing:.04em}
+.lv-charter{background:var(--red);color:#fff;border:1.5px solid var(--red)}
+.lv-law{border:1.5px solid var(--ink);color:var(--ink)}
+.lv-order{background:var(--stone);color:var(--ink);border:1.5px solid var(--stone)}
+.lv-rule{border:1.5px dashed var(--muted);color:var(--ink2)}
+.lv.lg{font-size:15px;line-height:30px;padding:0 14px;border-radius:4px;letter-spacing:.12em}
+.lv-sec{margin-top:6px}
+.lv-sec + .lv-sec{margin-top:18px}
+.lv-head{display:flex;flex-wrap:wrap;align-items:center;gap:6px 12px;padding:14px 0 10px}
+.lv-head .cnt{font-size:14px;font-weight:700;color:var(--ink)}
+.lv-head .desc{font-size:14px;color:var(--muted)}
+.lv-sec .lawlist li:first-child{border-top-color:var(--ink2)}
+.law-lv{display:flex;flex-wrap:wrap;align-items:center;gap:10px 14px}
 .lawlist li.col{flex-direction:column;align-items:stretch;gap:6px;padding:16px 0}
 .lawlist li.col a.name{flex:none}
 .lawlist .hrow{display:flex;flex-wrap:wrap;align-items:baseline;gap:4px 12px}
@@ -476,7 +489,24 @@ function scopeOf(law) {
   return 'pending';
 }
 const scopeLabel = (law) => law.region === REGION_COMMON ? REGION_COMMON : (law.agency ? `${REGION_SANXIA}・${law.agency}主管` : REGION_SANXIA);
-const sortLaws = (arr) => arr.slice().sort((a, b) => (a.status === '已廢止') - (b.status === '已廢止'));
+/* ---------- 位階：章程＞法律＞命令＞行政規則 ----------
+   試算表「位階」欄有填就用；沒填時依名稱結尾推測（與後台預設值相同） */
+const LEVELS = ['章程', '法律', '命令', '行政規則'];
+const LEVEL_CLASS = { 章程: 'charter', 法律: 'law', 命令: 'order', 行政規則: 'rule' };
+const LEVEL_DESC_COMMON = { 法律: '經兩校區學生議會通過、兩校區會長聯名公布' };
+const LEVEL_DESC = { 章程: '學生自治的最高規範', 法律: '經學生議會審議通過、會長公布', 命令: '依職權或法律授權訂定發布', 行政規則: '機關內部的作業規定' };
+function guessLevel(name) {
+  const n = String(name || '').trim();
+  if (/章程$/.test(n)) return '章程';
+  if (/(要點|須知|注意事項|作業程序)$/.test(n)) return '行政規則';
+  if (/(規程|規則|細則|辦法|綱要|標準|準則)$/.test(n)) return '命令';
+  if (/(法|律|條例|通則)$/.test(n)) return '法律';
+  return '';
+}
+const levelOf = (l) => (l && LEVELS.indexOf(l.level) >= 0 ? l.level : guessLevel(l && (l.name || l.short)) || guessLevel(l && l.short));
+const levelTag = (l) => { const v = levelOf(l); return v ? `<span class="lv lv-${LEVEL_CLASS[v]}">${v}</span>` : ''; };
+const levelRank = (l) => { const i = LEVELS.indexOf(levelOf(l)); return i < 0 ? 9 : i; };
+const sortLaws = (arr) => arr.map((l, i) => [l, i]).sort((a, b) => (isRepealed(a[0]) - isRepealed(b[0])) || (levelRank(a[0]) - levelRank(b[0])) || (a[1] - b[1])).map((x) => x[0]);
 
 /* ---------- 版面 ---------- */
 function header(active) {
@@ -512,10 +542,20 @@ function renderHome(params) {
   const repealedCount = state.data.laws.length - laws.length;
   const latest = state.data.history.slice().sort((a, b) => (b.date || '').localeCompare(a.date || '')).filter((h) => h.date && lawById(h.id)).slice(0, 4);
   const tabs = [['all', '全部'], ['common', REGION_COMMON], ['sanxia', REGION_SANXIA]];
-  const list = (arr) => arr.length ? `<ol class="lawlist">${sortLaws(arr).map((l, i) => `
+  // 依位階分段：每段開頭是放大的位階標籤＋部數＋說明
+  const rows = (arr) => `<ol class="lawlist">${arr.map((l, i) => `
       <li><span class="no">${String(i + 1).padStart(2, '0')}</span>
       <a class="name" href="#/law/${encodeURIComponent(l.id)}">${esc(dispName(l))}</a>
-      <span class="date">${esc(l.date)}</span></li>`).join('')}</ol>` : '<div class="empty">目前沒有法規。</div>';
+      <span class="date">${esc(l.date)}</span></li>`).join('')}</ol>`;
+  const list = (arr, region) => {
+    if (!arr.length) return '<div class="empty">目前沒有法規。</div>';
+    return LEVELS.concat(['']).map((lv) => {
+      const part = arr.filter((l) => (levelOf(l) || '') === lv);
+      if (!part.length) return '';
+      return `<div class="lv-sec lv-sec-${LEVEL_CLASS[lv] || 'none'}"><div class="lv-head">${lv ? `<span class="lv lg lv-${LEVEL_CLASS[lv]}">${lv}</span>` : '<span class="lv lg lv-rule">位階未設定</span>'}
+        <span class="cnt">${part.length} 部</span>${lv ? `<span class="desc">${(region === 'common' && LEVEL_DESC_COMMON[lv]) || LEVEL_DESC[lv]}</span>` : ''}</div>${rows(part)}</div>`;
+    }).join('');
+  };
 
   const common = laws.filter((l) => scopeOf(l) === 'common');
   const union = laws.filter((l) => scopeOf(l) === 'union');
@@ -524,11 +564,11 @@ function renderHome(params) {
   const sanxiaCount = union.length + council.length + pending.length;
 
   const secCommon = `<section class="sec wrap" id="common" aria-labelledby="h-common">
-    <div class="sec-head"><h2 id="h-common">${REGION_COMMON}</h2><span class="muted" style="font-size:14px">共 ${common.length} 項</span></div>
-    <p class="muted" style="margin:0 0 8px;font-size:15px">適用於各校區的共通法規。</p>${list(common)}</section>`;
-  const grp = (title, arr, cls) => `<div class="group-head"><h3 class="${cls || ''}">${title}</h3><span class="muted" style="font-size:14px">${arr.length} 項</span></div>${list(arr)}`;
+    <div class="sec-head"><h2 id="h-common">${REGION_COMMON}</h2><span class="muted" style="font-size:14px">共 ${common.length} 部</span></div>
+    <p class="muted" style="margin:0 0 8px;font-size:15px">適用於各校區的共通法規。</p>${list(common, 'common')}</section>`;
+  const grp = (title, arr, cls) => `<div class="group-head"><h3 class="${cls || ''}">${title}</h3><span class="muted" style="font-size:14px">${arr.length} 部</span></div>${list(arr)}`;
   const secSanxia = `<section class="sec wrap" id="sanxia" aria-labelledby="h-sanxia">
-    <div class="sec-head"><h2 id="h-sanxia">${REGION_SANXIA}</h2><span class="muted" style="font-size:14px">共 ${sanxiaCount} 項</span></div>
+    <div class="sec-head"><h2 id="h-sanxia">${REGION_SANXIA}</h2><span class="muted" style="font-size:14px">共 ${sanxiaCount} 部</span></div>
     <p class="muted" style="margin:0;font-size:15px">僅適用於三峽校區的法規，依主管機關分為學生會與學生議會。</p>
     ${grp('學生會主管', union)}${grp('學生議會主管', council)}${pending.length ? grp('主管機關待確認', pending, 'pending') : ''}</section>`;
 
@@ -623,13 +663,14 @@ function renderDetail(id, artKey, params) {
       ${isRepealed(law) ? '<a href="#/repealed">廢止法規</a><span>/</span>' : ''}<a href="#/?scope=${law.region === REGION_COMMON ? 'common' : 'sanxia'}">${esc(law.region || '未分類')}</a>
       ${isSanxia && law.agency ? `<span>/</span><span>${esc(law.agency)}主管</span>` : ''}</nav>
     <section class="law-head">
-      <div class="eyebrow">${esc(scopeLabel(law))}</div>
+      <div class="law-lv">${levelOf(law) ? `<span class="lv lg lv-${LEVEL_CLASS[levelOf(law)]}">${esc(levelOf(law))}</span>` : ''}<span class="eyebrow">${esc(scopeLabel(law))}</span></div>
       <h1>${feiName(law, esc(law.name))}</h1>
       ${law.short && law.short !== law.name ? `<div style="font-size:17px"><span class="muted" style="font-size:14px;letter-spacing:.12em;margin-right:10px">簡稱</span>${esc(law.short)}</div>` : ''}
       ${ren.length ? `<div class="hint" style="font-size:15px">名稱變更：${ren.map((r) => `原名稱「${esc(r.oldName)}」${r.date ? `，${esc(r.date)} 更名` : ''}`).join('；')}</div>` : ''}
       ${law.status === '已廢止' ? `<div class="banner">本法已廢止${law.date ? `（${esc(law.date)}）` : ''}，以下條文僅供查考。</div>` : ''}
       <div class="meta">
         <div><span class="k">最近異動</span><span class="v">${esc(law.date || '—')}</span></div>
+        ${levelOf(law) ? `<div><span class="k">位階</span><span class="v">${esc(levelOf(law))}</span></div>` : ''}
         <div><span class="k">條文數</span><span class="v">${parsed.articles.length} 條</span></div>
         ${parsed.chapters.length ? `<div><span class="k">章節</span><span class="v">${parsed.chapters.filter((c) => c.kind === '章').length} 章</span></div>` : ''}
       </div>
@@ -684,12 +725,13 @@ function downloadWord(law) {
 }
 
 /* ---------- 搜尋 ---------- */
-function runSearch(q, scope, mode) {
+function runSearch(q, scope, mode, lv) {
   const res = [];
   if (!q) return res;
   state.data.laws.forEach((law) => {
     const sc = scopeOf(law);
     if (scope === 'repealed') { if (!isRepealed(law)) return; } else if (scope !== 'all' && sc !== scope) return;
+    if (lv && lv !== 'all' && levelOf(law) !== lv) return;
     const nameHit = mode !== 'text' && (law.name.includes(q) || (law.short || '').includes(q));
     const oldHit = mode !== 'text' ? renamesOf(law.id).filter((r) => (r.oldName || '').includes(q)) : [];
     let hits = [];
@@ -708,9 +750,10 @@ function renderSearch(params) {
   const pick = (v, ok, d) => (ok.indexOf(v) >= 0 ? v : d); // 只接受固定值，防止網址參數被拿來注入
   const scope = pick(params.get('scope'), ['all', 'common', 'union', 'council', 'repealed'], 'all');
   const mode = pick(params.get('in'), ['all', 'name', 'text'], 'all');
-  const res = runSearch(q, scope, mode);
+  const lv = pick(params.get('lv'), ['all'].concat(LEVELS), 'all');
+  const res = runSearch(q, scope, mode, lv);
   const artCount = res.reduce((n, r) => n + r.hits.length, 0);
-  const link = (s, m) => `#/search?q=${encodeURIComponent(q)}&scope=${encodeURIComponent(s)}&in=${encodeURIComponent(m)}`;
+  const link = (s, m) => `#/search?q=${encodeURIComponent(q)}&scope=${encodeURIComponent(s)}&in=${encodeURIComponent(m)}&lv=${encodeURIComponent(lv)}`;
   const scopes = [['all', '全部'], ['common', REGION_COMMON], ['union', '三峽・學生會主管'], ['council', '三峽・學生議會主管'], ['repealed', '已廢止']];
   const SHOW = 5;
   return page('search', `<div class="wrap" style="padding:40px 24px 96px;display:flex;flex-direction:column;gap:24px">
@@ -718,10 +761,14 @@ function renderSearch(params) {
     ${searchForm(q)}
     <div style="display:flex;flex-wrap:wrap;gap:16px;align-items:center;justify-content:space-between">
       <div class="pills" role="group" aria-label="搜尋範圍">${scopes.map(([k, t]) => `<a class="pill ${scope === k ? 'on' : ''}" href="${link(k, mode)}">${t}</a>`).join('')}</div>
-      <div style="display:flex;align-items:center;gap:8px"><label for="mode" class="muted" style="font-size:14px">搜尋</label>
-        <select id="mode" class="select" style="min-height:44px;width:auto;font-size:15px" data-change="mode">
+      <div style="display:flex;flex-wrap:wrap;align-items:center;gap:8px 16px"><span style="display:flex;align-items:center;gap:8px"><label for="lv" class="muted" style="font-size:14px">位階</label>
+        <select id="lv" class="select" style="min-height:44px;width:auto;font-size:15px" data-change="search">
+          ${[['all', '全部']].concat(LEVELS.map((x) => [x, x])).map(([k, t]) => `<option value="${k}" ${lv === k ? 'selected' : ''}>${t}</option>`).join('')}
+        </select></span>
+        <span style="display:flex;align-items:center;gap:8px"><label for="mode" class="muted" style="font-size:14px">搜尋</label>
+        <select id="mode" class="select" style="min-height:44px;width:auto;font-size:15px" data-change="search">
           ${[['all', '名稱與條文'], ['name', '只搜名稱'], ['text', '只搜條文']].map(([k, t]) => `<option value="${k}" ${mode === k ? 'selected' : ''}>${t}</option>`).join('')}
-        </select></div>
+        </select></span></div>
     </div>
     <div style="border-top:2px solid var(--ink);padding-top:18px" class="muted" role="status">
       ${q ? `「<b style="color:var(--ink)">${esc(q)}</b>」共找到 ${res.length} 部法規${mode !== 'name' ? `、${artCount} 條條文` : ''}` : '請輸入關鍵字。'}
@@ -730,6 +777,7 @@ function renderSearch(params) {
     ${res.map((r) => { const id = encodeURIComponent(r.law.id); return `<li class="result">
       <div class="top"><span>${esc(scopeLabel(r.law))}</span>
         ${r.nameHit ? '<span class="tag ink">名稱符合</span>' : ''}
+        ${levelTag(r.law)}
         ${r.oldHit.length ? '<span class="tag stone">舊名稱符合</span>' : ''}
         ${r.hits.length ? `<span class="tag line">條文符合 ${r.hits.length} 條</span>` : ''}</div>
       <a class="name" href="#/law/${id}">${feiName(r.law, hl(dispName(r.law), r.nameHit ? q : ''))}</a>
@@ -797,8 +845,8 @@ function adminLaw(id) { return state.admin.data.laws.find((l) => l.id === id); }
 
 function renderAdminList() {
   const laws = state.admin.data.laws;
-  const f = state.admin.filter || (state.admin.filter = { q: '', status: '', region: '', agency: '' });
-  const rows = laws.filter((l) => (!f.q || l.name.includes(f.q) || (l.short || '').includes(f.q)) && (!f.status || l.status === f.status) && (!f.region || l.region === f.region) && (!f.agency || l.agency === f.agency));
+  const f = state.admin.filter || (state.admin.filter = { q: '', status: '', region: '', agency: '', level: '' });
+  const rows = laws.filter((l) => (!f.q || l.name.includes(f.q) || (l.short || '').includes(f.q)) && (!f.status || l.status === f.status) && (!f.region || l.region === f.region) && (!f.agency || l.agency === f.agency) && (!f.level || levelOf(l) === f.level));
   const badge = (s) => s === '現行' ? '<span class="tag ink">現行</span>' : s === '草稿' ? '<span class="tag dash">草稿</span>' : `<span class="tag stone">${esc(s || '—')}</span>`;
   const ops = (l) => {
     const id = encodeURIComponent(l.id);
@@ -819,11 +867,12 @@ function renderAdminList() {
       ${sel('status', '狀態', ['現行', '草稿', '已廢止'])}
       ${sel('region', '所屬區', [REGION_COMMON, REGION_SANXIA])}
       ${sel('agency', '主管機關', AGENCIES)}
+      ${sel('level', '位階', LEVELS)}
     </div>
     <div class="atable" role="table" aria-label="法規列表">
       <div class="row h" role="row"><span role="columnheader">法規名稱</span><span role="columnheader">所屬區／主管</span><span role="columnheader">最近異動</span><span role="columnheader">狀態</span><span role="columnheader">操作</span></div>
       ${rows.map((l) => `<div class="row" role="row"><span class="nm" role="cell">${feiName(l)}<br><span class="muted" style="font-family:var(--sans);font-size:13px;font-weight:400">${esc(l.id)}</span></span>
-        <span role="cell" style="font-size:14px">${esc(l.region || '—')}${l.agency ? `<br>${esc(l.agency)}` : ''}</span>
+        <span role="cell" style="font-size:14px">${esc(l.region || '—')}${l.agency ? `<br>${esc(l.agency)}` : ''}${levelOf(l) ? `<br>${levelTag(l)}` : ''}</span>
         <span role="cell" class="muted" style="font-size:15px">${esc(l.date || '—')}</span>
         <span role="cell">${badge(l.status)}</span>
         <span role="cell" class="ops">${ops(l)}</span></div>`).join('') || '<div class="empty" style="padding:20px 8px">沒有符合的法規。</div>'}
@@ -839,7 +888,7 @@ function renderAdminEdit(id) {
   const a = state.admin;
   const regions = a.role === 'admin' ? [REGION_COMMON, REGION_SANXIA] : [REGION_SANXIA];
   const agencies = a.role === 'admin' ? AGENCIES : [a.agency];
-  const v = law || { name: '', short: '', region: regions[regions.length - 1], agency: agencies[0], url: '', text: '' };
+  const v = law || { name: '', short: '', level: '', region: regions[regions.length - 1], agency: agencies[0], url: '', text: '' };
   const title = isNew ? '新增法規' : isDraft ? '編輯草稿' : '修正法規';
   const type = isAmend ? '修正' : '制定';
   const ph = isAmend
@@ -860,6 +909,9 @@ function renderAdminEdit(id) {
           <div class="field span-all"><label for="e-short">簡稱（選填）</label><input id="e-short" name="short" class="input" value="${esc(v.short || '')}" placeholder="例如：三峽校區學生議會組織職權行使法">
             <div class="hint">列表、最新異動與搜尋結果顯示簡稱；沒填時顯示全稱。全稱、簡稱都搜得到。</div></div>
           <div class="field"><label for="e-region">所屬區</label><select id="e-region" name="region" class="select">${regions.map((r) => `<option ${v.region === r ? 'selected' : ''}>${r}</option>`).join('')}</select></div>
+          <div class="field"><label for="e-level">位階</label><select id="e-level" name="level" class="select" ${law && law.level ? 'data-dirty="1"' : ''}>
+            ${['', ...LEVELS].map((x) => `<option value="${x}" ${(levelOf(v) || '') === x ? 'selected' : ''}>${x || '（未設定）'}</option>`).join('')}</select>
+            <div class="hint">依名稱結尾自動建議：章程；法、律、條例、通則→法律；規程、規則、細則、辦法、綱要、標準、準則→命令；要點、須知→行政規則。名稱與實際程序不符時請手動改。</div></div>
           <div class="field" data-agency-field ${v.region === REGION_COMMON ? 'hidden' : ''}><label for="e-agency">主管機關</label><select id="e-agency" name="agency" class="select">${agencies.map((g) => `<option ${v.agency === g ? 'selected' : ''}>${g}</option>`).join('')}</select></div>
           <div class="field span-all"><label for="e-url">原始網址（選填）</label><input id="e-url" name="url" class="input" type="url" value="${esc(v.url)}" placeholder="https://"></div>
         </div>
@@ -1062,7 +1114,7 @@ async function onSubmit(e) {
     if (kind === 'edit') {
       const submitter = e.submitter && e.submitter.dataset.submit || 'publish';
       const f = form.elements;
-      const law = { id: form.dataset.id || '', name: f.name.value.trim(), short: f.short.value.trim(), region: f.region.value, agency: f.region.value === REGION_COMMON ? '' : f.agency.value, url: f.url.value.trim(), text: f.text.value };
+      const law = { id: form.dataset.id || '', name: f.name.value.trim(), short: f.short.value.trim(), level: f.level.value, region: f.region.value, agency: f.region.value === REGION_COMMON ? '' : f.agency.value, url: f.url.value.trim(), text: f.text.value };
       const unknown = !!(f.unknown && f.unknown.checked);
       const history = { date: unknown ? '' : f.date.value, type: f.type.value, text: f.hist.value.trim() || (unknown ? '制定日期不可考。' : ''), unknown };
       if (!law.name) return showErr(form, '請填寫法規全稱。');
@@ -1166,6 +1218,10 @@ function onInput(e) {
     return;
   }
   const form = t.closest('form[data-form="edit"]');
+  if (form && (t.name === 'name' || t.name === 'short')) {
+    const sel = form.elements.level;
+    if (sel && sel.dataset.dirty !== '1') { const g = guessLevel(form.elements.name.value) || guessLevel(form.elements.short.value); sel.value = g; }
+  }
   if (form && t.name === 'text') { clearTimeout(onInput.p); onInput.p = setTimeout(() => updatePreview(form), 200); }
 }
 function rerenderList() {
@@ -1176,10 +1232,12 @@ function rerenderList() {
 }
 function onChange(e) {
   const t = e.target;
-  if (t.dataset.change === 'mode') {
+  if (t.dataset.change === 'search') {
     const { params } = parseHash();
-    go(`#/search?q=${encodeURIComponent(params.get('q') || '')}&scope=${encodeURIComponent(params.get('scope') || 'all')}&in=${encodeURIComponent(t.value)}`);
+    const mode = $('#mode') ? $('#mode').value : 'all'; const lv = $('#lv') ? $('#lv').value : 'all';
+    go(`#/search?q=${encodeURIComponent(params.get('q') || '')}&scope=${encodeURIComponent(params.get('scope') || 'all')}&in=${encodeURIComponent(mode)}&lv=${encodeURIComponent(lv)}`);
   }
+  if (t.id === 'e-level') t.dataset.dirty = '1';
   if (t.id === 'e-unknown') {
     const d = $('#e-date'); const h = $('#e-hist');
     d.disabled = t.checked;
@@ -1220,7 +1278,7 @@ function route() {
    ========================================================= */
 const demo = (() => {
   const SRC = 'https://ntpusu.ntpu.edu.tw/p/405-1015-';
-  const mk = (id, name, region, agency, date, wid, text, full) => ({ id, name: full || name, short: full ? name : '', region, agency, status: '現行', date, url: SRC + wid + ',c228.php?Lang=zh-tw', text: text || '' });
+  const mk = (id, name, region, agency, date, wid, text, full) => ({ id, name: full || name, short: full ? name : '', level: guessLevel(full || name), region, agency, status: '現行', date, url: SRC + wid + ',c228.php?Lang=zh-tw', text: text || '' });
   const sample = '第一章 總則\n第一條 [示範條文：本條內容]\n第二條 [示範條文：第一項內容]\n[示範條文：第二項內容，列舉如下：]\n一、[第一款內容]\n二、[第二款內容]\n（一）[第一目內容]\n（二）[第二目內容]\n第三條 [示範條文：議事相關內容]\n第二章 議長、副議長\n第四條 [示範條文：本條內容]\n第十四條之一 [示範條文：條之一的寫法]\n第三章之一 議案審議\n第十九條 [示範條文：議事程序內容]\n第二十條 [示範條文：本條內容]';
   const db = {
     laws: [
@@ -1233,7 +1291,7 @@ const demo = (() => {
       mk('L022', '三峽校區學生會組織法', REGION_SANXIA, '', '2025/11/08', '1592'),
       mk('L023', '圖B1F14會議空間管理辦法', REGION_SANXIA, '學生會', '2026/11/16', '2098'),
       mk('L024', '三峽校區聯合辦公空間管理條例', REGION_SANXIA, '學生會', '2026/11/05', '2097'),
-      { id: 'L025', name: '[示範] 跨校區共通性法規', region: REGION_COMMON, agency: '', status: '現行', date: '2025/09/01', url: '', text: '第一條 [示範條文]\n第二條 [示範條文]' },
+      { id: 'L025', name: '[示範] 學生自治會組織章程', level: '章程', region: REGION_COMMON, agency: '', status: '現行', date: '2025/09/01', url: '', text: '第一條 [示範條文]\n第二條 [示範條文]' },
     ],
     history: [
       { id: 'L007', date: '2026/07/17', type: '修正', text: '中華民國 115 年 7 月 [日] 日三峽校區學生議會第 [屆] 屆第 [次] 次常會通過，會長於 115 年 7 月 [日] 日公布，修正第 19、20 條。' },
@@ -1260,7 +1318,7 @@ const demo = (() => {
             if (!law) { law = { id: nextId() }; db.laws.push(law); }
             db.history.push({ id: law.id, date: isoToSlash(b.history.date), type: b.history.type, text: b.history.text });
           } else if (!law) { law = { id: nextId(), date: '' }; db.laws.push(law); }
-          Object.assign(law, { name: L.name, short: L.short, region: L.region, agency: L.agency, url: L.url, text: L.text, status: b.mode === 'publish' ? '現行' : '草稿' });
+          Object.assign(law, { name: L.name, short: L.short, level: L.level, region: L.region, agency: L.agency, url: L.url, text: L.text, status: b.mode === 'publish' ? '現行' : '草稿' });
           if (b.mode === 'publish') law.date = b.history.unknown ? '' : isoToSlash(b.history.date);
           return resolve({ ok: true, id: law.id });
         }
