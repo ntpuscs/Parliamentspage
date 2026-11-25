@@ -98,6 +98,11 @@ mark{background:var(--hl);color:var(--ink);font-weight:700;padding:0 2px;border-
 .lawlist a.name{flex:1 1 360px;min-width:0;font-family:var(--serif);font-weight:600;font-size:21px;line-height:1.5;text-decoration:none}
 .lawlist li.off a.name{color:var(--muted)}
 .lawlist .date{font-size:15px;color:var(--muted)}
+.lawlist li.col{flex-direction:column;align-items:stretch;gap:6px;padding:16px 0}
+.lawlist li.col a.name{flex:none}
+.lawlist .hrow{display:flex;flex-wrap:wrap;align-items:baseline;gap:4px 12px}
+.lawlist .hrow a.name{font-size:19px}
+.lawlist .htext{color:var(--muted);line-height:1.8;font-size:15px}
 /* 「廢」字章：與朱紅方印標誌呼應，改用細框表示已失效 */
 .fei{display:inline-flex;align-items:center;justify-content:center;width:1.45em;height:1.45em;margin-right:.4em;border:1.5px solid var(--red-dark);border-radius:3px;color:var(--red-dark);background:rgba(179,55,43,.06);font-family:var(--serif);font-weight:900;font-size:.78em;line-height:1;vertical-align:.14em}
 h1 .fei{border-width:2.5px;border-radius:5px;font-size:.72em;margin-right:.3em}
@@ -556,7 +561,7 @@ function renderRepealed() {
   return page('repealed', `<div class="wrap" style="padding:48px 24px 96px">
     <div class="sec-head"><h1 style="margin:0;font-family:var(--serif);font-weight:900;font-size:32px;letter-spacing:.04em">${FEI}廢止法規</h1><span class="muted" style="font-size:14px">共 ${arr.length} 部</span></div>
     <p class="muted" style="margin:0 0 8px;font-size:15px">以下法規已廢止，不再適用；條文與沿革保留供查考。依廢止日期排列，最近的在前。</p>
-    ${arr.length ? `<ol class="lawlist">${arr.map((l) => `<li style="flex-direction:column;align-items:stretch;gap:6px">
+    ${arr.length ? `<ol class="lawlist">${arr.map((l) => `<li class="col">
       <a class="name" href="#/law/${encodeURIComponent(l.id)}">${feiName(l)}</a>
       <div class="muted" style="display:flex;flex-wrap:wrap;gap:4px 20px;font-size:15px"><span>${esc(scopeLabel(l))}</span><span>廢止日期 ${esc(l.date || '不可考')}</span></div></li>`).join('')}</ol>`
       : '<div class="empty">目前沒有廢止的法規。</div>'}
@@ -742,10 +747,10 @@ function renderLatest() {
   const all = state.data.history.filter((h) => lawById(h.id)).sort((a, b) => (b.date || '').localeCompare(a.date || ''));
   return page('latest', `<div class="wrap" style="padding:48px 24px 96px">
     <div class="sec-head"><h1 style="margin:0;font-family:var(--serif);font-weight:900;font-size:32px">最新異動</h1><span class="muted" style="font-size:14px">共 ${all.length} 筆</span></div>
-    ${all.length ? `<ol class="lawlist">${all.map((h) => { const l = lawById(h.id); return `<li style="flex-direction:column;align-items:stretch;gap:8px">
-      <div style="display:flex;flex-wrap:wrap;align-items:center;gap:10px"><span class="tag red">${esc(h.type || '異動')}</span><span class="muted" style="font-size:15px">${esc(h.date || '日期不可考')}</span></div>
-      <a class="name" href="#/law/${encodeURIComponent(l.id)}">${feiName(l)}</a>
-      <div class="muted" style="line-height:1.8">${esc(h.text)}</div></li>`; }).join('')}</ol>` : '<div class="empty">目前沒有異動紀錄。</div>'}
+    ${all.length ? `<ol class="lawlist">${all.map((h) => { const l = lawById(h.id); return `<li class="col">
+      <div class="hrow"><span class="tag red">${esc(h.type || '異動')}</span><span class="muted" style="font-size:15px;min-width:6.5em">${esc(h.date || '日期不可考')}</span>
+        <a class="name" href="#/law/${encodeURIComponent(l.id)}">${feiName(l)}</a></div>
+      <div class="htext">${esc(h.text)}</div></li>`; }).join('')}</ol>` : '<div class="empty">目前沒有異動紀錄。</div>'}
   </div>`);
 }
 
@@ -944,7 +949,7 @@ function renderAdminHistory(id) {
     </div>
     <section style="display:flex;flex-direction:column;gap:12px">
       <div class="step"><span class="n">一</span><h2>目前已有的沿革</h2><span class="muted" style="font-size:14px">${existing.length} 筆</span></div>
-      ${existing.length ? `<ol class="lawlist">${existing.map((h) => `<li style="flex-direction:column;align-items:stretch;gap:6px"><div style="display:flex;gap:10px;align-items:center"><span class="tag red">${esc(h.type || '異動')}</span><span class="muted" style="font-size:14px">${esc(h.date || '日期不可考')}</span></div><div style="line-height:1.8">${esc(h.text)}</div></li>`).join('')}</ol>` : '<div class="empty">還沒有沿革紀錄。</div>'}
+      ${existing.length ? `<ol class="lawlist">${existing.map((h) => `<li class="col"><div style="display:flex;gap:10px;align-items:center"><span class="tag red">${esc(h.type || '異動')}</span><span class="muted" style="font-size:14px">${esc(h.date || '日期不可考')}</span></div><div style="line-height:1.8">${esc(h.text)}</div></li>`).join('')}</ol>` : '<div class="empty">還沒有沿革紀錄。</div>'}
     </section>
     <form data-form="histimport" data-id="${esc(id)}" novalidate style="display:flex;flex-direction:column;gap:24px">
       <section style="display:flex;flex-direction:column;gap:12px">
