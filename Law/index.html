@@ -403,6 +403,7 @@ function parseLaw(text) {
   });
   out.articles.forEach((a) => { a.plain = a.paras.map((p) => p.text).join(''); });
   parseCache.set(text, out);
+  if (parseCache.size > 60) parseCache.delete(parseCache.keys().next().value); // 只留最近 60 筆，避免編輯時記憶體越用越多
   return out;
 }
 function normalizeArtKey(input) {
@@ -1109,6 +1110,12 @@ function edRender(form) {
 }
 function edSync(form, opts) {
   const ed = state.admin.ed;
+  if (opts && opts.lazy) { // 打字時：延後 250ms 再組全文、更新目錄標記，避免每個字都重算
+    clearTimeout(edSync.t);
+    edSync.t = setTimeout(() => { form.elements.text.value = edToText(ed); updatePreview(form); const t = $('[data-ed-tree]', form); if (t) t.innerHTML = edTreeHTML(); }, 250);
+    return;
+  }
+  clearTimeout(edSync.t);
   form.elements.text.value = edToText(ed);
   updatePreview(form);
   if (opts && opts.tree) { const t = $('[data-ed-tree]', form); if (t) t.innerHTML = edTreeHTML(); }
@@ -1163,10 +1170,10 @@ function edAction(act, t, form) {
 function edInput(t, form) {
   const ed = state.admin.ed; const n = ed.nodes[ed.sel]; if (!n) return;
   const k = t.dataset.ed;
-  if (k === 'row') { n.paras[+t.dataset.r].text = t.value; edSync(form, { tree: true }); return; }
+  if (k === 'row') { n.paras[+t.dataset.r].text = t.value; edSync(form, { lazy: true }); return; }
   if (k === 'level') { const x = n.paras[+t.dataset.r]; x.level = +t.value; x.text = stripMarker(x.text); edSync(form, { tree: true, panel: true }); return; }
-  if (k === 'chlabel') { n.label = t.value.trim(); edSync(form, { tree: true }); return; }
-  if (k === 'chtitle') { n.title = t.value.trim(); edSync(form, { tree: true }); return; }
+  if (k === 'chlabel') { n.label = t.value.trim(); edSync(form, { lazy: true }); return; }
+  if (k === 'chtitle') { n.title = t.value.trim(); edSync(form, { lazy: true }); return; }
 }
 function edKeyChange(t, form) {
   const ed = state.admin.ed; const n = ed.nodes[ed.sel];
@@ -1202,6 +1209,8 @@ function updatePreview(form) {
   const p = parseLaw(text);
   const chap = p.chapters.filter((c) => c.kind === '章').length;
   $('[data-summary]', form).textContent = text.trim() ? `辨識出 ${chap ? chap + ' 章、' : ''}${p.articles.length} 條` : '';
+  const tBox = $('[data-ed-text]', form);
+  if (tBox && tBox.hidden) return; // 逐條編輯模式下預覽看不到，不必重畫
   const w = text.trim() ? lawWarnings(p) : [];
   $('[data-warns]', form).innerHTML = w.length ? `<ul class="warns" role="status">${w.slice(0, 8).map((x) => `<li>${esc(x)}</li>`).join('')}${w.length > 8 ? `<li>另有 ${w.length - 8} 項提醒⋯</li>` : ''}</ul>` : '';
   $('[data-preview]', form).innerHTML = text.trim() ? (lawBodyHTML(p, '', false, null, true) || '<p class="muted">沒有辨識到條文，請確認每條以「第 X 條」開頭。</p>') : '<p class="muted">貼上全文後，這裡會顯示網站上的呈現方式。</p>';
@@ -1362,6 +1371,7 @@ async function onSubmit(e) {
       setAdmin(j); route(); return;
     }
     if (kind === 'edit') {
+      if (state.admin.ed && state.admin.ed.mode === 'struct') { clearTimeout(edSync.t); form.elements.text.value = edToText(state.admin.ed); }
       const submitter = e.submitter && e.submitter.dataset.submit || 'publish';
       const f = form.elements;
       const law = { id: form.dataset.id || '', name: f.name.value.trim(), short: f.short.value.trim(), level: f.level.value, parent: f.parent.value, region: f.region.value, agency: f.region.value === REGION_COMMON ? '' : f.agency.value, url: f.url.value.trim(), text: f.text.value };
