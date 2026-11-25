@@ -40,6 +40,9 @@ mark{background:var(--hl);color:var(--ink);font-weight:700;padding:0 2px;border-
 .site-nav{display:flex;flex-wrap:wrap;gap:4px}
 .site-nav a{text-decoration:none;padding:10px 14px;border-radius:4px}
 .site-nav a.on{font-weight:700;background:var(--stone2)}
+.site-nav{align-items:center}
+.site-nav a.admin-btn{margin-left:8px;padding:0 16px;min-height:40px;border-radius:4px;background:var(--ink);border-color:var(--ink);color:var(--paper);font-weight:700}
+.site-nav a.admin-btn:hover{background:#0f1a2b;color:var(--paper)}
 .demo-bar{background:var(--ink);color:var(--paper);font-size:14px;text-align:center;padding:8px 16px}
 
 /* controls */
@@ -206,6 +209,9 @@ mark{background:var(--hl);color:var(--ink);font-weight:700;padding:0 2px;border-
 
 @media (max-width:640px){
   .wrap{padding:0 16px}
+  .site-nav{gap:0}
+  .site-nav a{padding:10px 9px}
+  .site-nav a.admin-btn{margin-left:4px;padding:0 12px}
   .hero{padding-top:48px;padding-bottom:36px}
   .amain{padding:28px 16px 48px}
   .art-no{flex-basis:100%;flex-direction:row;align-items:center;gap:12px}
@@ -451,11 +457,12 @@ function header(active) {
   return `${state.demo ? '<div class="demo-bar">目前顯示示範資料。設定 API_URL 後會改讀試算表。</div>' : ''}
   <header class="site-header"><div class="wrap">
     <a class="brand" href="#/">${LOGO('#B3372B', '#F6F3EC', '#F6F3EC', 40)}<span class="brand-text"><span class="brand-org">國立臺北大學學生自治會</span><span class="brand-name">跨校區及三峽校區法規資料庫</span></span></a>
-    <nav class="site-nav" aria-label="主選單">${nav.map(([h, t, k]) => `<a href="${h}" class="${k === active ? 'on' : ''}">${t}</a>`).join('')}</nav>
+    <nav class="site-nav" aria-label="主選單">${nav.map(([h, t, k]) => `<a href="${h}" class="${k === active ? 'on' : ''}">${t}</a>`).join('')}
+      <a class="btn small admin-btn" href="#/admin">${state.admin.token ? '回到後台' : '管理後台'}</a></nav>
   </div></header>`;
 }
 function footer() {
-  return `<footer class="site-footer"><div class="wrap"><span>國立臺北大學學生自治會 跨校區及三峽校區法規資料庫・條文以正式公布版本為準</span><a href="#/admin" style="color:var(--muted)">管理後台</a></div></footer>`;
+  return `<footer class="site-footer"><div class="wrap"><span>國立臺北大學學生自治會 跨校區及三峽校區法規資料庫・條文以正式公布版本為準</span></div></footer>`;
 }
 function page(active, inner) {
   return header(active) + `<main id="main">${inner}</main>` + footer();
