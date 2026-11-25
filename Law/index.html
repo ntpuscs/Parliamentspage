@@ -432,6 +432,7 @@ async function loadData(force) {
   route();
 }
 
+const dispName = (l) => (l && (l.short || l.name)) || '';
 const lawById = (id) => state.data.laws.find((l) => l.id === id);
 const histOf = (id) => state.data.history.filter((h) => h.id === id).sort((a, b) => (b.date || '').localeCompare(a.date || ''));
 const renamesOf = (id) => state.data.renames.filter((r) => r.id === id).sort((a, b) => (b.date || '').localeCompare(a.date || ''));
@@ -475,7 +476,7 @@ function renderHome(params) {
   const tabs = [['all', '全部'], ['common', REGION_COMMON], ['sanxia', REGION_SANXIA]];
   const list = (arr) => arr.length ? `<ol class="lawlist">${sortLaws(arr).map((l, i) => `
       <li class="${l.status === '已廢止' ? 'off' : ''}"><span class="no">${String(i + 1).padStart(2, '0')}</span>
-      <a class="name" href="#/law/${encodeURIComponent(l.id)}">${esc(l.name)}</a>
+      <a class="name" href="#/law/${encodeURIComponent(l.id)}">${esc(dispName(l))}</a>
       ${l.status === '已廢止' ? '<span class="tag stone">已廢止</span>' : ''}
       <span class="date">${esc(l.date)}</span></li>`).join('')}</ol>` : '<div class="empty">目前沒有法規。</div>';
 
@@ -499,7 +500,7 @@ function renderHome(params) {
     <div class="cards">${latest.map((h) => { const l = lawById(h.id); return `
       <a class="card" href="#/law/${encodeURIComponent(l.id)}">
         <span style="display:flex;align-items:center;gap:10px;font-size:14px" class="muted"><span class="tag red">${esc(h.type || '異動')}</span>${esc(h.date)}</span>
-        <span class="t">${esc(l.name)}</span></a>`; }).join('')}</div></section>` : '';
+        <span class="t">${esc(dispName(l))}</span></a>`; }).join('')}</div></section>` : '';
 
   return page('home', `
     <section class="wrap hero">
@@ -547,7 +548,7 @@ function renderDetail(id, artKey, params) {
   const hist = histOf(id);
   const ren = renamesOf(id);
   const isSanxia = law.region === REGION_SANXIA;
-  document.title = law.name + '｜跨校區及三峽校區法規資料庫';
+  document.title = dispName(law) + '｜跨校區及三峽校區法規資料庫';
 
   const histHTML = hist.length ? `<section class="hist" aria-labelledby="h-hist">
       <div style="display:flex;flex-wrap:wrap;justify-content:space-between;align-items:baseline;gap:8px"><h2 id="h-hist">法規沿革</h2><span class="muted" style="font-size:14px">最近一次</span></div>
@@ -570,6 +571,7 @@ function renderDetail(id, artKey, params) {
     <section class="law-head">
       <div class="eyebrow">${esc(scopeLabel(law))}</div>
       <h1>${esc(law.name)}</h1>
+      ${law.short && law.short !== law.name ? `<div style="font-size:17px"><span class="muted" style="font-size:14px;letter-spacing:.12em;margin-right:10px">簡稱</span>${esc(law.short)}</div>` : ''}
       ${ren.length ? `<div class="hint" style="font-size:15px">名稱變更：${ren.map((r) => `原名稱「${esc(r.oldName)}」${r.date ? `，${esc(r.date)} 更名` : ''}`).join('；')}</div>` : ''}
       ${law.status === '已廢止' ? `<div class="banner">本法已廢止${law.date ? `（${esc(law.date)}）` : ''}，以下條文僅供查考。</div>` : ''}
       <div class="meta">
@@ -634,7 +636,7 @@ function runSearch(q, scope, mode) {
   state.data.laws.forEach((law) => {
     const sc = scopeOf(law);
     if (scope !== 'all' && sc !== scope) return;
-    const nameHit = mode !== 'text' && law.name.includes(q);
+    const nameHit = mode !== 'text' && (law.name.includes(q) || (law.short || '').includes(q));
     const oldHit = mode !== 'text' ? renamesOf(law.id).filter((r) => (r.oldName || '').includes(q)) : [];
     let hits = [];
     if (mode !== 'name') {
@@ -676,7 +678,8 @@ function renderSearch(params) {
         ${r.nameHit ? '<span class="tag ink">名稱符合</span>' : ''}
         ${r.oldHit.length ? '<span class="tag stone">舊名稱符合</span>' : ''}
         ${r.hits.length ? `<span class="tag line">條文符合 ${r.hits.length} 條</span>` : ''}</div>
-      <a class="name" href="#/law/${id}">${r.nameHit ? hl(r.law.name, q) : esc(r.law.name)}</a>
+      <a class="name" href="#/law/${id}">${hl(dispName(r.law), r.nameHit ? q : '')}</a>
+      ${r.law.short && r.law.short !== r.law.name ? `<div class="hint" style="font-size:15px">全稱：${hl(r.law.name, r.nameHit ? q : '')}</div>` : ''}
       ${r.oldHit.map((o) => `<div class="hint" style="font-size:15px">原名稱「${hl(o.oldName, q)}」${o.date ? `，${esc(o.date)} 更名` : ''}</div>`).join('')}
       ${r.hits.length ? `<ul class="hits">${r.hits.slice(0, SHOW).map((h) => `<li><a href="#/law/${id}/${encodeURIComponent(h.key)}">${esc(h.label)}</a><span>${hl(h.snip, q)}</span></li>`).join('')}</ul>
         ${r.hits.length > SHOW ? `<a href="#/law/${id}?q=${encodeURIComponent(q)}" style="font-size:15px;padding:8px 0;align-self:flex-start">顯示本法全部 ${r.hits.length} 條符合條文</a>` : ''}` : ''}
@@ -692,7 +695,7 @@ function renderLatest() {
     <div class="sec-head"><h1 style="margin:0;font-family:var(--serif);font-weight:900;font-size:32px">最新異動</h1><span class="muted" style="font-size:14px">共 ${all.length} 筆</span></div>
     ${all.length ? `<ol class="lawlist">${all.map((h) => { const l = lawById(h.id); return `<li style="flex-direction:column;align-items:stretch;gap:8px">
       <div style="display:flex;flex-wrap:wrap;align-items:center;gap:10px"><span class="tag red">${esc(h.type || '異動')}</span><span class="muted" style="font-size:15px">${esc(h.date)}</span></div>
-      <a class="name" href="#/law/${encodeURIComponent(l.id)}">${esc(l.name)}</a>
+      <a class="name" href="#/law/${encodeURIComponent(l.id)}">${esc(dispName(l))}</a>
       <div class="muted" style="line-height:1.8">${esc(h.text)}</div></li>`; }).join('')}</ol>` : '<div class="empty">目前沒有異動紀錄。</div>'}
   </div>`);
 }
@@ -741,14 +744,15 @@ function adminLaw(id) { return state.admin.data.laws.find((l) => l.id === id); }
 function renderAdminList() {
   const laws = state.admin.data.laws;
   const f = state.admin.filter || (state.admin.filter = { q: '', status: '', region: '', agency: '' });
-  const rows = laws.filter((l) => (!f.q || l.name.includes(f.q)) && (!f.status || l.status === f.status) && (!f.region || l.region === f.region) && (!f.agency || l.agency === f.agency));
+  const rows = laws.filter((l) => (!f.q || l.name.includes(f.q) || (l.short || '').includes(f.q)) && (!f.status || l.status === f.status) && (!f.region || l.region === f.region) && (!f.agency || l.agency === f.agency));
   const badge = (s) => s === '現行' ? '<span class="tag ink">現行</span>' : s === '草稿' ? '<span class="tag dash">草稿</span>' : `<span class="tag stone">${esc(s || '—')}</span>`;
   const ops = (l) => {
     const id = encodeURIComponent(l.id);
     const mine = canEdit(l.region, l.agency);
     if (l.status === '草稿') return mine ? `<a href="#/admin/edit/${id}">繼續編輯</a><button type="button" class="del" data-act="del-draft" data-id="${esc(l.id)}">刪除草稿</button>` : '<span class="muted">無權限</span>';
-    if (l.status === '已廢止') return `<a href="#/law/${id}">查看</a>`;
-    return (mine ? `<a href="#/admin/edit/${id}">修正</a><a href="#/admin/repeal/${id}">廢止</a>` : '') + `<a href="#/law/${id}">查看</a>`;
+    const hist = mine ? `<a href="#/admin/history/${id}">匯入沿革</a>` : '';
+    if (l.status === '已廢止') return hist + `<a href="#/law/${id}">查看</a>`;
+    return (mine ? `<a href="#/admin/edit/${id}">修正</a><a href="#/admin/repeal/${id}">廢止</a>` : '') + hist + `<a href="#/law/${id}">查看</a>`;
   };
   const sel = (name, label, opts) => `<div class="field"><label for="f-${name}">${label}</label><select id="f-${name}" class="select" data-filter="${name}"><option value="">全部</option>${opts.map((o) => `<option ${f[name] === o ? 'selected' : ''}>${o}</option>`).join('')}</select></div>`;
   return adminShell('list', `
@@ -764,7 +768,7 @@ function renderAdminList() {
     </div>
     <div class="atable" role="table" aria-label="法規列表">
       <div class="row h" role="row"><span role="columnheader">法規名稱</span><span role="columnheader">所屬區／主管</span><span role="columnheader">最近異動</span><span role="columnheader">狀態</span><span role="columnheader">操作</span></div>
-      ${rows.map((l) => `<div class="row" role="row"><span class="nm" role="cell">${esc(l.name)}<br><span class="muted" style="font-family:var(--sans);font-size:13px;font-weight:400">${esc(l.id)}</span></span>
+      ${rows.map((l) => `<div class="row" role="row"><span class="nm" role="cell">${esc(dispName(l))}<br><span class="muted" style="font-family:var(--sans);font-size:13px;font-weight:400">${esc(l.id)}</span></span>
         <span role="cell" style="font-size:14px">${esc(l.region || '—')}${l.agency ? `<br>${esc(l.agency)}` : ''}</span>
         <span role="cell" class="muted" style="font-size:15px">${esc(l.date || '—')}</span>
         <span role="cell">${badge(l.status)}</span>
@@ -781,7 +785,7 @@ function renderAdminEdit(id) {
   const a = state.admin;
   const regions = a.role === 'admin' ? [REGION_COMMON, REGION_SANXIA] : [REGION_SANXIA];
   const agencies = a.role === 'admin' ? AGENCIES : [a.agency];
-  const v = law || { name: '', region: regions[regions.length - 1], agency: agencies[0], url: '', text: '' };
+  const v = law || { name: '', short: '', region: regions[regions.length - 1], agency: agencies[0], url: '', text: '' };
   const title = isNew ? '新增法規' : isDraft ? '編輯草稿' : '修正法規';
   const type = isAmend ? '修正' : '制定';
   const ph = isAmend
@@ -797,8 +801,10 @@ function renderAdminEdit(id) {
       <section style="display:flex;flex-direction:column;gap:20px">
         <div class="step"><span class="n">一</span><h2>基本資料</h2></div>
         <div class="grid2">
-          <div class="field span-all"><label for="e-name">法規名稱</label><input id="e-name" name="name" class="input" value="${esc(v.name)}" required>
-            ${isAmend ? '<div class="hint">修改名稱並發布後，原名稱會自動記入名稱變更紀錄，前台用舊名稱也搜得到。</div>' : ''}</div>
+          <div class="field span-all"><label for="e-name">法規全稱</label><input id="e-name" name="name" class="input" value="${esc(v.name)}" required placeholder="例如：國立臺北大學學生自治會三峽校區學生議會組織職權行使法">
+            ${isAmend ? '<div class="hint">修改全稱並發布後，原全稱會自動記入名稱變更紀錄，前台用舊名稱也搜得到。</div>' : ''}</div>
+          <div class="field span-all"><label for="e-short">簡稱（選填）</label><input id="e-short" name="short" class="input" value="${esc(v.short || '')}" placeholder="例如：三峽校區學生議會組織職權行使法">
+            <div class="hint">列表、最新異動與搜尋結果顯示簡稱；沒填時顯示全稱。全稱、簡稱都搜得到。</div></div>
           <div class="field"><label for="e-region">所屬區</label><select id="e-region" name="region" class="select">${regions.map((r) => `<option ${v.region === r ? 'selected' : ''}>${r}</option>`).join('')}</select></div>
           <div class="field" data-agency-field ${v.region === REGION_COMMON ? 'hidden' : ''}><label for="e-agency">主管機關</label><select id="e-agency" name="agency" class="select">${agencies.map((g) => `<option ${v.agency === g ? 'selected' : ''}>${g}</option>`).join('')}</select></div>
           <div class="field span-all"><label for="e-url">原始網址（選填）</label><input id="e-url" name="url" class="input" type="url" value="${esc(v.url)}" placeholder="https://"></div>
@@ -844,6 +850,77 @@ function updatePreview(form) {
   $('[data-preview]', form).innerHTML = text.trim() ? (lawBodyHTML(p, '', false, null, true) || '<p class="muted">沒有辨識到條文，請確認每條以「第 X 條」開頭。</p>') : '<p class="muted">貼上全文後，這裡會顯示網站上的呈現方式。</p>';
 }
 
+/* ---------- 匯入舊沿革 ----------
+   把整段沿革貼上，依「中華民國／民國／○○年」開頭拆成多筆；
+   公布日期取「⋯日公布」前的日期（只寫月日時沿用通過日期的年份），沒有則取第一個日期；
+   異動類型：整部廢止→廢止；有修正／增訂／刪除／廢止第⋯條→修正；其餘→制定。 */
+function parseHistoryBlock(text) {
+  const half = (x) => String(x).replace(/[０-９]/g, (c) => String.fromCharCode(c.charCodeAt(0) - 0xFEE0));
+  const lines = String(text || '').replace(/\r\n?/g, '\n').split('\n')
+    .map((l) => l.replace(/^[\s　]+|[\s　]+$/g, '').replace(/^(?:[0-9０-９]{1,3}|[一二三四五六七八九十]+)\s*[.．、)）]\s*|^[（(]\s*[0-9０-９]{1,3}\s*[)）]\s*/, ''))
+    .filter(Boolean);
+  const starts = /^(?:中華民國|民國)\s*\d{2,3}\s*年|^\d{2,3}\s*年\s*\d{1,2}\s*月|^\d{4}\s*[\/.\-年]/;
+  const items = [];
+  lines.forEach((l) => { if (!items.length || starts.test(half(l))) items.push(l); else items[items.length - 1] += l; });
+  const pad = (n) => String(n).padStart(2, '0');
+  const iso = (y, m, d) => (y < 1911 ? y + 1911 : y) + '-' + pad(m) + '-' + pad(d);
+  return items.map((orig) => {
+    const t = half(orig);
+    let date = '';
+    const first = /(\d{2,4})\s*年\s*(\d{1,2})\s*月\s*(\d{1,2})\s*日/.exec(t) || /(\d{4})[\/.\-](\d{1,2})[\/.\-](\d{1,2})/.exec(t);
+    const pub = /(?:(\d{2,4})\s*年\s*)?(\d{1,2})\s*月\s*(\d{1,2})\s*日[^，。；]{0,8}?(?:公布|發布)/.exec(t);
+    if (pub && (pub[1] || first)) {
+      let y = +(pub[1] || first[1]);
+      if (!pub[1] && first && +pub[2] < +first[2]) y += 1;
+      date = iso(y, +pub[2], +pub[3]);
+    } else if (first) date = iso(+first[1], +first[2], +first[3]);
+    const type = /修正|增訂|刪除|廢止第/.test(t) ? '修正' : /廢止/.test(t) ? '廢止' : '制定';
+    return { text: orig, date, type };
+  });
+}
+function renderAdminHistory(id) {
+  const law = adminLaw(id);
+  if (!law) return adminShell('list', '<h1>找不到這部法規</h1><p><a href="#/admin">回到列表</a></p>');
+  if (!canEdit(law.region, law.agency)) return adminShell('list', '<h1>沒有權限修改這部法規</h1><p><a href="#/admin">回到列表</a></p>');
+  const existing = state.admin.data.history.filter((h) => h.id === id).sort((a, b) => (b.date || '').localeCompare(a.date || ''));
+  const draft = state.admin.histDraft;
+  const types = ['制定', '修正', '廢止'];
+  return adminShell('list', `
+    <div style="display:flex;flex-direction:column;gap:12px">
+      <nav class="crumbs" style="padding:0" aria-label="麵包屑"><a href="#/admin">法規管理</a><span>/</span><span>匯入沿革</span></nav>
+      <h1>匯入沿革</h1>
+      <div class="muted serif" style="font-size:20px;font-weight:600;color:var(--ink)">${esc(law.name || law.short)}</div>
+      <div class="hint">用來補登舊的法規沿革，一次可以貼上很多筆。只會新增沿革紀錄，不會改動法規全文與狀態。</div>
+    </div>
+    <section style="display:flex;flex-direction:column;gap:12px">
+      <div class="step"><span class="n">一</span><h2>目前已有的沿革</h2><span class="muted" style="font-size:14px">${existing.length} 筆</span></div>
+      ${existing.length ? `<ol class="lawlist">${existing.map((h) => `<li style="flex-direction:column;align-items:stretch;gap:6px"><div style="display:flex;gap:10px;align-items:center"><span class="tag red">${esc(h.type || '異動')}</span><span class="muted" style="font-size:14px">${esc(h.date)}</span></div><div style="line-height:1.8">${esc(h.text)}</div></li>`).join('')}</ol>` : '<div class="empty">還沒有沿革紀錄。</div>'}
+    </section>
+    <form data-form="histimport" data-id="${esc(id)}" novalidate style="display:flex;flex-direction:column;gap:24px">
+      <section style="display:flex;flex-direction:column;gap:12px">
+        <div class="step"><span class="n">二</span><h2>貼上舊沿革</h2></div>
+        <div class="field"><label for="h-raw">每一筆以「中華民國」或「民國」開頭，可以直接貼上原網站的整段沿革（含編號也沒關係）</label>
+          <textarea id="h-raw" name="raw" class="textarea" rows="8" placeholder="1. 中華民國 113 年 3 月 5 日三峽校區學生議會第 ○ 屆第 ○ 次常會通過，會長於 3 月 10 日公布。&#10;2. 中華民國 114 年 10 月 ○ 日三峽校區學生議會第 ○ 屆第 ○ 次常會通過，會長於 10 月 ○ 日公布，修正第 5 條。">${esc(draft ? draft.raw : '')}</textarea></div>
+        <div><button class="btn dark" type="submit" data-submit="parse">辨識</button></div>
+      </section>
+      ${draft ? `<section style="display:flex;flex-direction:column;gap:12px">
+        <div class="step"><span class="n">三</span><h2>確認辨識結果</h2><span class="muted" style="font-size:14px">共 ${draft.items.length} 筆，可直接修改日期與類型</span></div>
+        ${draft.items.length ? draft.items.map((it, i) => `<div class="result" style="gap:12px">
+          <div style="display:flex;flex-wrap:wrap;gap:12px;align-items:flex-end">
+            <label class="check" style="align-items:center;min-height:48px"><input type="checkbox" name="use-${i}" ${it.dup ? '' : 'checked'}><span>匯入第 ${i + 1} 筆</span></label>
+            <div class="field" style="width:200px"><label for="hd-${i}">公布日期</label><input id="hd-${i}" name="date-${i}" class="input" type="date" value="${esc(it.date)}" style="min-height:48px;font-size:16px"></div>
+            <div class="field" style="width:140px"><label for="ht-${i}">異動類型</label><select id="ht-${i}" name="type-${i}" class="select" style="min-height:48px;font-size:16px">${types.map((t) => `<option ${t === it.type ? 'selected' : ''}>${t}</option>`).join('')}</select></div>
+          </div>
+          ${!it.date ? '<div class="err" style="font-size:14px">沒有辨識到日期，請手動填寫。</div>' : ''}
+          ${it.dup ? '<div class="muted" style="font-size:14px">這筆跟已有的沿革相同，預設不匯入。</div>' : ''}
+          <div class="field"><label for="hx-${i}">沿革文字</label><textarea id="hx-${i}" name="text-${i}" class="textarea" rows="2" style="font-size:16px">${esc(it.text)}</textarea></div>
+        </div>`).join('') : '<div class="empty">沒有辨識到任何沿革，請確認每筆以「中華民國」或「民國」開頭。</div>'}
+      </section>` : ''}
+      <div class="err" data-err role="alert" hidden></div>
+      ${draft && draft.items.length ? `<div class="bar"><a href="#/admin" style="padding:12px 0">取消，回到列表</a><button class="btn primary" type="submit" data-submit="save">儲存勾選的沿革</button></div>` : ''}
+    </form>`);
+}
+
 function renderAdminRepeal(id) {
   const law = adminLaw(id);
   if (!law || law.status !== '現行') return adminShell('list', '<h1>只有現行法規可以廢止</h1><p><a href="#/admin">回到列表</a></p>');
@@ -879,6 +956,7 @@ async function adminRoute(parts) {
   else if (sub === 'new') app.innerHTML = renderAdminEdit(null);
   else if (sub === 'edit') app.innerHTML = renderAdminEdit(id);
   else if (sub === 'repeal') app.innerHTML = renderAdminRepeal(id);
+  else if (sub === 'history') { state.admin.histDraft = null; app.innerHTML = renderAdminHistory(id); }
   else app.innerHTML = renderAdminList();
   const ef = $('form[data-form="edit"]');
   if (ef) updatePreview(ef);
@@ -929,9 +1007,9 @@ async function onSubmit(e) {
     if (kind === 'edit') {
       const submitter = e.submitter && e.submitter.dataset.submit || 'publish';
       const f = form.elements;
-      const law = { id: form.dataset.id || '', name: f.name.value.trim(), region: f.region.value, agency: f.region.value === REGION_COMMON ? '' : f.agency.value, url: f.url.value.trim(), text: f.text.value };
+      const law = { id: form.dataset.id || '', name: f.name.value.trim(), short: f.short.value.trim(), region: f.region.value, agency: f.region.value === REGION_COMMON ? '' : f.agency.value, url: f.url.value.trim(), text: f.text.value };
       const history = { date: f.date.value, type: f.type.value, text: f.hist.value.trim() };
-      if (!law.name) return showErr(form, '請填寫法規名稱。');
+      if (!law.name) return showErr(form, '請填寫法規全稱。');
       if (submitter === 'publish') {
         if (!parseLaw(law.text).articles.length) return showErr(form, '全文沒有辨識到任何條文，請確認每條以「第 X 條」開頭。');
         if (!history.date) return showErr(form, '請填寫公布日期。');
@@ -940,6 +1018,34 @@ async function onSubmit(e) {
       showErr(form, ''); lock(true);
       const j = await api.post('save', { mode: submitter, law, history });
       await afterMutation(submitter === 'draft' ? '草稿已儲存' : '已發布', submitter === 'draft' ? '#/admin/edit/' + encodeURIComponent(j.id) : '#/admin');
+      return;
+    }
+    if (kind === 'histimport') {
+      const f = form.elements; const id = form.dataset.id;
+      const submitter = e.submitter && e.submitter.dataset.submit || 'parse';
+      if (submitter === 'parse') {
+        const raw = f.raw.value;
+        const have = new Set(state.admin.data.history.filter((h) => h.id === id).map((h) => h.text.replace(/\s+/g, '')));
+        const items = parseHistoryBlock(raw).map((it) => Object.assign(it, { dup: have.has(it.text.replace(/\s+/g, '')) }));
+        state.admin.histDraft = { raw, items };
+        $('#app').innerHTML = renderAdminHistory(id);
+        const sec = document.querySelectorAll('[data-form="histimport"] section')[1];
+        if (sec) sec.scrollIntoView({ block: 'start' });
+        return;
+      }
+      const items = [];
+      for (let i = 0; i < state.admin.histDraft.items.length; i++) {
+        if (!f['use-' + i].checked) continue;
+        const it = { date: f['date-' + i].value, type: f['type-' + i].value, text: f['text-' + i].value.trim() };
+        if (!it.date) return showErr(form, `第 ${i + 1} 筆沒有公布日期。`);
+        if (!it.text) return showErr(form, `第 ${i + 1} 筆沒有沿革文字。`);
+        items.push(it);
+      }
+      if (!items.length) return showErr(form, '沒有勾選任何一筆。');
+      showErr(form, ''); lock(true);
+      const j = await api.post('importHistory', { id, items });
+      state.admin.histDraft = null;
+      await afterMutation(`已匯入 ${j.added} 筆沿革`, '#/admin/history/' + encodeURIComponent(id));
       return;
     }
     if (kind === 'repeal') {
@@ -980,7 +1086,7 @@ async function onClick(e) {
   }
   if (act === 'del-draft') {
     const l = adminLaw(t.dataset.id);
-    if (!l || !confirm(`確定要刪除草稿「${l.name}」嗎？刪除後無法復原。`)) return;
+    if (!l || !confirm(`確定要刪除草稿「${dispName(l)}」嗎？刪除後無法復原。`)) return;
     try { await api.post('deleteDraft', { id: l.id }); await afterMutation('草稿已刪除'); } catch (err) { adminFail(err); }
   }
 }
@@ -1051,14 +1157,14 @@ function route() {
    ========================================================= */
 const demo = (() => {
   const SRC = 'https://ntpusu.ntpu.edu.tw/p/405-1015-';
-  const mk = (id, name, region, agency, date, wid, text) => ({ id, name, region, agency, status: '現行', date, url: SRC + wid + ',c228.php?Lang=zh-tw', text: text || '' });
+  const mk = (id, name, region, agency, date, wid, text, full) => ({ id, name: full || name, short: full ? name : '', region, agency, status: '現行', date, url: SRC + wid + ',c228.php?Lang=zh-tw', text: text || '' });
   const sample = '第一章 總則\n第一條 [示範條文：本條內容]\n第二條 [示範條文：第一項內容]\n[示範條文：第二項內容，列舉如下：]\n一、[第一款內容]\n二、[第二款內容]\n（一）[第一目內容]\n（二）[第二目內容]\n第三條 [示範條文：議事相關內容]\n第二章 議長、副議長\n第四條 [示範條文：本條內容]\n第十四條之一 [示範條文：條之一的寫法]\n第三章之一 議案審議\n第十九條 [示範條文：議事程序內容]\n第二十條 [示範條文：本條內容]';
   const db = {
     laws: [
       mk('L001', '學生議員計畫執行款設置法', REGION_SANXIA, '學生議會', '2026/08/27', '1904'),
       mk('L002', '三峽校區學生議會旁聽規則', REGION_SANXIA, '學生議會', '2026/04/23', '1548'),
       mk('L006', '三峽校區學生議會議事規則', REGION_SANXIA, '學生議會', '2026/07/09', '1537'),
-      mk('L007', '三峽校區學生議會組織職權行使法', REGION_SANXIA, '學生議會', '2026/07/17', '1539', sample),
+      mk('L007', '三峽校區學生議會組織職權行使法', REGION_SANXIA, '學生議會', '2026/07/17', '1539', sample, '國立臺北大學學生自治會三峽校區學生議會組織職權行使法'),
       mk('L015', '三峽校區選舉罷免法', REGION_SANXIA, '', '2026/05/14', '1599'),
       mk('L016', '三峽校區學生會收支管理辦法', REGION_SANXIA, '學生會', '2024/04/18', '1598'),
       mk('L022', '三峽校區學生會組織法', REGION_SANXIA, '', '2025/11/08', '1592'),
@@ -1091,7 +1197,7 @@ const demo = (() => {
             if (!law) { law = { id: nextId() }; db.laws.push(law); }
             db.history.push({ id: law.id, date: isoToSlash(b.history.date), type: b.history.type, text: b.history.text });
           } else if (!law) { law = { id: nextId(), date: '' }; db.laws.push(law); }
-          Object.assign(law, { name: L.name, region: L.region, agency: L.agency, url: L.url, text: L.text, status: b.mode === 'publish' ? '現行' : '草稿' });
+          Object.assign(law, { name: L.name, short: L.short, region: L.region, agency: L.agency, url: L.url, text: L.text, status: b.mode === 'publish' ? '現行' : '草稿' });
           if (b.mode === 'publish') law.date = isoToSlash(b.history.date);
           return resolve({ ok: true, id: law.id });
         }
@@ -1100,6 +1206,10 @@ const demo = (() => {
           law.status = '已廢止'; law.date = isoToSlash(b.history.date);
           db.history.push({ id: law.id, date: law.date, type: '廢止', text: b.history.text });
           return resolve({ ok: true });
+        }
+        if (b.action === 'importHistory') {
+          b.items.forEach((it) => db.history.push({ id: b.id, date: isoToSlash(it.date), type: it.type, text: it.text }));
+          return resolve({ ok: true, added: b.items.length });
         }
         if (b.action === 'deleteDraft') { db.laws = db.laws.filter((x) => x.id !== b.id); return resolve({ ok: true }); }
         fail('未知的動作');
