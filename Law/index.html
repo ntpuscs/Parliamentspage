@@ -44,6 +44,8 @@ mark{background:var(--hl);color:var(--ink);font-weight:700;padding:0 2px;border-
 .site-nav a.admin-btn{margin-left:8px;padding:0 16px;min-height:40px;border-radius:4px;background:var(--ink);border-color:var(--ink);color:var(--paper);font-weight:700}
 .site-nav a.admin-btn:hover{background:#0f1a2b;color:var(--paper)}
 .demo-bar{background:var(--ink);color:var(--paper);font-size:14px;text-align:center;padding:8px 16px}
+.stale-bar{background:#FBE9C6;color:var(--ink);font-size:15px;text-align:center;padding:10px 16px;border-bottom:1px solid #E6CC8F;line-height:1.7}
+.stale-bar button{margin-left:10px;min-height:36px;padding:0 14px;border:1.5px solid var(--ink);border-radius:4px;background:transparent;cursor:pointer;font-weight:700}
 
 /* controls */
 .btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:48px;padding:0 24px;border-radius:4px;border:1.5px solid var(--ink);background:transparent;color:var(--ink);font-size:16px;font-weight:500;text-decoration:none;cursor:pointer;white-space:nowrap}
@@ -249,7 +251,7 @@ const API_URL = 'https://script.google.com/macros/s/AKfycbwERts4CSlpOUcxT4I0fINY
 const REGION_COMMON = '跨校區共通性法規';
 const REGION_SANXIA = '三峽校區法規';
 const AGENCIES = ['學生會', '學生議會'];
-const CACHE_KEY = 'regdb-cache-v1';
+const CACHE_KEY = 'regdb-cache-v2';
 const TOKEN_KEY = 'regdb-token-v1';
 const LOGO = (bg, spine, bars, size) => `<svg width="${size}" height="${size}" viewBox="0 0 64 64" aria-hidden="true"><rect width="64" height="64" rx="8" fill="${bg}"/><rect x="13" y="13" width="5" height="38" fill="${spine}"/><rect x="25" y="13" width="26" height="5" fill="${bars}"/><rect x="31" y="29.5" width="20" height="5" fill="${bars}"/><rect x="37" y="46" width="14" height="5" fill="${bars}"/></svg>`;
 const ICON_LINK = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 13a5 5 0 0 0 7.07 0l3-3a5 5 0 0 0-7.07-7.07l-1.5 1.5"/><path d="M14 11a5 5 0 0 0-7.07 0l-3 3a5 5 0 0 0 7.07 7.07l1.5-1.5"/></svg>';
@@ -422,20 +424,30 @@ const api = {
   },
 };
 
+// 先顯示上次存在瀏覽器的資料，再到背景向試算表更新；更新失敗時標示資料可能過時
 async function loadData(force) {
-  if (!force && !state.data) {
-    const cached = store.get(CACHE_KEY);
-    if (cached && !state.demo) { try { state.data = JSON.parse(cached); route(); } catch (e) {} }
+  if (!force && !state.data && !state.demo) {
+    try {
+      const c = JSON.parse(store.get(CACHE_KEY) || 'null');
+      if (c && c.data) { state.data = c.data; state.cachedAt = c.at; state.syncing = true; route(); }
+    } catch (e) {}
   }
   try {
     const d = await api.data();
     state.data = { laws: d.laws || [], history: d.history || [], renames: d.renames || [] };
-    state.loadError = null;
-    if (!state.demo) store.set(CACHE_KEY, JSON.stringify(state.data));
+    state.loadError = null; state.stale = false; state.syncing = false;
+    state.cachedAt = Date.now();
+    if (!state.demo) store.set(CACHE_KEY, JSON.stringify({ at: state.cachedAt, data: state.data }));
   } catch (e) {
+    state.syncing = false;
     if (!state.data) state.loadError = e.message || String(e);
+    else state.stale = true;
   }
   route();
+}
+function fmtTime(ms) {
+  const d = new Date(ms); const p = (n) => String(n).padStart(2, '0');
+  return `${d.getFullYear()}/${p(d.getMonth() + 1)}/${p(d.getDate())} ${p(d.getHours())}:${p(d.getMinutes())}`;
 }
 
 const dispName = (l) => (l && (l.short || l.name)) || '';
@@ -454,7 +466,10 @@ const sortLaws = (arr) => arr.slice().sort((a, b) => (a.status === '已廢止') 
 /* ---------- 版面 ---------- */
 function header(active) {
   const nav = [['#/', '全部法規', 'home'], ['#/latest', '最新異動', 'latest'], ['#/search', '搜尋', 'search']];
-  return `${state.demo ? '<div class="demo-bar">目前顯示示範資料。設定 API_URL 後會改讀試算表。</div>' : ''}
+  const staleBar = state.stale
+    ? `<div class="stale-bar" role="alert">目前無法連線到資料庫，以下是 ${state.cachedAt ? esc(fmtTime(state.cachedAt)) + ' ' : '先前'}同步的資料，可能不是最新。<button type="button" data-act="reload">重新整理</button></div>`
+    : '';
+  return `${state.demo ? '<div class="demo-bar">目前顯示示範資料。設定 API_URL 後會改讀試算表。</div>' : ''}${staleBar}
   <header class="site-header"><div class="wrap">
     <a class="brand" href="#/">${LOGO('#B3372B', '#F6F3EC', '#F6F3EC', 40)}<span class="brand-text"><span class="brand-org">國立臺北大學學生自治會</span><span class="brand-name">跨校區及三峽校區法規資料庫</span></span></a>
     <nav class="site-nav" aria-label="主選單">${nav.map(([h, t, k]) => `<a href="${h}" class="${k === active ? 'on' : ''}">${t}</a>`).join('')}
@@ -477,7 +492,7 @@ function searchForm(q, extraClass) {
 
 /* ---------- 首頁 ---------- */
 function renderHome(params) {
-  const scope = params.get('scope') || 'all';
+  const scope = ['all', 'common', 'sanxia'].indexOf(params.get('scope')) >= 0 ? params.get('scope') : 'all';
   const laws = state.data.laws;
   const latest = state.data.history.slice().sort((a, b) => (b.date || '').localeCompare(a.date || '')).filter((h) => h.date && lawById(h.id)).slice(0, 4);
   const tabs = [['all', '全部'], ['common', REGION_COMMON], ['sanxia', REGION_SANXIA]];
@@ -658,11 +673,12 @@ function runSearch(q, scope, mode) {
 }
 function renderSearch(params) {
   const q = (params.get('q') || '').trim();
-  const scope = params.get('scope') || 'all';
-  const mode = params.get('in') || 'all';
+  const pick = (v, ok, d) => (ok.indexOf(v) >= 0 ? v : d); // 只接受固定值，防止網址參數被拿來注入
+  const scope = pick(params.get('scope'), ['all', 'common', 'union', 'council'], 'all');
+  const mode = pick(params.get('in'), ['all', 'name', 'text'], 'all');
   const res = runSearch(q, scope, mode);
   const artCount = res.reduce((n, r) => n + r.hits.length, 0);
-  const link = (s, m) => `#/search?q=${encodeURIComponent(q)}&scope=${s}&in=${m}`;
+  const link = (s, m) => `#/search?q=${encodeURIComponent(q)}&scope=${encodeURIComponent(s)}&in=${encodeURIComponent(m)}`;
   const scopes = [['all', '全部'], ['common', REGION_COMMON], ['union', '三峽・學生會主管'], ['council', '三峽・學生議會主管']];
   const SHOW = 5;
   return page('search', `<div class="wrap" style="padding:40px 24px 96px;display:flex;flex-direction:column;gap:24px">
@@ -1083,6 +1099,7 @@ async function onClick(e) {
   if (act === 'copy-art') { const ok = await copyText(`${baseUrl()}#/law/${encodeURIComponent(parts[1])}/${encodeURIComponent(t.dataset.key)}`); toast(ok ? '已複製本條連結' : '複製失敗，請手動複製網址'); return; }
   if (act === 'copy-law') { const ok = await copyText(`${baseUrl()}#/law/${encodeURIComponent(parts[1])}`); toast(ok ? '已複製法規連結' : '複製失敗，請手動複製網址'); return; }
   if (act === 'print') { window.print(); return; }
+  if (act === 'reload') { location.reload(); return; }
   if (act === 'word') { const l = lawById(parts[1]); if (l) downloadWord(l); return; }
   if (act === 'logout') { logout(); go('#/admin'); return; }
   if (act === 'autoformat') {
@@ -1130,7 +1147,7 @@ function onChange(e) {
   const t = e.target;
   if (t.dataset.change === 'mode') {
     const { params } = parseHash();
-    go(`#/search?q=${encodeURIComponent(params.get('q') || '')}&scope=${params.get('scope') || 'all'}&in=${t.value}`);
+    go(`#/search?q=${encodeURIComponent(params.get('q') || '')}&scope=${encodeURIComponent(params.get('scope') || 'all')}&in=${encodeURIComponent(t.value)}`);
   }
   if (t.id === 'e-unknown') {
     const d = $('#e-date'); const h = $('#e-hist');
