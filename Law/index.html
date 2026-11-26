@@ -156,6 +156,12 @@ h1 .fei{border-width:2.5px;border-radius:5px;font-size:.72em;margin-right:.3em}
 .hist ol{list-style:none;margin:16px 0 0;padding:0}
 .hist ol li{padding:14px 0;border-top:1px solid var(--stone);line-height:1.9}
 .hist .d{font-size:14px;color:var(--muted);margin-right:8px}
+.vrow{margin-top:10px}
+.vlink{display:inline-flex;align-items:center;gap:8px;min-height:40px;padding:0 14px;border:1.5px solid var(--artno);border-radius:4px;background:#F3EBDD;color:var(--artno);font-size:15px;font-weight:700;text-decoration:none;white-space:nowrap}
+.vlink:hover{background:var(--artno);color:#fff}
+.verbar{display:flex;flex-wrap:wrap;align-items:center;gap:8px 14px;padding:16px 20px;border:2px solid var(--artno);border-radius:6px;background:#F3EBDD;line-height:1.7}
+.verbar b{color:var(--artno)}
+.verbar .btn{margin-left:auto}
 .ch-head{display:flex;align-items:baseline;gap:16px;padding:8px 0 18px;border-bottom:1px solid var(--stone);scroll-margin-top:16px}
 .ch-head .n{font-size:15px;letter-spacing:.2em;color:var(--artno);font-weight:700;white-space:nowrap}
 .ch-head h2{margin:0;font-family:var(--serif);font-weight:900;font-size:30px;letter-spacing:.04em}
@@ -528,6 +534,13 @@ const api = {
     if (!j.ok) throw new Error(j.error || '讀取失敗');
     return j;
   },
+  async version(id, row) {
+    if (state.demo) return demo.version(id, row);
+    const r = await fetch(API_URL + '?action=version&id=' + encodeURIComponent(id) + '&row=' + encodeURIComponent(row));
+    const j = await r.json();
+    if (!j.ok) throw new Error(j.error || '讀取失敗');
+    return j;
+  },
   async post(action, payload) {
     const body = Object.assign({ action, token: state.admin.token }, payload || {});
     if (state.demo) return demo.post(body);
@@ -724,23 +737,44 @@ function lawBodyHTML(parsed, q, withLink, onlyKeys, levels) {
   });
   return html;
 }
+const verCache = {};
 function renderDetail(id, artKey, params) {
   const law = lawById(id);
   if (!law) return page('home', `<div class="wrap" style="padding:80px 24px"><h1 class="serif">找不到這部法規</h1><p><a href="#/">回到全部法規</a></p></div>`);
-  const parsed = parseLaw(law.text);
+  // 歷史版本：#/law/L007?ver=<沿革列號>，顯示該次修正／廢止之前的條文
+  const verRow = params.get('ver') ? Number(params.get('ver')) : null;
+  let ver = null;
+  if (verRow) {
+    const h = state.data.history.find((x) => x.id === id && x.row === verRow);
+    const key = id + ':' + verRow;
+    if (!h) return page('', `<div class="wrap" style="padding:80px 24px"><h1 class="serif">找不到這個版本</h1><p><a href="#/law/${encodeURIComponent(id)}">回到現行版本</a></p></div>`);
+    if (verCache[key] === undefined) {
+      verCache[key] = null;
+      api.version(id, verRow).then((j) => { verCache[key] = j; route(); }).catch((e) => { verCache[key] = { error: e.message || '讀取失敗' }; route(); });
+    }
+    if (!verCache[key]) return page('', '<div class="loading">舊版條文載入中⋯</div>');
+    if (verCache[key].error) return page('', `<div class="wrap" style="padding:80px 24px"><h1 class="serif">無法讀取這個版本</h1><p>${esc(verCache[key].error)}</p><p><a href="#/law/${encodeURIComponent(id)}">回到現行版本</a></p></div>`);
+    const asc = state.data.history.filter((x) => x.id === id).slice().sort((a, b) => (a.date || '').localeCompare(b.date || ''));
+    const prev = asc[asc.indexOf(h) - 1];
+    // 當時的名稱：找出在這個版本之後（含同一天）最早的一次更名，它的「原名稱」就是當時的全稱
+    const later = renamesOf(id).filter((r) => r.date && h.date && r.date >= h.date).sort((a, b) => a.date.localeCompare(b.date));
+    ver = { h, text: verCache[key].oldText, from: prev && prev.date ? prev.date : '', nameThen: later.length ? later[0].oldName : '' };
+  }
+  const parsed = parseLaw(ver ? ver.text : law.text);
   const q = params.get('q') || '';
   let only = null;
   if (q) only = new Set(parsed.articles.filter((a) => a.plain.includes(q)).map((a) => a.key));
   const hist = histOf(id);
   const ren = renamesOf(id);
   const isSanxia = law.region === REGION_SANXIA;
-  document.title = (isRepealed(law) ? '（廢）' : '') + dispName(law) + '｜跨校區及三峽校區法規資料庫';
+  document.title = (ver ? '（舊版）' : '') + (isRepealed(law) ? '（廢）' : '') + dispName(law) + '｜跨校區及三峽校區法規資料庫';
 
-  const histHTML = hist.length ? `<section class="hist" aria-labelledby="h-hist">
+  const verLink = (h) => h.hasOld && h.row ? `<div class="vrow"><a class="vlink" href="#/law/${encodeURIComponent(id)}?ver=${h.row}"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5"/><path d="M12 7v5l3 2"/></svg>查看${esc(h.type === '廢止' ? '廢止' : '修正')}前條文 →</a></div>` : '';
+  const histHTML = ver ? '' : hist.length ? `<section class="hist" aria-labelledby="h-hist">
       <div style="display:flex;flex-wrap:wrap;justify-content:space-between;align-items:baseline;gap:8px"><h2 id="h-hist">法規沿革</h2><span class="muted" style="font-size:14px">最近一次</span></div>
-      <div class="latest">${esc(hist[0].text)}</div>
+      <div class="latest">${esc(hist[0].text)}${verLink(hist[0])}</div>
       ${hist.length > 1 ? `<details><summary><span class="h-c">＋ 展開歷次沿革（${hist.length - 1}）</span><span class="h-o">－ 收合歷次沿革</span></summary>
-      <ol>${hist.slice(1).map((h) => `<li>${esc(h.text)}</li>`).join('')}</ol></details>` : ''}
+      <ol>${hist.slice(1).map((h) => `<li>${esc(h.text)}${verLink(h)}</li>`).join('')}</ol></details>` : ''}
     </section>` : '';
 
   const wide = window.innerWidth > 1000; // 桌機展開目錄；平板、手機預設收合，避免目錄把條文推到很下面
@@ -748,7 +782,7 @@ function renderDetail(id, artKey, params) {
       <li class="${ch.kind === '節' ? 'sub' : ''}"><a href="#" data-act="goto-ch" data-idx="${ch.idx}"><span class="n">${esc(ch.label)}</span><span>${esc(ch.title)}</span></a></li>`).join('')}</ol></details>` : '';
 
   const bodyHTML = parsed.articles.length || parsed.preamble.length
-    ? lawBodyHTML(parsed, q, true, only)
+    ? lawBodyHTML(parsed, q, !ver, only)
     : `<p class="muted" style="font-size:17px">本法條文尚未建檔。${law.url ? `請先參閱<a href="${esc(law.url)}" target="_blank" rel="noopener">原始頁面</a>。` : ''}</p>`;
 
   return page('', `<div class="wrap">
@@ -757,30 +791,32 @@ function renderDetail(id, artKey, params) {
       ${isSanxia && law.agency ? `<span>/</span><span>${esc(law.agency)}主管</span>` : ''}</nav>
     <section class="law-head">
       <div class="law-lv">${levelOf(law) ? `<span class="lv lg lv-${LEVEL_CLASS[levelOf(law)]}">${esc(levelOf(law))}</span>` : ''}<span class="eyebrow">${esc(scopeLabel(law))}</span></div>
-      <h1>${feiName(law, esc(law.name))}</h1>
-      ${law.short && law.short !== law.name ? `<div style="font-size:17px"><span class="muted" style="font-size:14px;letter-spacing:.12em;margin-right:10px">簡稱</span>${esc(law.short)}</div>` : ''}
+      <h1>${feiName(law, esc(ver && ver.nameThen ? ver.nameThen : law.name))}</h1>
+      ${ver && ver.nameThen ? `<div style="font-size:16px"><span class="muted" style="font-size:14px;letter-spacing:.12em;margin-right:10px">現行名稱</span><a href="#/law/${encodeURIComponent(id)}">${esc(law.name)}</a></div>` : ''}
+      ${law.short && law.short !== law.name && !(ver && ver.nameThen) ? `<div style="font-size:17px"><span class="muted" style="font-size:14px;letter-spacing:.12em;margin-right:10px">簡稱</span>${esc(law.short)}</div>` : ''}
       ${parentsOf(law).filter(lawById).length ? `<div style="font-size:16px"><span class="muted" style="font-size:14px;letter-spacing:.12em;margin-right:10px">母法</span>${parentsOf(law).filter(lawById).map((pid) => `<a href="#/law/${encodeURIComponent(pid)}">${feiName(lawById(pid))}</a>`).join('、')}</div>` : ''}
       ${ren.length ? `<div class="hint" style="font-size:15px">名稱變更：${ren.map((r) => `原名稱「${esc(r.oldName)}」${r.date ? `，${esc(r.date)} 更名` : ''}`).join('；')}</div>` : ''}
-      ${law.status === '已廢止' ? `<div class="banner">本法已廢止${law.date ? `（${esc(law.date)}）` : ''}，以下條文僅供查考。</div>` : ''}
+      ${ver ? `<div class="verbar" role="note"><b>這是舊版條文，非現行版本。</b><span>此為 ${esc(ver.h.date || '（日期不可考）')} ${esc(ver.h.type || '修正')}前的條文${ver.from ? `，適用期間約自 ${esc(ver.from)} 起` : ''}。</span><a class="btn small dark" href="#/law/${encodeURIComponent(id)}">回到現行版本</a></div>` : ''}
+      ${law.status === '已廢止' && !ver ? `<div class="banner">本法已廢止${law.date ? `（${esc(law.date)}）` : ''}，以下條文僅供查考。</div>` : ''}
       <div class="meta">
-        <div><span class="k">最近異動</span><span class="v">${esc(law.date || '—')}</span></div>
+        ${ver ? '' : `<div><span class="k">最近異動</span><span class="v">${esc(law.date || '—')}</span></div>`}
         ${levelOf(law) ? `<div><span class="k">位階</span><span class="v">${esc(levelOf(law))}</span></div>` : ''}
         <div><span class="k">條文數</span><span class="v">${parsed.articles.length} 條</span></div>
         ${parsed.chapters.length ? `<div><span class="k">章節</span><span class="v">${parsed.chapters.filter((c) => c.kind === '章').length} 章</span></div>` : ''}
       </div>
-      <div class="actions">
+      ${ver ? '' : `<div class="actions">
         ${law.url ? `<a class="btn primary" href="${esc(law.url)}" target="_blank" rel="noopener">查看原始頁面</a>` : ''}
         <button class="btn" type="button" data-act="print">下載 PDF</button>
         <button class="btn" type="button" data-act="word">下載 Word</button>
         <button class="btn" type="button" data-act="copy-law">複製連結</button>
         ${childrenOf(id).length ? `<button class="btn" type="button" data-act="goto-kids">子法（${childrenOf(id).length}）↓</button>` : ''}
-      </div>
+      </div>`}
     </section>
     <div class="body">
       ${toc ? `<aside class="side" aria-label="目錄">${toc}</aside>` : ''}
       <div class="main">
         ${histHTML}
-        ${parsed.articles.length ? `<div style="display:flex;flex-direction:column;gap:10px">
+        ${parsed.articles.length && !ver ? `<div style="display:flex;flex-direction:column;gap:10px">
           <form class="infind" data-form="infind" role="search">
             <label for="iq" class="sr">在本法中搜尋</label>
             <input id="iq" name="iq" class="input" type="search" value="${esc(q)}" placeholder="在本法中搜尋，或輸入條號（例如 19、14-1）">
@@ -789,7 +825,7 @@ function renderDetail(id, artKey, params) {
           ${q ? `<div class="infind-msg" role="status"><span>「${esc(q)}」符合 ${only.size} 條</span><a href="#/law/${encodeURIComponent(id)}">顯示全部條文</a></div>` : ''}
         </div>` : ''}
         <div>${bodyHTML}</div>
-        ${(() => { const kids = sortLaws(childrenOf(id)); return kids.length ? `<section class="kids" id="kids" aria-labelledby="h-kids" tabindex="-1">
+        ${(() => { const kids = ver ? [] : sortLaws(childrenOf(id)); return kids.length ? `<section class="kids" id="kids" aria-labelledby="h-kids" tabindex="-1">
           <div class="ch-head"><span class="n">子法</span><h2 id="h-kids">依本法訂定的法規</h2><span class="muted" style="font-size:14px;margin-left:auto">${kids.length} 部</span></div>
           <ol class="lawlist">${kids.map((k) => `<li>${levelTag(k)}<a class="name" href="#/law/${encodeURIComponent(k.id)}">${feiName(k)}</a><span class="date">${esc(k.date)}</span></li>`).join('')}</ol>
         </section>` : ''; })()}
@@ -1680,16 +1716,17 @@ const demo = (() => {
       { id: 'L025', name: '[示範] 學生自治會組織章程', level: '章程', region: REGION_COMMON, agency: '', status: '現行', date: '2025/09/01', url: '', text: '第一條 [示範條文]\n第二條 [示範條文]' },
     ],
     history: [
-      { id: 'L007', date: '2026/07/17', type: '修正', text: '中華民國 115 年 7 月 [日] 日三峽校區學生議會第 [屆] 屆第 [次] 次常會通過，會長於 115 年 7 月 [日] 日公布，修正第 19、20 條。' },
+      { id: 'L007', date: '2026/07/17', type: '修正', oldText: '第一章 總則\n第一條 [示範舊條文：修正前的第一條]\n第二條 [示範舊條文：修正前的第二條]\n第二章 議長、副議長\n第四條 [示範舊條文]\n第十九條 [示範舊條文：修正前的第十九條]\n第二十條 [示範舊條文：修正前的第二十條]', text: '中華民國 115 年 7 月 [日] 日三峽校區學生議會第 [屆] 屆第 [次] 次常會通過，會長於 115 年 7 月 [日] 日公布，修正第 19、20 條。' },
       { id: 'L007', date: '2025/12/15', type: '修正', text: '中華民國 114 年 12 月 [日] 日三峽校區學生議會第 [屆] 屆第 [次] 次常會通過，會長於 114 年 12 月 [日] 日公布，修正第 [條號] 條。' },
-      { id: 'L007', date: '2025/10/15', type: '修正', text: '中華民國 114 年 10 月 [日] 日三峽校區學生議會第 [屆] 屆第 [次] 次常會通過，會長於 114 年 10 月 [日] 日公布，修正第 [條號] 條。' },
+      { id: 'L007', date: '2025/10/15', type: '修正', oldText: '第一條 [示範：更名前的舊條文]\n第二條 [示範：更名前的舊條文]', text: '中華民國 114 年 10 月 [日] 日三峽校區學生議會第 [屆] 屆第 [次] 次常會通過，會長於 114 年 10 月 [日] 日公布，修正第 [條號] 條。' },
     ],
     renames: [{ id: 'L007', oldName: '[示範] 學生議會舊名稱議事法', date: '2025/10/15' }],
   };
   const clone = (o) => JSON.parse(JSON.stringify(o));
   const nextId = () => 'L' + String(db.laws.reduce((m, l) => Math.max(m, parseInt(l.id.slice(1), 10) || 0), 0) + 1).padStart(3, '0');
   return {
-    publicData() { return Promise.resolve({ ok: true, laws: clone(db.laws.filter((l) => l.status !== '草稿')), history: clone(db.history), renames: clone(db.renames) }); },
+    publicData() { return Promise.resolve({ ok: true, laws: clone(db.laws.filter((l) => l.status !== '草稿')), history: db.history.map((h, i) => ({ id: h.id, date: h.date, type: h.type, text: h.text, row: i + 2, hasOld: !!h.oldText })), renames: clone(db.renames) }); },
+    version(id, row) { const h = db.history[row - 2]; return h && h.id === id && h.oldText ? Promise.resolve({ ok: true, oldText: h.oldText, date: h.date, type: h.type }) : Promise.reject(new Error('這筆沿革沒有保存修正前的條文')); },
     post(b) {
       return new Promise((resolve, reject) => setTimeout(() => {
         const fail = (m) => { const e = new Error(m); reject(e); };
@@ -1698,7 +1735,7 @@ const demo = (() => {
         if (b.action === 'save') {
           const L = b.law; let law = L.id ? db.laws.find((x) => x.id === L.id) : null;
           if (b.mode === 'publish' && law && law.status === '現行') {
-            db.history.push({ id: law.id, date: isoToSlash(b.history.date), type: b.history.type, text: b.history.text });
+            db.history.push({ id: law.id, date: isoToSlash(b.history.date), type: b.history.type, text: b.history.text, oldText: law.text });
             if (law.name !== L.name) db.renames.push({ id: law.id, oldName: law.name, date: isoToSlash(b.history.date) });
           } else if (b.mode === 'publish') {
             if (!law) { law = { id: nextId() }; db.laws.push(law); }
@@ -1711,7 +1748,7 @@ const demo = (() => {
         if (b.action === 'repeal') {
           const law = db.laws.find((x) => x.id === b.id);
           law.status = '已廢止'; law.date = isoToSlash(b.history.date);
-          db.history.push({ id: law.id, date: law.date, type: '廢止', text: b.history.text });
+          db.history.push({ id: law.id, date: law.date, type: '廢止', text: b.history.text, oldText: law.text });
           return resolve({ ok: true });
         }
         if (b.action === 'setParent') {
