@@ -232,6 +232,7 @@ h1 .fei{border-width:2.5px;border-radius:5px;font-size:.72em;margin-right:.3em}
 .ed-tree button:hover{border-color:var(--ink)}
 .ed-tree .ch{font-weight:700;margin-top:6px}
 .ed-tree .ch .n{color:var(--muted);font-size:14px;min-width:5.6em;flex:none}
+.ed-tree .ch.sec{padding-left:20px;font-size:14.5px}
 .ed-tree .ar{padding-left:28px;color:var(--ink2)}
 .ed-tree .on{background:var(--stone2);color:var(--ink);font-weight:700}
 .ed-badge{margin-left:auto;font-size:12px;font-weight:700;padding:1px 8px;border-radius:999px;background:var(--ink);color:var(--paper);white-space:nowrap}
@@ -1208,18 +1209,18 @@ function edBadge(n) {
 function edTreeHTML() {
   const ed = state.admin.ed;
   const items = ed.nodes.map((n, i) => n.t === 'c'
-    ? `<li><button type="button" class="ch ${i === ed.sel ? 'on' : ''}" data-act="ed-sel" data-i="${i}"><span class="n">${esc(n.label)}</span><span>${esc(n.title)}</span></button></li>`
+    ? `<li><button type="button" class="ch ${/節/.test(n.label) ? 'sec' : ''} ${i === ed.sel ? 'on' : ''}" data-act="ed-sel" data-i="${i}"><span class="n">${esc(n.label)}</span><span>${esc(n.title)}</span></button></li>`
     : `<li><button type="button" class="ar ${i === ed.sel ? 'on' : ''}" data-act="ed-sel" data-i="${i}"><span>${esc(keyLabel(n.key))}</span>${edBadge(n)}</button></li>`).join('');
   return `<ol class="ed-tree" aria-label="章條目錄">${items || '<li class="muted" style="padding:12px">還沒有條文，按下方按鈕新增，或切換到「貼上全文」。</li>'}</ol>`;
 }
 function edPanelHTML() {
   const ed = state.admin.ed; const n = ed.nodes[ed.sel];
   if (!n) return '<div class="ed-panel"><p class="muted" style="margin:0">從左邊選擇要編輯的章或條。</p></div>';
-  if (n.t === 'c') return `<div class="ed-panel">
-      <div class="grid2"><div class="field"><label for="ed-chlabel">章號</label><input id="ed-chlabel" class="input" data-ed="chlabel" value="${esc(n.label)}" placeholder="例如：第三章之一"></div>
-      <div class="field"><label for="ed-chtitle">章名</label><input id="ed-chtitle" class="input" data-ed="chtitle" value="${esc(n.title)}" placeholder="例如：議案審議"></div></div>
-      <div class="ed-btns" style="padding-top:12px;border-top:1px solid var(--stone)"><button type="button" class="btn small" data-act="ed-del">刪除此章</button></div>
-      <div class="hint">刪除章只會拿掉章標題，該章的條文會併入上一章。</div></div>`;
+  if (n.t === 'c') { const w = /節/.test(n.label) ? '節' : '章'; return `<div class="ed-panel">
+      <div class="grid2"><div class="field"><label for="ed-chlabel">${w}號</label><input id="ed-chlabel" class="input" data-ed="chlabel" value="${esc(n.label)}" placeholder="${w === '節' ? '例如：第一節' : '例如：第三章之一'}"></div>
+      <div class="field"><label for="ed-chtitle">${w}名</label><input id="ed-chtitle" class="input" data-ed="chtitle" value="${esc(n.title)}" placeholder="${w === '節' ? '例如：常設委員會' : '例如：議案審議'}"></div></div>
+      <div class="ed-btns" style="padding-top:12px;border-top:1px solid var(--stone)"><button type="button" class="btn small" data-act="ed-del">刪除此${w}</button></div>
+      <div class="hint">刪除${w}只會拿掉${w}標題，底下的條文會併入上一個章或節。${w === '節' ? '節號要寫「第 X 節」，網站才會把它當成節。' : ''}</div></div>`; }
   const rows = n.paras.map((x, r) => `<div class="ed-row l${x.level}">
       <label class="sr" for="ed-lv-${r}">第 ${r + 1} 段的層級</label>
       <select id="ed-lv-${r}" data-ed="level" data-r="${r}">${[1, 2, 3, 4].map((l) => `<option value="${l}" ${x.level === l ? 'selected' : ''}>${LV_NAME[l]}</option>`).join('')}</select>
@@ -1250,7 +1251,7 @@ function edRender(form) {
   const sBox = $('[data-ed-struct]', form), tBox = $('[data-ed-text]', form);
   sBox.hidden = ed.mode !== 'struct'; tBox.hidden = ed.mode !== 'text';
   if (ed.mode === 'struct') sBox.innerHTML = `<div class="ed"><div class="ed-side"><div data-ed-tree>${edTreeHTML()}</div>
-      <div class="ed-btns"><button type="button" class="btn small" data-act="ed-add-ch">＋ 新增章</button><button type="button" class="btn small" data-act="ed-add-art">＋ 新增條</button></div>
+      <div class="ed-btns"><button type="button" class="btn small" data-act="ed-add-ch">＋ 新增章</button><button type="button" class="btn small" data-act="ed-add-sec">＋ 新增節</button><button type="button" class="btn small" data-act="ed-add-art">＋ 新增條</button></div>
       ${ed.preamble.length ? `<div class="hint">另有 ${ed.preamble.length} 行不屬於任何條文，請到「貼上全文」查看。</div>` : ''}</div>
       <div data-ed-panel>${edPanelHTML()}</div></div>`;
 }
@@ -1296,13 +1297,22 @@ function edAction(act, t, form) {
   }
   if (act === 'ed-add-ch') {
     const at = ed.sel < 0 ? ed.nodes.length - 1 : ed.sel;
-    const count = ed.nodes.slice(0, at + 1).filter((x) => x.t === 'c').length + 1;
+    const count = ed.nodes.slice(0, at + 1).filter((x) => x.t === 'c' && !/節/.test(x.label)).length + 1;
     ed.nodes.splice(at + 1, 0, { t: 'c', label: '第' + numToCn(count) + '章', title: '' });
     ed.sel = at + 1; edSync(form, { tree: true, panel: true });
     const f = $('#ed-chtitle'); if (f) f.focus(); return;
   }
+  if (act === 'ed-add-sec') {
+    const at = ed.sel < 0 ? ed.nodes.length - 1 : ed.sel;
+    // 節號：從上一個「章」之後開始數
+    let count = 1;
+    for (let i = at; i >= 0; i--) { const m = ed.nodes[i]; if (m.t !== 'c') continue; if (/節/.test(m.label)) count++; else break; }
+    ed.nodes.splice(at + 1, 0, { t: 'c', label: '第' + numToCn(count) + '節', title: '' });
+    ed.sel = at + 1; edSync(form, { tree: true, panel: true });
+    const f = $('#ed-chtitle'); if (f) f.focus(); return;
+  }
   if (act === 'ed-del' && n) {
-    if (!confirm(n.t === 'c' ? `確定刪除「${n.label} ${n.title}」這個章標題嗎？` : `確定刪除「${keyLabel(n.key)}」嗎？`)) return;
+    if (!confirm(n.t === 'c' ? `確定刪除「${n.label} ${n.title}」這個${/節/.test(n.label) ? '節' : '章'}標題嗎？` : `確定刪除「${keyLabel(n.key)}」嗎？`)) return;
     ed.nodes.splice(ed.sel, 1); ed.sel = Math.min(ed.sel, ed.nodes.length - 1);
     edSync(form, { tree: true, panel: true }); return;
   }
