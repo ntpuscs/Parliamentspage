@@ -901,10 +901,20 @@ function printLaw(law) {
   ready.then(() => setTimeout(go, 150));
   toast('在列印視窗的「目的地」選「另存為 PDF」即可下載');
 }
+// Word 不吃段落的 padding，也不一定懂 em：款、目改用 pt 的左邊界＋首行凸排
+const WORD_CSS = `
+  p.MsoNormal,p{mso-pagination:widow-orphan}
+  p.x{text-indent:12pt;margin-left:0}
+  p.k2{padding:0;margin:0 0 2pt 36pt;text-indent:-24pt}
+  p.k3{padding:0;margin:0 0 2pt 54pt;text-indent:-30pt}
+  p.k4{padding:0;margin:0 0 2pt 66pt;text-indent:-18pt}`;
 function downloadWord(law) {
-  const { head, body } = lawDocParts(law);
+  const { head } = lawDocParts(law);
+  // 直接寫進每段的 style，Word 與其他文書軟體才會照著縮排
+  const IND = { x: 'margin:0 0 4pt 0;text-indent:12pt', k2: 'margin:0 0 2pt 36pt;text-indent:-24pt', k3: 'margin:0 0 2pt 54pt;text-indent:-30pt', k4: 'margin:0 0 2pt 66pt;text-indent:-18pt' };
+  const body = lawDocParts(law).body.replace(/<p class="(x|k[234])">/g, (m, c) => `<p class="${c}" style="${IND[c]};text-align:justify">`);
   const html = `<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:w="urn:schemas-microsoft-com:office:word"><head><meta charset="utf-8"><title>${esc(law.name)}</title>
-    <style>@page WordSection1{size:595.3pt 841.9pt;margin:62pt 71pt 57pt 71pt}div.WordSection1{page:WordSection1}${DOC_CSS.replace(KAI, '"標楷體","DFKai-SB",serif')}</style></head>
+    <style>@page WordSection1{size:595.3pt 841.9pt;margin:62pt 71pt 57pt 71pt}div.WordSection1{page:WordSection1}${DOC_CSS.replace(KAI, '"標楷體","DFKai-SB",serif')}${WORD_CSS}</style></head>
     <body><div class="WordSection1">${head}${body}</div></body></html>`;
   const blob = new Blob(['﻿' + html], { type: 'application/msword' });
   const a = document.createElement('a');
