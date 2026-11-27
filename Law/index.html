@@ -6,19 +6,17 @@
 <title>國立臺北大學學生自治會 跨校區及三峽校區法規資料庫</title>
 <meta name="description" content="國立臺北大學學生自治會 跨校區及三峽校區法規資料庫：查詢跨校區及三峽校區自治法規全文、沿革與條文。">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='8' fill='%23A8322D'/%3E%3Crect x='13' y='13' width='5' height='38' fill='%23FFFFFF'/%3E%3Crect x='25' y='13' width='26' height='5' fill='%23FFFFFF'/%3E%3Crect x='31' y='29.5' width='20' height='5' fill='%23FFFFFF'/%3E%3Crect x='37' y='46' width='14' height='5' fill='%23FFFFFF'/%3E%3C/svg%3E">
+<meta name="theme-color" content="#FAFAF8">
 <script>
-/* 夜間模式：網址 ?theme= ＞ 這個分頁剛切換過的 ＞ 議事系統的設定（同一網域）＞ 自己存的 ＞ 手機／電腦的深色設定 */
+/* 夜間模式：和議事系統共用同一個設定（localStorage 的 theme），兩邊切換會互相同步；
+   沒選過就跟著手機／電腦的深色設定。放在最前面，避免畫面先白後黑閃一下 */
 (function () {
-  var PARL_KEYS = ['theme', 'darkMode', 'dark-mode', 'darkmode', 'colorScheme', 'color-scheme', 'mode', 'appTheme', 'parliament-theme'];
-  function get(st, k) { try { return st.getItem(k); } catch (e) { return null; } }
-  function norm(v) { if (v == null || v === '') return null; v = String(v).toLowerCase(); return /dark|night|true|^1$/.test(v) ? 'dark' : /light|day|false|^0$/.test(v) ? 'light' : null; }
   var t = null, m = /[?&]theme=(dark|light)/.exec(location.search + location.hash);
   if (m) t = m[1];
-  if (!t) t = norm(get(sessionStorage, 'regdb-theme'));
-  if (!t) for (var i = 0; i < PARL_KEYS.length && !t; i++) t = norm(get(localStorage, PARL_KEYS[i]));
-  if (!t) t = norm(get(localStorage, 'regdb-theme'));
-  if (!t) t = window.matchMedia && matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
-  document.documentElement.dataset.theme = t;
+  if (!t) { try { t = localStorage.getItem('theme'); } catch (e) {} }
+  if (t !== 'dark' && t !== 'light') t = window.matchMedia && matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+  document.documentElement.setAttribute('data-theme', t);
+  var mc = document.querySelector('meta[name="theme-color"]'); if (mc) mc.content = t === 'dark' ? '#13161D' : '#FAFAF8';
 })();
 </script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -38,12 +36,13 @@
 }
 /* 夜間模式 */
 :root[data-theme="dark"]{
-  --ink:#E8E4DA; --ink2:#C9C4BA; --red:#C9483C; --red-dark:#F0897D;
-  --paper:#15181D; --card:#1C2026; --stone:#323841; --stone2:#262B32;
-  --muted:#9AA1AB; --artno:#C9A46A; --hl:#5E4C14; --side-muted:#8E949C;
-  --ink-hover:#FFFFFF; --tint:#232830; --flash:#3A3420;
+  /* 與議事系統夜間模式同一組底色 */
+  --ink:#E6E8EE; --ink2:#C5CAD3; --red:#C9483C; --red-dark:#F0897D;
+  --paper:#13161D; --card:#1F2430; --stone:#363C4A; --stone2:#2A2F3A;
+  --muted:#A0A7B4; --artno:#C9A46A; --hl:#5E4C14; --side-muted:#7D8494;
+  --ink-hover:#FFFFFF; --tint:#1A1E27; --flash:#3A3420;
   --ins-bg:#1F3A26; --ins-line:#6FBF7F; --del-bg:#432422; --warn-bg:#3D331C; --warn-line:#6B5A2E;
-  --aside-bg:#0D0F12; --aside-fg:#E8E4DA; color-scheme:dark;
+  --aside-bg:#0E1016; --aside-fg:#E6E8EE; color-scheme:dark;
 }
 *{box-sizing:border-box}
 html{scroll-behavior:smooth}
@@ -301,6 +300,30 @@ del{text-decoration:line-through;text-decoration-color:var(--red);background:var
   .ix-side{position:static;flex:none;width:100%;border-right:0;padding-right:0;display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:12px 24px}
   .ix-main{width:100%}
 }
+.ixd-nav{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:10px 0;border-top:1px solid var(--stone);border-bottom:1px solid var(--stone);font-size:15px}
+.ixd-nav a{text-decoration:none;font-weight:700}
+.ixd-head{display:flex;flex-direction:column;gap:12px}
+.ixd-head h1{line-height:1.35}
+.ixd-meta{display:flex;flex-wrap:wrap;gap:10px 28px;padding:14px 0;border-top:1px solid var(--stone);border-bottom:1px solid var(--stone)}
+.ixd-meta .k{display:block;font-size:12px;letter-spacing:.12em;color:var(--muted)}
+.ixd-meta .v{font-size:16px;font-weight:500}
+.ixd-acts{display:flex;flex-wrap:wrap;gap:8px}
+.ixd{display:flex;gap:28px;align-items:flex-start}
+.ixd-side{flex:0 0 250px;position:sticky;top:16px;display:flex;flex-direction:column;gap:14px;max-height:calc(100vh - 32px);overflow:auto}
+.ixd-main{flex:1 1 auto;min-width:0;display:flex;flex-direction:column;gap:22px}
+.ixd-box{background:var(--card);border:1px solid var(--stone);border-radius:6px;padding:14px 16px;font-size:15px}
+.ixd-k{font-size:12px;font-weight:700;letter-spacing:.14em;color:var(--muted);margin-bottom:8px}
+.ixd-li{padding:5px 0;border-top:1px solid var(--stone2);line-height:1.6}
+.ixd-li:first-of-type{border-top:0}
+.ixd-box .toc{margin:0}
+.ixd-hist{list-style:none;margin:0;padding:0}
+.ixd-hist li{padding:10px 0;border-top:1px solid var(--stone2);line-height:1.75}
+.ixd-hist li:first-child{border-top:0;padding-top:2px}
+.ixd-hl{display:inline-flex;gap:10px;margin-left:12px;font-size:14px}
+@media (max-width:900px){
+  .ixd{flex-direction:column}
+  .ixd-side{position:static;flex:none;width:100%;max-height:none}
+}
 .amain h1{margin:0;font-family:var(--serif);font-weight:900;font-size:36px;letter-spacing:.04em}
 .atable{overflow-x:auto;border-top:2px solid var(--ink)}
 .atable .row{display:grid;grid-template-columns:3fr 1.2fr 1.1fr 1fr 1.6fr;gap:16px;padding:16px 8px;align-items:center;border-bottom:1px solid var(--stone);min-width:820px}
@@ -471,12 +494,14 @@ const API_URL = 'https://script.google.com/macros/s/AKfycbwERts4CSlpOUcxT4I0fINY
 const REGION_COMMON = '跨校區共通性法規';
 const REGION_SANXIA = '三峽校區法規';
 const AGENCIES = ['學生會', '學生議會'];
-// 「回到議事系統」的網址：法規資料庫放在議事系統底下的 Law/ 資料夾，所以上一層就是議事系統
-const PARLIAMENT_URL = '../';
+// 「回到議事系統」的網址
+const PARLIAMENT_URL = 'https://ntpuscs.github.io/Parliamentspage/';
 const themeLabel = () => document.documentElement.dataset.theme === 'dark' ? '☀ 日間模式' : '☾ 夜間模式';
+window.addEventListener('storage', (e) => { if (e.key === 'theme' && (e.newValue === 'dark' || e.newValue === 'light')) { document.documentElement.dataset.theme = e.newValue; document.querySelectorAll('[data-act="theme"]').forEach((b) => { b.textContent = themeLabel(); }); } });
 function setTheme(t) {
   document.documentElement.dataset.theme = t;
-  try { sessionStorage.setItem('regdb-theme', t); localStorage.setItem('regdb-theme', t); } catch (e) {}
+  try { localStorage.setItem('theme', t); } catch (e) {} // 與議事系統同一個設定
+  const mc = document.querySelector('meta[name="theme-color"]'); if (mc) mc.content = t === 'dark' ? '#13161D' : '#FAFAF8';
   document.querySelectorAll('[data-act="theme"]').forEach((b) => { b.textContent = themeLabel(); b.setAttribute('aria-pressed', t === 'dark'); });
 }
 const CACHE_KEY = 'regdb-cache-v2';
@@ -862,6 +887,7 @@ function paraTags(a) {
    「第八條」→ 本法第 8 條；「《組織章程》第七十二條」「依國立臺北大學學生自治會組織章程第61條」→ 該法該條；
    緊接在後的「、第九條」「及第十條」沿用前面的法規。提到資料庫裡沒有的法規（例如法院組織法）時不加連結。 */
 let linkCtx = null;
+let linkBase = '#/law/'; // 後台索引內頁改連到 #/admin/index/
 const LAW_SUFFIX = /(?:法|條例|章程|規程|規則|細則|辦法|準則|要點|須知|綱要|標準|通則)$/;
 const SELF_REF = /本(?:法|條例|章程|規程|規則|細則|辦法|準則|要點|須知|綱要|標準|通則)$/;
 const stripOrg = (n) => String(n || '').replace(/^國立臺北大學/, '').replace(/^學生自治會/, '');
@@ -895,7 +921,7 @@ function linkify(text, selfId) {
     if (m[1]) {
       const id = findLawByName(m[1].slice(1, -1));
       ctx = { id, end: re.lastIndex };
-      out += id && id !== selfId ? `<a class="xref" href="#/law/${encodeURIComponent(id)}">${esc(m[1])}</a>` : esc(m[1]);
+      out += id && id !== selfId ? `<a class="xref" href="${linkBase}${encodeURIComponent(id)}">${esc(m[1])}</a>` : esc(m[1]);
     } else {
       const n = cnToNum(m[3]), x = m[4] ? cnToNum(m[4]) : null;
       const key = isNaN(n) || (m[4] && isNaN(x)) ? null : (x ? n + '-' + x : String(n));
@@ -908,9 +934,9 @@ function linkify(text, selfId) {
       else target = selfId;
       ctx = target === selfId ? null : { id: target || null, end: re.lastIndex }; // 外部法規（含資料庫沒有的）讓後面的「、第X條」沿用
       out += target && key && artExists(target, key)
-        ? `<a class="xref" href="#/law/${encodeURIComponent(target)}/${encodeURIComponent(key)}">${esc(m[0])}</a>`
+        ? `<a class="xref" href="${linkBase}${encodeURIComponent(target)}/${encodeURIComponent(key)}">${esc(m[0])}</a>`
         : target && target !== selfId && lawById(target) // 他法的條文還沒建檔：至少連到那部法規
-        ? `<a class="xref" href="#/law/${encodeURIComponent(target)}">${esc(m[0])}</a>`
+        ? `<a class="xref" href="${linkBase}${encodeURIComponent(target)}">${esc(m[0])}</a>`
         : esc(m[0]);
     }
     last = re.lastIndex;
@@ -1419,7 +1445,7 @@ function ixOutHTML() {
       ${chips.map(([g, v, t]) => `<button type="button" class="ix-chip" data-act="ix-unset" data-g="${g}" data-v="${esc(v)}">${esc(t)} ✕</button>`).join('')}
       ${chips.length ? '<button type="button" class="ix-clear" data-act="ix-clear">清除全部</button>' : ''}</div>
     <div class="ix-table"><div class="ix-row h">${th('name', '法規名稱')}${th('level', '位階')}${th('agency', '主管')}${th('arts', '條數', 1)}${th('date', '最近異動', 1)}</div>
-    ${rows.map((l) => `<div class="ix-row"><span class="ix-name">${l.status === '草稿' ? `<a href="#/admin/edit/${encodeURIComponent(l.id)}">${esc(dispName(l))}</a><span class="tag dash">草稿</span>` : `<a href="#/law/${encodeURIComponent(l.id)}">${isRepealed(l) ? feiName(l) : esc(dispName(l))}</a>`}${!isRepealed(l) && l.status !== '草稿' && ixDays(l.date) <= 30 ? '<span class="ix-new">新</span>' : ''}</span>
+    ${rows.map((l) => `<div class="ix-row"><span class="ix-name"><a href="#/admin/index/${encodeURIComponent(l.id)}">${isRepealed(l) ? feiName(l) : esc(dispName(l))}</a>${l.status === '草稿' ? '<span class="tag dash">草稿</span>' : ''}${!isRepealed(l) && l.status !== '草稿' && ixDays(l.date) <= 30 ? '<span class="ix-new">新</span>' : ''}</span>
       <span>${lvTag(l)}</span><span class="muted">${esc(who(l))}</span><span class="r num">${parseLaw(l.text).articles.length || '—'}</span><span class="r num muted">${esc(l.date || '—')}</span></div>`).join('') || '<div class="empty" style="margin-top:16px">沒有符合條件的法規。</div>'}</div>`;
 }
 function renderIndex() {
@@ -1434,6 +1460,65 @@ function renderIndex() {
     <div class="ix-search"><input id="ix-q" class="input" type="search" placeholder="搜尋法規名稱${st.full ? '或條文內容' : ''}" value="${esc(st.q)}" data-ixq="1" aria-label="搜尋">
       <label class="check"><input type="checkbox" data-ix="full" ${st.full ? 'checked' : ''}><span>也搜尋條文內容</span></label></div>
     <div class="ix"><aside class="ix-side" aria-label="篩選">${side}</aside><div class="ix-main" data-ix-out>${ixOutHTML()}</div></div>`);
+}
+// 索引式的法規內頁：給會內看的完整資料（編號、狀態、全部沿革、母子法、上一部／下一部），草稿也看得到
+function renderIndexDetail(id) {
+  const law = adminLaw(id);
+  if (!law) return adminShell('index', `<div><a href="#/admin/index">← 回到索引</a><h1 style="margin-top:12px">找不到這部法規</h1></div>`);
+  linkCtx = id; linkBase = '#/admin/index/';
+  const parsed = parseLaw(law.text);
+  const rows = ixRows(); const pos = rows.findIndex((l) => l.id === id);
+  const prev = pos > 0 ? rows[pos - 1] : null, next = pos >= 0 && pos < rows.length - 1 ? rows[pos + 1] : null;
+  const pubHist = state.data.history.filter((h) => h.id === id);
+  const hist = (pubHist.length ? pubHist : state.admin.data.history.filter((h) => h.id === id)).slice().sort((a, b) => (b.date || '').localeCompare(a.date || ''));
+  const ren = state.admin.data.renames.filter((r) => r.id === id);
+  const parents = parentsOf(law).map((pid) => adminLaw(pid)).filter(Boolean);
+  const kids = state.admin.data.laws.filter((l) => parentsOf(l).indexOf(id) >= 0);
+  const mine = canEdit(law.region, law.agency);
+  const eid = encodeURIComponent(id);
+  const st = law.status || '現行';
+  const stTag = st === '現行' ? '<span class="tag ink">現行</span>' : st === '草稿' ? '<span class="tag dash">草稿</span>' : `<span class="tag stone">${esc(st)}</span>`;
+  const meta = [['法規編號', esc(id)], ['位階', esc(levelOf(law) || '未設定')], ['所屬', esc(scopeLabel(law))], ['狀態', esc(st)], ['最近異動', esc(law.date || '—')],
+    ['條文數', parsed.articles.length + ' 條'], ['章節', parsed.chapters.filter((c) => c.kind === '章').length + ' 章']];
+  const lawLink = (l) => `<a href="#/admin/index/${encodeURIComponent(l.id)}">${feiName(l)}</a>${l.status === '草稿' ? ' <span class="tag dash">草稿</span>' : ''}`;
+  const toc = parsed.chapters.length ? `<div class="ixd-box"><div class="ixd-k">目錄</div><ol class="toc">${parsed.chapters.map((ch) => `<li class="${ch.kind === '節' ? 'sub' : ch.kind === '款' ? 'sub2' : ''}"><a href="#" data-act="goto-ch" data-idx="${ch.idx}"><span class="n">${esc(ch.label)}</span><span>${esc(ch.title)}</span></a></li>`).join('')}</ol></div>` : '';
+  const nav = `<div class="ixd-nav">${prev ? `<a href="#/admin/index/${encodeURIComponent(prev.id)}" title="${esc(dispName(prev))}">← 上一部</a>` : '<span></span>'}<span class="muted">${pos >= 0 ? `${pos + 1} / ${rows.length}` : '不在目前篩選中'}</span>${next ? `<a href="#/admin/index/${encodeURIComponent(next.id)}" title="${esc(dispName(next))}">下一部 →</a>` : '<span></span>'}</div>`;
+  const hv = (h) => h.hasOld && h.row ? `<span class="ixd-hl">${canDiff(h) ? `<a href="#/law/${eid}?ver=${h.row}&diff=1">對照</a>` : ''}<a href="#/law/${eid}?ver=${h.row}">修正前全文</a></span>` : '';
+  return adminShell('index', `
+    <nav class="crumbs" style="padding:0" aria-label="麵包屑"><a href="#/admin/index">索引式法規資料庫</a><span>/</span><span>${esc(dispName(law))}</span></nav>
+    ${nav}
+    <div class="ixd-head">
+      <div style="display:flex;flex-wrap:wrap;align-items:center;gap:8px">${levelTag(law)}${stTag}<span class="eyebrow" style="letter-spacing:.12em">${esc(scopeLabel(law))}</span></div>
+      <h1>${feiName(law, esc(law.name || law.short))}</h1>
+      ${law.short && law.short !== law.name ? `<div><span class="muted" style="font-size:14px;margin-right:8px">簡稱</span>${esc(law.short)}</div>` : ''}
+      <div class="ixd-meta">${meta.map(([k, v]) => `<div><span class="k">${k}</span><span class="v">${v}</span></div>`).join('')}</div>
+      <div class="ixd-acts">
+        ${mine && st !== '已廢止' ? `<a class="btn small dark" href="#/admin/edit/${eid}">${st === '草稿' ? '繼續編輯' : '修正'}</a>` : ''}
+        ${mine && st === '現行' ? `<a class="btn small" href="#/admin/repeal/${eid}">廢止</a>` : ''}
+        ${mine && st !== '草稿' ? `<a class="btn small" href="#/admin/history/${eid}">匯入沿革</a>` : ''}
+        ${st !== '草稿' ? `<a class="btn small" href="#/law/${eid}">前台頁面</a>` : ''}
+        <button class="btn small" type="button" data-act="ix-word" data-id="${esc(id)}">下載 Word</button>
+        <button class="btn small" type="button" data-act="ix-print" data-id="${esc(id)}">下載 PDF</button>
+        ${st !== '草稿' ? `<button class="btn small" type="button" data-act="ix-copy" data-id="${esc(id)}">複製公開連結</button>` : ''}
+        ${law.url ? `<a class="btn small" href="${esc(law.url)}" target="_blank" rel="noopener">原始網址</a>` : ''}
+      </div>
+    </div>
+    <div class="ixd">
+      <aside class="ixd-side">
+        ${toc}
+        <div class="ixd-box"><div class="ixd-k">母法</div>${parents.length ? parents.map((l) => `<div class="ixd-li">${lawLink(l)}</div>`).join('') : '<div class="muted">—</div>'}</div>
+        <div class="ixd-box"><div class="ixd-k">子法（${kids.length}）</div>${kids.length ? sortLaws(kids).map((l) => `<div class="ixd-li">${levelTag(l)} ${lawLink(l)}</div>`).join('') : '<div class="muted">—</div>'}</div>
+        ${ren.length ? `<div class="ixd-box"><div class="ixd-k">名稱變更</div>${ren.map((r) => `<div class="ixd-li">原名稱「${esc(r.oldName)}」${r.date ? `<br><span class="muted">${esc(r.date)} 更名</span>` : ''}</div>`).join('')}</div>` : ''}
+        ${law.note ? `<div class="ixd-box"><div class="ixd-k">備註（試算表）</div><div>${esc(law.note)}</div></div>` : ''}
+      </aside>
+      <div class="ixd-main">
+        <section class="ixd-box"><div class="ixd-k">法規沿革（${hist.length}）</div>
+          ${hist.length ? `<ol class="ixd-hist">${hist.map((h) => `<li><div><span class="tag ${h.type === '廢止' ? 'red' : 'stone'}">${esc(h.type || '異動')}</span> <span class="muted">${esc(h.date || '日期不可考')}</span>${hv(h)}</div><div>${esc(h.text)}</div></li>`).join('')}</ol>` : '<div class="muted">尚無沿革。</div>'}
+        </section>
+        <div>${parsed.articles.length || parsed.preamble.length ? lawBodyHTML(parsed, '', false, null) : '<p class="muted">條文尚未建檔。</p>'}</div>
+        ${nav}
+      </div>
+    </div>`);
 }
 function ixRerender() { const sy = window.scrollY; $('#app').innerHTML = renderIndex(); window.scrollTo(0, sy); }
 function ixRefresh() { const o = $('[data-ix-out]'); if (o) o.innerHTML = ixOutHTML(); }
@@ -1903,6 +1988,11 @@ async function adminRoute(parts) {
   else if (sub === 'edit') app.innerHTML = renderAdminEdit(id);
   else if (sub === 'repeal') app.innerHTML = renderAdminRepeal(id);
   else if (sub === 'history') { state.admin.histDraft = null; app.innerHTML = renderAdminHistory(id); }
+  else if (sub === 'index' && id) {
+    app.innerHTML = renderIndexDetail(id);
+    const el = parts[3] && document.getElementById('art-' + parts[3]);
+    if (el) { el.scrollIntoView({ block: 'start' }); el.classList.add('flash'); setTimeout(() => el.classList.remove('flash'), 1600); return; }
+  }
   else if (sub === 'index') app.innerHTML = renderIndex();
   else app.innerHTML = renderAdminList();
   const ef = $('form[data-form="edit"]');
@@ -2028,6 +2118,12 @@ async function onClick(e) {
   if (act === 'reload') { location.reload(); return; }
   if (act === 'theme') { setTheme(document.documentElement.dataset.theme === 'dark' ? 'light' : 'dark'); return; }
   if (act === 'compendium') { downloadCompendium(); return; }
+  if (act === 'ix-word' || act === 'ix-print' || act === 'ix-copy') {
+    const l = adminLaw(t.dataset.id); if (!l) return;
+    if (act === 'ix-word') downloadWord(l); else if (act === 'ix-print') printLaw(l);
+    else { const ok = await copyText(lawUrl(l.id)); toast(ok ? '已複製公開連結' : '複製失敗'); }
+    return;
+  }
   if (act === 'ix-sort') { const st = ixState(); if (st.sort === t.dataset.k) st.dir = -st.dir; else { st.sort = t.dataset.k; st.dir = t.dataset.k === 'date' || t.dataset.k === 'arts' ? -1 : 1; } ixRefresh(); return; }
   if (act === 'ix-unset' || act === 'ix-clear') {
     const st = ixState();
@@ -2132,7 +2228,7 @@ function route() {
   // 從 ?law= 網址進來後再點站內連結時，拿掉網址上的 ?law=，避免兩組位置打架
   if (location.hash && location.search && new URLSearchParams(location.search).get('law')) { try { history.replaceState(null, '', location.pathname + location.hash); } catch (e) {} }
   const { parts, params } = parseHash();
-  setSeo(null); linkCtx = null;
+  setSeo(null); linkCtx = null; linkBase = '#/law/';
   const app = $('#app');
   if (parts[0] === 'admin') { adminRoute(parts); return; }
   document.title = '國立臺北大學學生自治會 跨校區及三峽校區法規資料庫';
