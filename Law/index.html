@@ -5,23 +5,53 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>國立臺北大學學生自治會 跨校區及三峽校區法規資料庫</title>
 <meta name="description" content="國立臺北大學學生自治會 跨校區及三峽校區法規資料庫：查詢跨校區及三峽校區自治法規全文、沿革與條文。">
-<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='8' fill='%23B3372B'/%3E%3Crect x='13' y='13' width='5' height='38' fill='%23F6F3EC'/%3E%3Crect x='25' y='13' width='26' height='5' fill='%23F6F3EC'/%3E%3Crect x='31' y='29.5' width='20' height='5' fill='%23F6F3EC'/%3E%3Crect x='37' y='46' width='14' height='5' fill='%23F6F3EC'/%3E%3C/svg%3E">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='8' fill='%23A8322D'/%3E%3Crect x='13' y='13' width='5' height='38' fill='%23FFFFFF'/%3E%3Crect x='25' y='13' width='26' height='5' fill='%23FFFFFF'/%3E%3Crect x='31' y='29.5' width='20' height='5' fill='%23FFFFFF'/%3E%3Crect x='37' y='46' width='14' height='5' fill='%23FFFFFF'/%3E%3C/svg%3E">
+<script>
+/* 夜間模式：網址 ?theme= ＞ 這個分頁剛切換過的 ＞ 議事系統的設定（同一網域）＞ 自己存的 ＞ 手機／電腦的深色設定 */
+(function () {
+  var PARL_KEYS = ['theme', 'darkMode', 'dark-mode', 'darkmode', 'colorScheme', 'color-scheme', 'mode', 'appTheme', 'parliament-theme'];
+  function get(st, k) { try { return st.getItem(k); } catch (e) { return null; } }
+  function norm(v) { if (v == null || v === '') return null; v = String(v).toLowerCase(); return /dark|night|true|^1$/.test(v) ? 'dark' : /light|day|false|^0$/.test(v) ? 'light' : null; }
+  var t = null, m = /[?&]theme=(dark|light)/.exec(location.search + location.hash);
+  if (m) t = m[1];
+  if (!t) t = norm(get(sessionStorage, 'regdb-theme'));
+  if (!t) for (var i = 0; i < PARL_KEYS.length && !t; i++) t = norm(get(localStorage, PARL_KEYS[i]));
+  if (!t) t = norm(get(localStorage, 'regdb-theme'));
+  if (!t) t = window.matchMedia && matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+  document.documentElement.dataset.theme = t;
+})();
+</script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&family=Noto+Serif+TC:wght@600;900&display=swap">
 <style>
 :root{
-  --ink:#1B2A41; --ink2:#3D4858; --red:#B3372B; --red-dark:#8E2B22;
-  --paper:#F6F3EC; --card:#FCFAF6; --stone:#D9D3C5; --stone2:#E9E3D4;
-  --muted:#5A6372; --artno:#7A5A2E; /* 條號、章號：赭褐 */ --hl:#F3DFA2; --side-muted:#C9CFDA;
+  /* 配色：黑白文書 */
+  --ink:#222222; --ink2:#46423D; --red:#A8322D; --red-dark:#86271F;
+  --paper:#FAFAF8; --card:#FFFFFF; --stone:#E2E0DA; --stone2:#EEECE7;
+  --muted:#66625C; --artno:#6B6257; /* 條號、章號：暖灰褐 */ --hl:#F6E3A1; --side-muted:#B9B5AE;
+  --ink-hover:#000000; --tint:#F2F0EB; --flash:#F8EFD2;
+  --ins-bg:#E4F0E2; --ins-line:#2F6B3A; --del-bg:#F7E2DF; --warn-bg:#FBE9C6; --warn-line:#E6CC8F;
+  --aside-bg:#222222; --aside-fg:#FAFAF8; color-scheme:light;
   --serif:'Noto Serif TC','Songti TC','PMingLiU',serif;
   --sans:'Noto Sans TC','PingFang TC','Microsoft JhengHei',system-ui,sans-serif;
+}
+/* 夜間模式 */
+:root[data-theme="dark"]{
+  --ink:#E8E4DA; --ink2:#C9C4BA; --red:#C9483C; --red-dark:#F0897D;
+  --paper:#15181D; --card:#1C2026; --stone:#323841; --stone2:#262B32;
+  --muted:#9AA1AB; --artno:#C9A46A; --hl:#5E4C14; --side-muted:#8E949C;
+  --ink-hover:#FFFFFF; --tint:#232830; --flash:#3A3420;
+  --ins-bg:#1F3A26; --ins-line:#6FBF7F; --del-bg:#432422; --warn-bg:#3D331C; --warn-line:#6B5A2E;
+  --aside-bg:#0D0F12; --aside-fg:#E8E4DA; color-scheme:dark;
 }
 *{box-sizing:border-box}
 html{scroll-behavior:smooth}
 body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--sans);font-size:16px;line-height:1.6;-webkit-text-size-adjust:100%}
 a{color:var(--ink)}a:hover{color:var(--red)}
 button,input,select,textarea{font:inherit;color:inherit}
+a.xref{color:inherit;text-decoration:underline;text-decoration-color:var(--artno);text-decoration-thickness:1px;text-underline-offset:3px}
+a.xref:hover{color:var(--red);text-decoration-color:var(--red)}
 mark{background:var(--hl);color:var(--ink);font-weight:700;padding:0 2px;border-radius:2px}
 .sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
 .wrap{max-width:1120px;margin:0 auto;padding:0 24px}
@@ -31,6 +61,12 @@ mark{background:var(--hl);color:var(--ink);font-weight:700;padding:0 2px;border-
 :focus-visible{outline:3px solid var(--red);outline-offset:2px}
 
 /* header */
+.topbar{background:var(--tint);border-bottom:1px solid var(--stone);font-size:14px}
+.topbar .wrap{display:flex;align-items:center;justify-content:space-between;gap:12px;min-height:40px}
+.topbar a{display:inline-flex;align-items:center;gap:6px;min-height:40px;text-decoration:none;color:var(--ink2);font-weight:500}
+.topbar a:hover{color:var(--red)}
+.theme-btn{display:inline-flex;align-items:center;gap:6px;min-height:34px;padding:0 12px;border:1px solid var(--stone);border-radius:99px;background:var(--card);color:var(--ink2);cursor:pointer;font-size:13px}
+.theme-btn:hover{border-color:var(--ink)}
 .site-header{border-bottom:1px solid var(--stone);background:var(--paper)}
 .site-header .wrap{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:12px;padding-top:16px;padding-bottom:16px}
 .brand{display:flex;align-items:center;gap:12px;text-decoration:none;color:var(--ink)}
@@ -42,10 +78,10 @@ mark{background:var(--hl);color:var(--ink);font-weight:700;padding:0 2px;border-
 .site-nav a.on{font-weight:700;background:var(--stone2)}
 .site-nav{align-items:center}
 .site-nav a.admin-btn{margin-left:8px;padding:0 16px;min-height:40px;border-radius:4px;background:var(--ink);border-color:var(--ink);color:var(--paper);font-weight:700}
-.site-nav a.admin-btn:hover{background:#0f1a2b;color:var(--paper)}
+.site-nav a.admin-btn:hover{background:var(--ink-hover);color:var(--paper)}
 .admin-btn .sm{display:none}
 .demo-bar{background:var(--ink);color:var(--paper);font-size:14px;text-align:center;padding:8px 16px}
-.stale-bar{background:#FBE9C6;color:var(--ink);font-size:15px;text-align:center;padding:10px 16px;border-bottom:1px solid #E6CC8F;line-height:1.7}
+.stale-bar{background:var(--warn-bg);color:var(--ink);font-size:15px;text-align:center;padding:10px 16px;border-bottom:1px solid var(--warn-line);line-height:1.7}
 .stale-bar button{margin-left:10px;min-height:36px;padding:0 14px;border:1.5px solid var(--ink);border-radius:4px;background:transparent;cursor:pointer;font-weight:700}
 
 /* controls */
@@ -54,7 +90,7 @@ mark{background:var(--hl);color:var(--ink);font-weight:700;padding:0 2px;border-
 .btn.primary{background:var(--red);border-color:var(--red);color:#fff;font-weight:700}
 .btn.primary:hover{background:var(--red-dark);border-color:var(--red-dark);color:#fff}
 .btn.dark{background:var(--ink);border-color:var(--ink);color:var(--paper);font-weight:700}
-.btn.dark:hover{background:#0f1a2b;color:var(--paper)}
+.btn.dark:hover{background:var(--ink-hover);color:var(--paper)}
 .btn.small{min-height:44px;padding:0 16px;font-size:15px}
 .btn[disabled]{opacity:.5;cursor:not-allowed}
 .input,.select,.textarea{width:100%;min-height:52px;padding:0 16px;font-size:17px;background:var(--card);border:1.5px solid var(--ink);border-radius:4px}
@@ -126,6 +162,16 @@ mark{background:var(--hl);color:var(--ink);font-weight:700;padding:0 2px;border-
 h1 .fei{border-width:2.5px;border-radius:5px;font-size:.72em;margin-right:.3em}
 .repealed-entry{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:12px;padding:20px 24px;background:var(--card);border:1px solid var(--stone);border-radius:6px;text-decoration:none}
 .repealed-entry:hover{border-color:var(--ink)}
+.repealed-entry .re-main{display:flex;flex-wrap:wrap;align-items:center;gap:4px 14px;min-width:0}
+.repealed-entry .re-t{display:inline-flex;align-items:center;font-size:24px;font-weight:900;white-space:nowrap}
+.repealed-entry .re-s{font-size:15px}
+.repealed-entry .re-go{font-weight:700;white-space:nowrap}
+@media (max-width:640px){
+  .repealed-entry{flex-wrap:nowrap;padding:16px 18px;gap:12px}
+  .repealed-entry .re-main{flex-direction:column;align-items:flex-start}
+  .repealed-entry .re-t{font-size:21px}
+  .repealed-entry .re-s{font-size:14px}
+}
 .empty{padding:20px 0;color:var(--muted);border-top:1px solid var(--stone)}
 
 /* detail */
@@ -156,10 +202,10 @@ h1 .fei{border-width:2.5px;border-radius:5px;font-size:.72em;margin-right:.3em}
 .hist ol{list-style:none;margin:16px 0 0;padding:0}
 .hist ol li{padding:14px 0;border-top:1px solid var(--stone);line-height:1.9}
 .hist .d{font-size:14px;color:var(--muted);margin-right:8px}
-.vrow{margin-top:10px}
-.vlink{display:inline-flex;align-items:center;gap:8px;min-height:40px;padding:0 14px;border:1.5px solid var(--artno);border-radius:4px;background:#F3EBDD;color:var(--artno);font-size:15px;font-weight:700;text-decoration:none;white-space:nowrap}
+.vrow{margin-top:10px;display:flex;flex-wrap:wrap;gap:8px}
+.vlink{display:inline-flex;align-items:center;gap:8px;min-height:40px;padding:0 14px;border:1.5px solid var(--artno);border-radius:4px;background:var(--tint);color:var(--artno);font-size:15px;font-weight:700;text-decoration:none;white-space:nowrap}
 .vlink:hover{background:var(--artno);color:#fff}
-.verbar{display:flex;flex-wrap:wrap;align-items:center;gap:8px 14px;padding:16px 20px;border:2px solid var(--artno);border-radius:6px;background:#F3EBDD;line-height:1.7}
+.verbar{display:flex;flex-wrap:wrap;align-items:center;gap:8px 14px;padding:16px 20px;border:2px solid var(--artno);border-radius:6px;background:var(--tint);line-height:1.7}
 .verbar b{color:var(--artno)}
 .verbar .btn{margin-left:auto}
 .ch-head{display:flex;align-items:baseline;gap:16px;padding:8px 0 18px;border-bottom:1px solid var(--stone);scroll-margin-top:16px}
@@ -169,7 +215,27 @@ h1 .fei{border-width:2.5px;border-radius:5px;font-size:.72em;margin-right:.3em}
 .ch-head.sec3 h2{font-size:19px}
 .toc li.sub2 a{padding-left:44px}
 .art{display:flex;flex-wrap:wrap;gap:6px 32px;padding:24px 0;border-bottom:1px solid var(--stone);scroll-margin-top:16px;transition:background .6s}
-.art.flash{background:#F7EBC9}
+.art.flash{background:var(--flash)}
+/* 修正前後對照 */
+.diff-sum{display:flex;flex-wrap:wrap;align-items:baseline;gap:6px 18px;padding:4px 0 14px;font-size:16px}
+.diff{border:1px solid var(--stone);border-radius:6px;overflow:hidden;background:var(--card)}
+.diff .dh,.diff .dr{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr)}
+.diff .dh span{padding:12px 18px;font-weight:700;background:var(--tint);border-bottom:2px solid var(--ink)}
+.diff .dh span + span{border-left:1px solid var(--stone)}
+.diff .dc{padding:16px 18px;border-top:1px solid var(--stone);line-height:1.95;font-size:16px;min-width:0;overflow-wrap:anywhere}
+.diff .dc + .dc{border-left:1px solid var(--stone)}
+.diff .dr.same .dc{color:var(--muted)}
+.diff .dk{display:flex;align-items:center;gap:8px;font-family:var(--serif);font-weight:600;color:var(--artno);margin-bottom:4px}
+.dtag{font-family:var(--sans);font-size:12px;font-weight:700;padding:0 7px;border-radius:3px;line-height:20px;color:#fff;background:var(--ink2)}
+.dtag.dt-新增{background:#2F6B3A}.dtag.dt-刪除{background:var(--red)}
+ins{text-decoration:underline;text-decoration-thickness:2px;text-underline-offset:3px;text-decoration-color:var(--ins-line);background:var(--ins-bg);color:inherit}
+del{text-decoration:line-through;text-decoration-color:var(--red);background:var(--del-bg);color:var(--red-dark)}
+@media (max-width:640px){
+  .diff .dh{display:none}
+  .diff .dr{grid-template-columns:minmax(0,1fr)}
+  .diff .dc + .dc{border-left:0;border-top:1px dashed var(--stone)}
+  .diff .dc::before{content:attr(data-h);display:block;font-size:12px;font-weight:700;letter-spacing:.12em;color:var(--muted)}
+}
 .art-no{flex:0 0 124px;display:flex;flex-direction:column;align-items:flex-start;gap:2px}
 .art-no .l{white-space:nowrap;font-family:var(--serif);font-weight:600;font-size:20px;color:var(--artno);line-height:1.8}
 .linkbtn{display:inline-flex;align-items:center;gap:6px;min-height:44px;padding:0;font-size:13px;color:var(--muted);background:transparent;border:0;cursor:pointer}
@@ -197,14 +263,44 @@ h1 .fei{border-width:2.5px;border-radius:5px;font-size:.72em;margin-right:.3em}
 
 /* admin */
 .admin{display:flex;flex-wrap:wrap;min-height:100vh}
-.aside{flex:1 1 240px;max-width:260px;min-width:220px;background:var(--ink);color:var(--paper);padding:28px 16px;display:flex;flex-direction:column;gap:28px}
+.aside{flex:1 1 240px;max-width:260px;min-width:220px;background:var(--aside-bg);color:var(--aside-fg);padding:28px 16px;display:flex;flex-direction:column;gap:28px}
 .aside a{color:var(--side-muted);text-decoration:none}
 .aside nav{display:flex;flex-direction:column;gap:4px}
 .aside nav a,.aside nav button{display:flex;align-items:center;min-height:44px;padding:0 12px;border-radius:4px;background:transparent;border:0;color:var(--side-muted);cursor:pointer;text-align:left;font-size:16px}
-.aside nav a.on{background:rgba(246,243,236,.14);color:var(--paper);font-weight:700}
-.aside nav a:hover,.aside nav button:hover{color:var(--paper)}
-.aside .who{margin-top:auto;padding:16px 12px 0;border-top:1px solid rgba(246,243,236,.2);font-size:14px;color:var(--side-muted)}
+.aside nav a.on{background:rgba(255,255,255,.12);color:var(--aside-fg);font-weight:700}
+.aside nav a:hover,.aside nav button:hover{color:var(--aside-fg)}
+.aside .who{margin-top:auto;padding:16px 12px 0;border-top:1px solid rgba(255,255,255,.18);font-size:14px;color:var(--side-muted)}
 .amain{flex:999 1 560px;min-width:0;padding:40px 48px 64px;display:flex;flex-direction:column;gap:32px}
+.ix-search{display:flex;flex-wrap:wrap;align-items:center;gap:10px 20px}
+.ix-search .input{flex:1 1 320px;max-width:560px}
+.ix{display:flex;gap:28px;align-items:flex-start}
+.ix-side{flex:0 0 220px;position:sticky;top:16px;display:flex;flex-direction:column;gap:18px;padding-right:20px;border-right:1px solid var(--stone)}
+.ix-g{border:0;margin:0;padding:0;min-width:0}
+.ix-g legend{padding:0 0 6px;font-size:13px;font-weight:700;letter-spacing:.14em;color:var(--muted)}
+.ix-opt{display:flex;align-items:center;gap:10px;min-height:36px;font-size:15px;cursor:pointer}
+.ix-opt input{width:18px;height:18px;margin:0;accent-color:var(--ink)}
+.ix-opt .n{margin-left:auto;font-size:13px;color:var(--muted);font-variant-numeric:tabular-nums}
+.ix-main{flex:1 1 auto;min-width:0}
+.ix-top{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin-bottom:12px}
+.ix-count{font-size:15px;color:var(--muted);margin-right:6px}
+.ix-chip{font-size:13px;border:1px solid var(--ink);border-radius:99px;padding:3px 11px;background:var(--card);cursor:pointer}
+.ix-clear{font-size:13px;border:0;background:none;color:var(--muted);text-decoration:underline;cursor:pointer}
+.ix-table{overflow-x:auto}
+.ix-row{display:grid;grid-template-columns:minmax(220px,3fr) 92px 90px 64px 110px;gap:12px;align-items:center;padding:11px 4px;border-top:1px solid var(--stone);min-width:640px}
+.ix-row.h{border-top:0;border-bottom:2px solid var(--ink);padding:6px 4px}
+.ix-th{border:0;background:none;padding:4px 0;font-size:13px;font-weight:700;letter-spacing:.08em;color:var(--muted);text-align:left;cursor:pointer;white-space:nowrap}
+.ix-th.on{color:var(--ink)}
+.ix-th.r,.ix-row .r{text-align:right}
+.ix-row .num{font-variant-numeric:tabular-nums;font-size:15px}
+.ix-name{display:flex;align-items:center;flex-wrap:wrap;gap:4px 8px;font-family:var(--serif);font-weight:600;font-size:17px}
+.ix-name a{text-decoration:none}
+.ix-name a:hover{text-decoration:underline}
+.ix-new{font-family:var(--sans);font-size:11px;font-weight:700;color:#fff;background:var(--red);padding:0 6px;border-radius:3px;line-height:18px}
+@media (max-width:900px){
+  .ix{flex-direction:column}
+  .ix-side{position:static;flex:none;width:100%;border-right:0;padding-right:0;display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:12px 24px}
+  .ix-main{width:100%}
+}
 .amain h1{margin:0;font-family:var(--serif);font-weight:900;font-size:36px;letter-spacing:.04em}
 .atable{overflow-x:auto;border-top:2px solid var(--ink)}
 .atable .row{display:grid;grid-template-columns:3fr 1.2fr 1.1fr 1fr 1.6fr;gap:16px;padding:16px 8px;align-items:center;border-bottom:1px solid var(--stone);min-width:820px}
@@ -243,8 +339,8 @@ h1 .fei{border-width:2.5px;border-radius:5px;font-size:.72em;margin-right:.3em}
 .ed-panel{background:var(--card);border:1px solid var(--stone);border-radius:6px;padding:24px;display:flex;flex-direction:column;gap:16px;min-width:0}
 .ed-row{display:flex;gap:8px;align-items:flex-start}
 .ed-row.l2{padding-left:32px}.ed-row.l3{padding-left:64px}.ed-row.l4{padding-left:96px}
-.ed-row select{width:76px;flex:none;min-height:44px;padding:0 8px;font-size:15px;background:#fff;border:1.5px solid var(--muted);border-radius:4px}
-.ed-row textarea{flex:1 1 auto;min-width:0;min-height:44px;padding:9px 12px;font-size:16px;line-height:1.6;background:#fff;border:1.5px solid var(--muted);border-radius:4px;resize:vertical}
+.ed-row select{width:76px;flex:none;min-height:44px;padding:0 8px;font-size:15px;background:var(--card);border:1.5px solid var(--muted);border-radius:4px}
+.ed-row textarea{flex:1 1 auto;min-width:0;min-height:44px;padding:9px 12px;font-size:16px;line-height:1.6;background:var(--card);border:1.5px solid var(--muted);border-radius:4px;resize:vertical}
 .ed-row .ib{flex:none;width:40px;min-height:44px;border:1.5px solid var(--stone);background:transparent;border-radius:4px;cursor:pointer;font-size:15px}
 .ed-row .ib:hover{border-color:var(--ink)}
 .preview .art{padding:14px 0}
@@ -280,9 +376,9 @@ h1 .fei{border-width:2.5px;border-radius:5px;font-size:.72em;margin-right:.3em}
   .body{gap:24px;padding-top:24px}
   .side{max-width:none;flex-basis:100%;background:var(--card);border:1px solid var(--stone);border-radius:6px;padding:4px 14px}
   .side .toc{padding-bottom:10px;max-height:60vh;overflow:auto}
-  .admin{flex-direction:column;min-height:0}
-  .aside{max-width:none;min-width:0;flex:none;flex-direction:row;flex-wrap:wrap;align-items:center;gap:8px 16px;padding:14px 20px}
-  .aside nav{flex-direction:row;flex-wrap:wrap;gap:4px}
+  .admin{flex-direction:column;flex-wrap:nowrap;min-height:0}
+  .aside{max-width:none;min-width:0;flex:none;width:100%;flex-direction:row;flex-wrap:wrap;align-items:center;gap:8px 16px;padding:14px 20px}
+  .aside nav{flex-direction:row;flex-wrap:wrap;gap:4px;flex:1 1 100%;min-width:0}
   .aside nav a,.aside nav button{min-height:40px}
   .aside .who{margin:0 0 0 auto;padding:0;border:0;text-align:right}
   .amain{padding:28px 24px 56px}
@@ -345,7 +441,8 @@ h1 .fei{border-width:2.5px;border-radius:5px;font-size:.72em;margin-right:.3em}
   .result{padding:18px}
 }
 @media print{
-  body{background:#fff;font-size:12pt}
+  :root{--ink:#000;--ink2:#222;--paper:#fff;--card:#fff;--muted:#444;--stone:#ccc;--artno:#000;color-scheme:light}
+  body{background:#fff;color:#000;font-size:12pt}
   .site-header,.site-footer,.crumbs,.actions,.side,.infind,.infind-msg,.linkbtn,.hist details,.demo-bar,.toast,.no-print{display:none !important}
   .body{border:0;padding:0;display:block}
   .wrap{max-width:none;padding:0}
@@ -374,11 +471,19 @@ const API_URL = 'https://script.google.com/macros/s/AKfycbwERts4CSlpOUcxT4I0fINY
 const REGION_COMMON = '跨校區共通性法規';
 const REGION_SANXIA = '三峽校區法規';
 const AGENCIES = ['學生會', '學生議會'];
+// 「回到議事系統」的網址：法規資料庫放在議事系統底下的 Law/ 資料夾，所以上一層就是議事系統
+const PARLIAMENT_URL = '../';
+const themeLabel = () => document.documentElement.dataset.theme === 'dark' ? '☀ 日間模式' : '☾ 夜間模式';
+function setTheme(t) {
+  document.documentElement.dataset.theme = t;
+  try { sessionStorage.setItem('regdb-theme', t); localStorage.setItem('regdb-theme', t); } catch (e) {}
+  document.querySelectorAll('[data-act="theme"]').forEach((b) => { b.textContent = themeLabel(); b.setAttribute('aria-pressed', t === 'dark'); });
+}
 const CACHE_KEY = 'regdb-cache-v2';
 const TOKEN_KEY = 'regdb-token-v1';
 const LOGO = (bg, spine, bars, size) => `<svg width="${size}" height="${size}" viewBox="0 0 64 64" aria-hidden="true"><rect width="64" height="64" rx="8" fill="${bg}"/><rect x="13" y="13" width="5" height="38" fill="${spine}"/><rect x="25" y="13" width="26" height="5" fill="${bars}"/><rect x="31" y="29.5" width="20" height="5" fill="${bars}"/><rect x="37" y="46" width="14" height="5" fill="${bars}"/></svg>`;
 const ICON_LINK = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 13a5 5 0 0 0 7.07 0l3-3a5 5 0 0 0-7.07-7.07l-1.5 1.5"/><path d="M14 11a5 5 0 0 0-7.07 0l-3 3a5 5 0 0 0 7.07 7.07l1.5-1.5"/></svg>';
-const ICON_WARN = '<svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#B3372B" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex:none;margin-top:2px"><path d="M12 3 2.5 20h19L12 3z"/><path d="M12 10v5"/><path d="M12 18h.01"/></svg>';
+const ICON_WARN = '<svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#A8322D" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex:none;margin-top:2px"><path d="M12 3 2.5 20h19L12 3z"/><path d="M12 10v5"/><path d="M12 18h.01"/></svg>';
 
 /* ---------- 小工具 ---------- */
 const $ = (s, el = document) => el.querySelector(s);
@@ -411,7 +516,13 @@ function rocDate(s) { // 2026/07/17 → 115 年 7 月 17 日
   const m = /^(\d{4})\/(\d{1,2})\/(\d{1,2})$/.exec(s || '');
   return m ? `${+m[1] - 1911} 年 ${+m[2]} 月 ${+m[3]} 日` : '';
 }
+// 可被搜尋引擎收錄的網址：…/Law/?law=L007（&art=19）。沒有 # 時改讀這組參數
 function parseHash() {
+  const sp = new URLSearchParams(location.search);
+  if (!location.hash && sp.get('law')) {
+    const parts = ['law', sp.get('law')]; if (sp.get('art')) parts.push(sp.get('art'));
+    return { parts, params: new URLSearchParams() };
+  }
   const raw = location.hash.replace(/^#/, '') || '/';
   const [path, qs] = raw.split('?');
   const parts = path.split('/').filter(Boolean).map(decodeURIComponent);
@@ -427,7 +538,8 @@ async function copyText(text) {
     ta.remove(); return ok;
   }
 }
-const baseUrl = () => location.href.split('#')[0];
+const baseUrl = () => location.origin + location.pathname;
+const lawUrl = (id, key) => `${baseUrl()}?law=${encodeURIComponent(id)}${key ? '&art=' + encodeURIComponent(key) : ''}`;
 
 /* ---------- 條文解析 ---------- */
 const CN_DIGIT = { 零: 0, 〇: 0, 一: 1, 二: 2, 兩: 2, 三: 3, 四: 4, 五: 5, 六: 6, 七: 7, 八: 8, 九: 9 };
@@ -637,14 +749,25 @@ function header(active) {
     ? `<div class="stale-bar" role="alert">目前無法連線到資料庫，以下是 ${state.cachedAt ? esc(fmtTime(state.cachedAt)) + ' ' : '先前'}同步的資料，可能不是最新。<button type="button" data-act="reload">重新整理</button></div>`
     : '';
   return `${state.demo ? '<div class="demo-bar">目前顯示示範資料。設定 API_URL 後會改讀試算表。</div>' : ''}${staleBar}
+  <div class="topbar"><div class="wrap"><a href="${PARLIAMENT_URL}">← 回到議事系統</a><button type="button" class="theme-btn" data-act="theme" aria-pressed="${document.documentElement.dataset.theme === 'dark'}">${themeLabel()}</button></div></div>
   <header class="site-header"><div class="wrap">
-    <a class="brand" href="#/">${LOGO('#B3372B', '#F6F3EC', '#F6F3EC', 40)}<span class="brand-text"><span class="brand-org">國立臺北大學學生自治會</span><span class="brand-name">跨校區及三峽校區法規資料庫</span></span></a>
+    <a class="brand" href="#/">${LOGO('#A8322D', '#FFFFFF', '#FFFFFF', 40)}<span class="brand-text"><span class="brand-org">國立臺北大學學生自治會</span><span class="brand-name">跨校區及三峽校區法規資料庫</span></span></a>
     <nav class="site-nav" aria-label="主選單">${nav.map(([h, t, k]) => `<a href="${h}" class="${k === active ? 'on' : ''}">${t}</a>`).join('')}
       <a class="btn small admin-btn" href="#/admin"><span class="lg">${state.admin.token ? '回到後台' : '管理後台'}</span><span class="sm" aria-hidden="true">後台</span></a></nav>
   </div></header>`;
 }
+// 每部法規有自己的標題、摘要與標準網址（canonical），搜尋結果才會顯示正確名稱
+function setSeo(law, desc) {
+  const head = document.head;
+  let m = head.querySelector('meta[name="description"]');
+  if (!setSeo.def) setSeo.def = m ? m.content : '';
+  let c = head.querySelector('link[rel="canonical"]');
+  if (!c) { c = document.createElement('link'); c.rel = 'canonical'; head.appendChild(c); }
+  if (m) m.content = law ? desc : setSeo.def;
+  c.href = law ? lawUrl(law.id) : baseUrl();
+}
 function footer() {
-  return `<footer class="site-footer"><div class="wrap"><span>國立臺北大學學生自治會 跨校區及三峽校區法規資料庫・條文以正式公布版本為準</span></div></footer>`;
+  return `<footer class="site-footer"><div class="wrap"><span>國立臺北大學學生自治會 跨校區及三峽校區法規資料庫・條文以正式公布版本為準</span>${API_URL ? `<a href="${esc(API_URL)}?action=text" target="_blank" rel="noopener" style="color:var(--muted)">純文字版全文（供 AI 與程式讀取）</a>` : ''}</div></footer>`;
 }
 function page(active, inner) {
   return header(active) + `<main id="main">${inner}</main>` + footer();
@@ -701,8 +824,8 @@ function renderHome(params) {
         <span style="display:flex;align-items:center;gap:10px;font-size:14px" class="muted"><span class="tag red">${esc(h.type || '異動')}</span>${esc(h.date)}</span>
         <span class="t">${feiName(l)}</span></a>`; }).join('')}</div></section>` : '';
   const repealedSec = repealedCount ? `<section class="sec wrap"><a class="repealed-entry" href="#/repealed">
-      <span style="display:flex;align-items:center;gap:12px"><span class="serif" style="font-size:24px;font-weight:900">${FEI}廢止法規</span><span class="muted" style="font-size:15px">共 ${repealedCount} 部，條文與沿革仍可查考</span></span>
-      <span style="font-weight:700">查看 →</span></a></section>` : '';
+      <span class="re-main"><span class="re-t serif">${FEI}廢止法規</span><span class="re-s muted">共 ${repealedCount} 部，條文與沿革仍可查考</span></span>
+      <span class="re-go">查看 →</span></a></section>` : '';
 
   return page('home', `
     <section class="wrap hero">
@@ -735,11 +858,70 @@ function paraTags(a) {
   let x = 0;
   return a.paras.map((p) => p.level === 1 ? `第${++x}項` : p.level === 2 ? '款' : p.level === 3 ? '目' : '子目');
 }
+/* ---------- 條文互相連結 ----------
+   「第八條」→ 本法第 8 條；「《組織章程》第七十二條」「依國立臺北大學學生自治會組織章程第61條」→ 該法該條；
+   緊接在後的「、第九條」「及第十條」沿用前面的法規。提到資料庫裡沒有的法規（例如法院組織法）時不加連結。 */
+let linkCtx = null;
+const LAW_SUFFIX = /(?:法|條例|章程|規程|規則|細則|辦法|準則|要點|須知|綱要|標準|通則)$/;
+const SELF_REF = /本(?:法|條例|章程|規程|規則|細則|辦法|準則|要點|須知|綱要|標準|通則)$/;
+const stripOrg = (n) => String(n || '').replace(/^國立臺北大學/, '').replace(/^學生自治會/, '');
+function lawNameIndex() {
+  const laws = state.data.laws;
+  if (lawNameIndex.src === laws && lawNameIndex.list) return lawNameIndex.list;
+  const list = [];
+  const add = (name, id) => { name = String(name || '').trim(); if (name.length >= 3) { list.push([name, id]); const st = stripOrg(name); if (st.length >= 3 && st !== name) list.push([st, id]); } };
+  laws.forEach((l) => { add(l.name, l.id); add(l.short, l.id); });
+  state.data.renames.forEach((r) => add(r.oldName, r.id));
+  list.sort((a, b) => b[0].length - a[0].length);
+  lawNameIndex.src = laws; lawNameIndex.list = list;
+  return list;
+}
+function findLawByName(name) { // 完全相符
+  name = String(name || '').trim();
+  const hit = lawNameIndex().find(([n]) => n === name || n === stripOrg(name));
+  return hit ? hit[1] : null;
+}
+function findLawBySuffix(before) { // 「⋯依學生議會組織職權行使法」第 X 條：取最長的法規名稱結尾
+  const hit = lawNameIndex().find(([n]) => before.endsWith(n));
+  return hit ? hit[1] : null;
+}
+function artExists(id, key) { const l = lawById(id); return !!(l && parseLaw(l.text).articles.some((a) => a.key === key)); }
+function linkify(text, selfId) {
+  const t = String(text || '');
+  const re = new RegExp('([《「][^《》「」]{2,60}[》」])|(第\\s*(' + NUM + ')\\s*條(?:\\s*之\\s*(' + NUM + '))?)', 'g');
+  let out = '', last = 0, ctx = null, m;
+  while ((m = re.exec(t))) {
+    out += esc(t.slice(last, m.index));
+    if (m[1]) {
+      const id = findLawByName(m[1].slice(1, -1));
+      ctx = { id, end: re.lastIndex };
+      out += id && id !== selfId ? `<a class="xref" href="#/law/${encodeURIComponent(id)}">${esc(m[1])}</a>` : esc(m[1]);
+    } else {
+      const n = cnToNum(m[3]), x = m[4] ? cnToNum(m[4]) : null;
+      const key = isNaN(n) || (m[4] && isNaN(x)) ? null : (x ? n + '-' + x : String(n));
+      const before = t.slice(0, m.index);
+      let target;
+      if (ctx && /^[\s　]*$/.test(t.slice(ctx.end, m.index))) target = ctx.id; // 緊接在法規名稱後
+      else if (ctx && /^[\s　]*(?:第[^，。；：]{0,12}?[項款目])?[\s　]*[、及或與和至][\s　]*$/.test(t.slice(ctx.end, m.index))) target = ctx.id; // 「、第九條」
+      else if (SELF_REF.test(before.replace(/[\s　]+$/, ''))) target = selfId;
+      else if (LAW_SUFFIX.test(before.replace(/[\s　]+$/, ''))) target = findLawBySuffix(before.replace(/[\s　]+$/, '')); // 沒加引號的法規名稱；資料庫沒有就不連
+      else target = selfId;
+      ctx = target === selfId ? null : { id: target || null, end: re.lastIndex }; // 外部法規（含資料庫沒有的）讓後面的「、第X條」沿用
+      out += target && key && artExists(target, key)
+        ? `<a class="xref" href="#/law/${encodeURIComponent(target)}/${encodeURIComponent(key)}">${esc(m[0])}</a>`
+        : target && target !== selfId && lawById(target) // 他法的條文還沒建檔：至少連到那部法規
+        ? `<a class="xref" href="#/law/${encodeURIComponent(target)}">${esc(m[0])}</a>`
+        : esc(m[0]);
+    }
+    last = re.lastIndex;
+  }
+  return out + esc(t.slice(last));
+}
 function articleHTML(a, q, withLink, levels) {
   const tags = levels ? paraTags(a) : null;
   return `<article class="art" id="art-${esc(a.key)}" data-key="${esc(a.key)}">
     <div class="art-no"><span class="l">${esc(a.label)}</span>${withLink ? `<button type="button" class="linkbtn" data-act="copy-art" data-key="${esc(a.key)}" aria-label="複製${esc(a.label)}連結">${ICON_LINK}本條連結</button>` : ''}</div>
-    <div class="art-body">${a.paras.map((p, i) => `<p class="lv${p.level}">${tags ? `<span class="lvtag lvtag${p.level}">${tags[i]}</span>` : ''}${hl(p.text, q)}</p>`).join('') || '<p class="muted">（本條無內容）</p>'}</div>
+    <div class="art-body">${a.paras.map((p, i) => `<p class="lv${p.level}">${tags ? `<span class="lvtag lvtag${p.level}">${tags[i]}</span>` : ''}${q || !linkCtx ? hl(p.text, q) : linkify(p.text, linkCtx)}</p>`).join('') || '<p class="muted">（本條無內容）</p>'}</div>
   </article>`;
 }
 function lawBodyHTML(parsed, q, withLink, onlyKeys, levels) {
@@ -755,6 +937,74 @@ function lawBodyHTML(parsed, q, withLink, onlyKeys, levels) {
   return html;
 }
 const verCache = {};
+/* ---------- 修正前後對照 ---------- */
+const histAsc = (id) => state.data.history.filter((x) => x.id === id).slice().sort((a, b) => (a.date || '').localeCompare(b.date || ''));
+function nextHist(h) { const asc = histAsc(h.id); return asc[asc.indexOf(h) + 1] || null; }
+// 能對照：這次是修正、有修正前全文，而且修正後的全文找得到（下一次異動也存了修正前全文，或這次就是最後一次）
+function canDiff(h) {
+  if (!h || h.type === '廢止' || !h.hasOld || !h.row) return false;
+  const n = nextHist(h);
+  return !n || !!(n.hasOld && n.row);
+}
+function charDiff(a, b) {
+  let p = 0; while (p < a.length && p < b.length && a[p] === b[p]) p++;
+  let s = 0; while (s < a.length - p && s < b.length - p && a[a.length - 1 - s] === b[b.length - 1 - s]) s++;
+  const A = a.slice(p, a.length - s), B = b.slice(p, b.length - s);
+  const ops = [];
+  if (A.length * B.length > 4e6) { if (A) ops.push(['-', A]); if (B) ops.push(['+', B]); }
+  else {
+    const n = A.length, m = B.length, W = m + 1, dp = new Uint32Array((n + 1) * W);
+    for (let i = n - 1; i >= 0; i--) for (let j = m - 1; j >= 0; j--) dp[i * W + j] = A[i] === B[j] ? dp[(i + 1) * W + j + 1] + 1 : Math.max(dp[(i + 1) * W + j], dp[i * W + j + 1]);
+    let i = 0, j = 0;
+    const push = (t, c) => { const l = ops[ops.length - 1]; if (l && l[0] === t) l[1] += c; else ops.push([t, c]); };
+    while (i < n && j < m) { if (A[i] === B[j]) { push('=', A[i]); i++; j++; } else if (dp[(i + 1) * W + j] >= dp[i * W + j + 1]) push('-', A[i++]); else push('+', B[j++]); }
+    while (i < n) push('-', A[i++]); while (j < m) push('+', B[j++]);
+    // 夾在兩段變動中間、只有 1～2 個字的相同片段併入變動，避免對照被切得太碎
+    for (let k = 1; k < ops.length - 1; k++) {
+      if (ops[k][0] === '=' && ops[k][1].length <= 2 && ops[k - 1][0] !== '=' && ops[k + 1][0] !== '=' && !ops[k][1].includes('\n')) {
+        const c = ops[k][1]; ops.splice(k, 1, ['-', c], ['+', c]);
+      }
+    }
+    // 重新整理成「先刪後增」的連續片段
+    const merged = [];
+    for (let k = 0; k < ops.length;) {
+      if (ops[k][0] === '=') { merged.push(ops[k]); k++; continue; }
+      let d = '', a2 = ''; while (k < ops.length && ops[k][0] !== '=') { if (ops[k][0] === '-') d += ops[k][1]; else a2 += ops[k][1]; k++; }
+      if (d) merged.push(['-', d]); if (a2) merged.push(['+', a2]);
+    }
+    ops.length = 0; merged.forEach((x) => ops.push(x));
+  }
+  const br = (x) => esc(x).replace(/\n/g, '<br>');
+  const pre = br(a.slice(0, p)), suf = br(a.slice(a.length - s));
+  const oldH = pre + ops.map(([t, c]) => t === '=' ? br(c) : t === '-' ? `<del>${br(c)}</del>` : '').join('') + suf;
+  const newH = pre + ops.map(([t, c]) => t === '=' ? br(c) : t === '+' ? `<ins>${br(c)}</ins>` : '').join('') + suf;
+  return [oldH, newH];
+}
+function diffHTML(oldText, newText, showAll, id, row) {
+  const A = parseLaw(oldText), B = parseLaw(newText);
+  const join = (a) => a.paras.map((x) => x.text).join('\n');
+  const mA = new Map(A.articles.map((a) => [a.key, a])), mB = new Map(B.articles.map((a) => [a.key, a]));
+  const keys = [...new Set(A.articles.map((a) => a.key).concat(B.articles.map((a) => a.key)))].sort((x, y) => keyNum(x) - keyNum(y));
+  const cnt = { 修正: 0, 新增: 0, 刪除: 0, 未修正: 0 };
+  const rows = keys.map((k) => {
+    const a = mA.get(k), b = mB.get(k);
+    const st = !a ? '新增' : !b ? '刪除' : join(a) === join(b) ? '未修正' : '修正';
+    cnt[st]++;
+    if (st === '未修正' && !showAll) return '';
+    let oh, nh;
+    if (st === '修正') [oh, nh] = charDiff(join(a), join(b));
+    else if (st === '新增') { nh = `<ins>${esc(join(b)).replace(/\n/g, '<br>')}</ins>`; oh = '<span class="muted">（本條新增）</span>'; }
+    else if (st === '刪除') { oh = `<del>${esc(join(a)).replace(/\n/g, '<br>')}</del>`; nh = '<span class="muted">（本條刪除）</span>'; }
+    else { oh = nh = esc(join(a)).replace(/\n/g, '<br>'); }
+    const lab = `<div class="dk">${esc(keyLabel(k))}${st !== '未修正' ? `<span class="dtag dt-${st}">${st}</span>` : ''}</div>`;
+    return `<div class="dr${st === '未修正' ? ' same' : ''}"><div class="dc" data-h="修正後">${lab}<div>${nh}</div></div><div class="dc" data-h="修正前">${lab}<div>${oh}</div></div></div>`;
+  }).join('');
+  const base = `#/law/${encodeURIComponent(id)}?ver=${row}&diff=1`;
+  return `<div class="diff-sum"><span>${['修正', '新增', '刪除'].filter((k) => cnt[k]).map((k) => `${k} <b>${cnt[k]}</b> 條`).join('、') || '條文內容沒有變動'}${cnt.未修正 ? `；未修正 ${cnt.未修正} 條` : ''}</span>
+      ${cnt.未修正 ? `<a href="${base}${showAll ? '' : '&all=1'}">${showAll ? '只看有變動的條文' : '一併顯示未修正條文'}</a>` : ''}
+      <span class="muted" style="font-size:14px"><ins>底線</ins> 為新增文字，<del>刪除線</del> 為刪除文字</span></div>
+    <div class="diff"><div class="dh"><span>修正後條文</span><span>修正前條文</span></div>${rows}</div>`;
+}
 function renderDetail(id, artKey, params) {
   const law = lawById(id);
   if (!law) return page('home', `<div class="wrap" style="padding:80px 24px"><h1 class="serif">找不到這部法規</h1><p><a href="#/">回到全部法規</a></p></div>`);
@@ -776,6 +1026,20 @@ function renderDetail(id, artKey, params) {
     // 當時的名稱：找出在這個版本之後（含同一天）最早的一次更名，它的「原名稱」就是當時的全稱
     const later = renamesOf(id).filter((r) => r.date && h.date && r.date >= h.date).sort((a, b) => a.date.localeCompare(b.date));
     ver = { h, text: verCache[key].oldText, from: prev && prev.date ? prev.date : '', nameThen: later.length ? later[0].oldName : '' };
+    ver.canDiff = canDiff(h);
+    if (params.get('diff') === '1' && ver.canDiff) {
+      // 修正後的條文＝下一次異動前的條文；沒有下一次時就是現行條文
+      const next = nextHist(h);
+      if (!next) ver.after = law.text;
+      else {
+        const k2 = id + ':' + next.row;
+        if (verCache[k2] === undefined) { verCache[k2] = null; api.version(id, next.row).then((j) => { verCache[k2] = j; route(); }).catch((e) => { verCache[k2] = { error: e.message || '讀取失敗' }; route(); }); }
+        if (!verCache[k2]) return page('', '<div class="loading">修正對照載入中⋯</div>');
+        if (verCache[k2].error) return page('', `<div class="wrap" style="padding:80px 24px"><h1 class="serif">無法讀取修正後條文</h1><p>${esc(verCache[k2].error)}</p></div>`);
+        ver.after = verCache[k2].oldText;
+      }
+      ver.diff = true;
+    }
   }
   const parsed = parseLaw(ver ? ver.text : law.text);
   const q = params.get('q') || '';
@@ -784,9 +1048,11 @@ function renderDetail(id, artKey, params) {
   const hist = histOf(id);
   const ren = renamesOf(id);
   const isSanxia = law.region === REGION_SANXIA;
-  document.title = (ver ? '（舊版）' : '') + (isRepealed(law) ? '（廢）' : '') + dispName(law) + '｜跨校區及三峽校區法規資料庫';
+  document.title = (ver ? '（舊版）' : '') + (isRepealed(law) ? '（廢）' : '') + (ver ? dispName(law) : law.name) + '｜跨校區及三峽校區法規資料庫';
+  if (!ver) setSeo(law, `${law.name}（${[levelOf(law), scopeLabel(law)].filter(Boolean).join('・')}）全文${parsed.articles.length} 條。${(parsed.articles[0] ? parsed.articles[0].plain : '').slice(0, 80)}`);
+  linkCtx = ver ? null : id;
 
-  const verLink = (h) => h.hasOld && h.row ? `<div class="vrow"><a class="vlink" href="#/law/${encodeURIComponent(id)}?ver=${h.row}"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5"/><path d="M12 7v5l3 2"/></svg>查看${esc(h.type === '廢止' ? '廢止' : '修正')}前條文 →</a></div>` : '';
+  const verLink = (h) => h.hasOld && h.row ? `<div class="vrow">${canDiff(h) ? `<a class="vlink" href="#/law/${encodeURIComponent(id)}?ver=${h.row}&diff=1"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M8 3v18"/><path d="M16 3v18"/><path d="M3 8h2"/><path d="M19 16h2"/></svg>修正前後對照 →</a>` : ''}<a class="vlink" href="#/law/${encodeURIComponent(id)}?ver=${h.row}"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5"/><path d="M12 7v5l3 2"/></svg>查看${esc(h.type === '廢止' ? '廢止' : '修正')}前條文 →</a></div>` : '';
   const histHTML = ver ? '' : hist.length ? `<section class="hist" aria-labelledby="h-hist">
       <div style="display:flex;flex-wrap:wrap;justify-content:space-between;align-items:baseline;gap:8px"><h2 id="h-hist">法規沿革</h2><span class="muted" style="font-size:14px">最近一次</span></div>
       <div class="latest">${esc(hist[0].text)}${verLink(hist[0])}</div>
@@ -798,7 +1064,8 @@ function renderDetail(id, artKey, params) {
   const toc = parsed.chapters.length ? `<details class="tocd" ${wide ? 'open' : ''}><summary><span>目錄</span><span class="muted" style="font-size:14px;font-weight:400">${parsed.chapters.filter((c) => c.kind === '章').length} 章</span></summary><ol class="toc">${parsed.chapters.map((ch) => `
       <li class="${ch.kind === '節' ? 'sub' : ch.kind === '款' ? 'sub2' : ''}"><a href="#" data-act="goto-ch" data-idx="${ch.idx}"><span class="n">${esc(ch.label)}</span><span>${esc(ch.title)}</span></a></li>`).join('')}</ol></details>` : '';
 
-  const bodyHTML = parsed.articles.length || parsed.preamble.length
+  const bodyHTML = ver && ver.diff ? diffHTML(ver.text, ver.after, params.get('all') === '1', id, ver.h.row)
+    : parsed.articles.length || parsed.preamble.length
     ? lawBodyHTML(parsed, q, !ver, only)
     : `<p class="muted" style="font-size:17px">本法條文尚未建檔。${law.url ? `請先參閱<a href="${esc(law.url)}" target="_blank" rel="noopener">原始頁面</a>。` : ''}</p>`;
 
@@ -813,7 +1080,9 @@ function renderDetail(id, artKey, params) {
       ${law.short && law.short !== law.name && !(ver && ver.nameThen) ? `<div style="font-size:17px"><span class="muted" style="font-size:14px;letter-spacing:.12em;margin-right:10px">簡稱</span>${esc(law.short)}</div>` : ''}
       ${parentsOf(law).filter(lawById).length ? `<div style="font-size:16px"><span class="muted" style="font-size:14px;letter-spacing:.12em;margin-right:10px">母法</span>${parentsOf(law).filter(lawById).map((pid) => `<a href="#/law/${encodeURIComponent(pid)}">${feiName(lawById(pid))}</a>`).join('、')}</div>` : ''}
       ${ren.length ? `<div class="hint" style="font-size:15px">名稱變更：${ren.map((r) => `原名稱「${esc(r.oldName)}」${r.date ? `，${esc(r.date)} 更名` : ''}`).join('；')}</div>` : ''}
-      ${ver ? `<div class="verbar" role="note"><b>這是舊版條文，非現行版本。</b><span>此為 ${esc(ver.h.date || '（日期不可考）')} ${esc(ver.h.type || '修正')}前的條文${ver.from ? `，適用期間約自 ${esc(ver.from)} 起` : ''}。</span><a class="btn small dark" href="#/law/${encodeURIComponent(id)}">回到現行版本</a></div>` : ''}
+      ${ver && ver.diff ? `<div class="verbar" role="note"><b>修正前後對照</b><span>${esc(ver.h.date || '（日期不可考）')} ${esc(ver.h.type || '修正')}：${esc(ver.h.text || '')}</span><a class="btn small dark" href="#/law/${encodeURIComponent(id)}">回到現行版本</a></div>` : ''}
+      ${ver && !ver.diff ? `<div class="verbar" role="note"><b>這是舊版條文，非現行版本。</b><span>此為 ${esc(ver.h.date || '（日期不可考）')} ${esc(ver.h.type || '修正')}前的條文${ver.from ? `，適用期間約自 ${esc(ver.from)} 起` : ''}。</span><a class="btn small dark" href="#/law/${encodeURIComponent(id)}">回到現行版本</a></div>` : ''}
+      ${ver && ver.canDiff ? `<div class="seg" role="group" aria-label="檢視方式" style="width:max-content"><a href="#/law/${encodeURIComponent(id)}?ver=${ver.h.row}" class="${ver.diff ? '' : 'on'}">修正前全文</a><a href="#/law/${encodeURIComponent(id)}?ver=${ver.h.row}&diff=1" class="${ver.diff ? 'on' : ''}">修正前後對照</a></div>` : ''}
       ${law.status === '已廢止' && !ver ? `<div class="banner">本法已廢止${law.date ? `（${esc(law.date)}）` : ''}，以下條文僅供查考。</div>` : ''}
       <div class="meta">
         ${ver ? '' : `<div><span class="k">最近異動</span><span class="v">${esc(law.date || '—')}</span></div>`}
@@ -830,7 +1099,7 @@ function renderDetail(id, artKey, params) {
       </div>`}
     </section>
     <div class="body">
-      ${toc ? `<aside class="side" aria-label="目錄">${toc}</aside>` : ''}
+      ${toc && !(ver && ver.diff) ? `<aside class="side" aria-label="目錄">${toc}</aside>` : ''}
       <div class="main">
         ${histHTML}
         ${parsed.articles.length && !ver ? `<div style="display:flex;flex-direction:column;gap:10px">
@@ -932,6 +1201,19 @@ function saveWord(title, inner, extraCss) {
   setTimeout(() => URL.revokeObjectURL(a.href), 2000);
 }
 function downloadWord(law) { saveWord(law.name, wordLawHtml(law)); }
+
+// 網站地圖：列出每部法規的 ?law= 網址，上傳到 GitHub 後交給 Google Search Console
+function downloadSitemap() {
+  const iso = (d) => (d || '').replace(/\//g, '-');
+  const urls = [`<url><loc>${esc(baseUrl())}</loc></url>`].concat(state.data.laws.filter((l) => l.status !== '草稿').map((l) =>
+    `<url><loc>${esc(lawUrl(l.id))}</loc>${/^\d{4}\/\d{2}\/\d{2}$/.test(l.date || '') ? `<lastmod>${iso(l.date)}</lastmod>` : ''}</url>`));
+  const xml = `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${urls.join('\n')}\n</urlset>\n`;
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob([xml], { type: 'application/xml' })); a.download = 'sitemap.xml';
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(a.href), 2000);
+  toast('已下載 sitemap.xml，請上傳到 index.html 同一個資料夾');
+}
 
 // 法規彙編：封面、目錄，之後每部法規都從新的一頁開始
 function downloadCompendium() {
@@ -1058,15 +1340,18 @@ function adminShell(active, inner) {
   const a = state.admin;
   return `${state.demo ? '<div class="demo-bar">示範模式：資料只存在這個分頁，重新整理就會還原。</div>' : ''}<div class="admin">
     <aside class="aside">
-      <a href="#/admin" style="display:flex;align-items:center;gap:12px;padding:0 8px;color:var(--paper)">${LOGO('#F6F3EC', '#B3372B', '#1B2A41', 36)}
+      <a href="#/admin" style="display:flex;align-items:center;gap:12px;padding:0 8px;color:var(--aside-fg)">${LOGO('#FFFFFF', '#A8322D', '#222222', 36)}
         <span style="display:flex;flex-direction:column"><span style="font-size:12px;color:var(--side-muted)">國立臺北大學學生自治會</span><span style="font-family:var(--serif);font-weight:900;font-size:17px;line-height:1.35;letter-spacing:.02em">跨校區及三峽校區法規資料庫</span><span style="font-size:13px;letter-spacing:.2em;color:var(--side-muted);margin-top:2px">管理後台</span></span></a>
       <nav aria-label="後台選單">
         <a href="#/admin" class="${active === 'list' ? 'on' : ''}">法規管理</a>
         <a href="#/admin/new" class="${active === 'new' ? 'on' : ''}">新增法規</a>
+        <a href="#/admin/index" class="${active === 'index' ? 'on' : ''}">索引式法規資料庫</a>
         <a href="#/">回到前台</a>
+        <a href="${PARLIAMENT_URL}">回到議事系統</a>
+        <button type="button" data-act="theme">${themeLabel()}</button>
         <button type="button" data-act="logout">登出</button>
       </nav>
-      <div class="who"><div style="color:var(--paper);font-weight:500">${esc(a.label)}</div><div>${a.role === 'admin' ? '可管理全部法規' : `可管理${esc(a.label)}主管的三峽校區法規`}</div></div>
+      <div class="who"><div style="color:var(--aside-fg);font-weight:500">${esc(a.label)}</div><div>${a.role === 'admin' ? '可管理全部法規' : `可管理${esc(a.label)}主管的三峽校區法規`}</div></div>
     </aside>
     <main class="amain" id="main">${inner}</main></div>`;
 }
@@ -1077,7 +1362,7 @@ function canEdit(region, agency) {
 }
 function renderLogin(msg) {
   return `<div class="login"><form data-form="login">
-    <a href="#/" style="display:flex;align-items:center;gap:12px;text-decoration:none">${LOGO('#B3372B', '#F6F3EC', '#F6F3EC', 40)}<span class="brand-text"><span class="brand-org">國立臺北大學學生自治會</span><span class="brand-name">跨校區及三峽校區法規資料庫</span></span></a>
+    <a href="#/" style="display:flex;align-items:center;gap:12px;text-decoration:none">${LOGO('#A8322D', '#FFFFFF', '#FFFFFF', 40)}<span class="brand-text"><span class="brand-org">國立臺北大學學生自治會</span><span class="brand-name">跨校區及三峽校區法規資料庫</span></span></a>
     <h1 style="margin:0;font-family:var(--serif);font-size:28px">管理後台登入</h1>
     <div class="field"><label for="pw">密碼</label><input id="pw" name="pw" class="input" type="password" autocomplete="current-password" required></div>
     ${msg ? `<div class="err" role="alert">${esc(msg)}</div>` : ''}
@@ -1091,6 +1376,67 @@ async function ensureAdminData(force) {
   state.admin.data = { laws: j.laws, history: j.history, renames: j.renames };
 }
 function adminLaw(id) { return state.admin.data.laws.find((l) => l.id === id); }
+
+/* ---------- 索引式法規資料庫（後台，給會內使用） ----------
+   左邊勾選篩選，右邊可排序的表格；含草稿與已廢止，可搜尋名稱或條文 */
+const IX_GROUPS = [
+  ['region', '所屬區', [['common', '跨校區共通性法規'], ['sanxia', '三峽校區法規']]],
+  ['agency', '主管機關', [['學生會', '學生會'], ['學生議會', '學生議會'], ['', '待確認／不適用']]],
+  ['level', '位階', [['章程', '章程'], ['法律', '法律'], ['命令', '命令'], ['行政規則', '行政規則'], ['', '位階未設定']]],
+  ['status', '狀態', [['現行', '現行'], ['草稿', '草稿'], ['已廢止', '已廢止']]],
+];
+function ixState() {
+  return state.admin.ix || (state.admin.ix = { q: '', full: false, sel: { region: [], agency: [], level: [], status: ['現行'] }, recent: '', sort: 'date', dir: -1 });
+}
+function ixVal(l, g) {
+  if (g === 'region') return l.region === REGION_COMMON ? 'common' : 'sanxia';
+  if (g === 'agency') return l.region === REGION_SANXIA ? (l.agency || '') : '';
+  if (g === 'level') return levelOf(l) || '';
+  return l.status || '現行';
+}
+const ixDays = (d) => { const m = /^(\d{4})\/(\d{2})\/(\d{2})$/.exec(d || ''); return m ? (Date.now() - new Date(+m[1], m[2] - 1, +m[3]).getTime()) / 864e5 : Infinity; };
+function ixRows() {
+  const st = ixState();
+  const q = st.q.trim();
+  let rows = state.admin.data.laws.filter((l) => IX_GROUPS.every(([g]) => !st.sel[g].length || st.sel[g].includes(ixVal(l, g)))
+    && (!st.recent || ixDays(l.date) <= (st.recent === '30' ? 30 : 365))
+    && (!q || (l.name || '').includes(q) || (l.short || '').includes(q) || (st.full && (l.text || '').includes(q))));
+  const artCount = (l) => parseLaw(l.text).articles.length;
+  const key = { name: (l) => dispName(l), level: (l) => levelRank(l), agency: (l) => (l.region === REGION_COMMON ? '0' : '1') + (l.agency || '9'), arts: artCount, date: (l) => l.date || '' }[st.sort];
+  return rows.map((l) => [l, key(l)]).sort((a, b) => (a[1] < b[1] ? -1 : a[1] > b[1] ? 1 : 0) * st.dir || a[0].id.localeCompare(b[0].id)).map((x) => x[0]);
+}
+function ixOutHTML() {
+  const st = ixState();
+  const rows = ixRows();
+  const all = state.admin.data.laws.length;
+  const chips = [];
+  IX_GROUPS.forEach(([g, , opts]) => st.sel[g].forEach((v) => chips.push([g, v, (opts.find((o) => o[0] === v) || [v, v])[1]])));
+  if (st.recent) chips.push(['recent', st.recent, st.recent === '30' ? '30 天內異動' : '一年內異動']);
+  const th = (k, t, right) => `<button type="button" class="ix-th${st.sort === k ? ' on' : ''}${right ? ' r' : ''}" data-act="ix-sort" data-k="${k}">${t}${st.sort === k ? (st.dir > 0 ? ' ↑' : ' ↓') : ''}</button>`;
+  const lvTag = (l) => levelOf(l) ? `<span class="lv lv-${LEVEL_CLASS[levelOf(l)]}">${esc(levelOf(l))}</span>` : '<span class="muted">—</span>';
+  const who = (l) => l.region === REGION_COMMON ? '跨校區' : (l.agency || '待確認');
+  return `<div class="ix-top"><span class="ix-count">顯示 <b>${rows.length}</b> / ${all} 部</span>
+      ${chips.map(([g, v, t]) => `<button type="button" class="ix-chip" data-act="ix-unset" data-g="${g}" data-v="${esc(v)}">${esc(t)} ✕</button>`).join('')}
+      ${chips.length ? '<button type="button" class="ix-clear" data-act="ix-clear">清除全部</button>' : ''}</div>
+    <div class="ix-table"><div class="ix-row h">${th('name', '法規名稱')}${th('level', '位階')}${th('agency', '主管')}${th('arts', '條數', 1)}${th('date', '最近異動', 1)}</div>
+    ${rows.map((l) => `<div class="ix-row"><span class="ix-name">${l.status === '草稿' ? `<a href="#/admin/edit/${encodeURIComponent(l.id)}">${esc(dispName(l))}</a><span class="tag dash">草稿</span>` : `<a href="#/law/${encodeURIComponent(l.id)}">${isRepealed(l) ? feiName(l) : esc(dispName(l))}</a>`}${!isRepealed(l) && l.status !== '草稿' && ixDays(l.date) <= 30 ? '<span class="ix-new">新</span>' : ''}</span>
+      <span>${lvTag(l)}</span><span class="muted">${esc(who(l))}</span><span class="r num">${parseLaw(l.text).articles.length || '—'}</span><span class="r num muted">${esc(l.date || '—')}</span></div>`).join('') || '<div class="empty" style="margin-top:16px">沒有符合條件的法規。</div>'}</div>`;
+}
+function renderIndex() {
+  const st = ixState();
+  const laws = state.admin.data.laws;
+  const cnt = (g, v) => laws.filter((l) => ixVal(l, g) === v).length;
+  const box = (g, v, t, n) => `<label class="ix-opt"><input type="checkbox" data-ix="${g}" value="${esc(v)}" ${st.sel[g].includes(v) ? 'checked' : ''}><span>${esc(t)}</span><span class="n">${n}</span></label>`;
+  const side = IX_GROUPS.map(([g, title, opts]) => `<fieldset class="ix-g"><legend>${title}</legend>${opts.map(([v, t]) => { const n = cnt(g, v); return n || st.sel[g].includes(v) ? box(g, v, t, n) : ''; }).join('')}</fieldset>`).join('')
+    + `<fieldset class="ix-g"><legend>最近異動</legend>${[['30', '30 天內'], ['365', '一年內']].map(([v, t]) => `<label class="ix-opt"><input type="checkbox" data-ix="recent" value="${v}" ${st.recent === v ? 'checked' : ''}><span>${t}</span><span class="n">${laws.filter((l) => ixDays(l.date) <= +v).length}</span></label>`).join('')}</fieldset>`;
+  return adminShell('index', `
+    <div><div class="eyebrow">管理後台</div><h1>索引式法規資料庫</h1><p class="muted" style="margin:8px 0 0">給會內查找用：可同時篩選所屬區、主管、位階與狀態，點欄位名稱排序；包含草稿與已廢止法規。</p></div>
+    <div class="ix-search"><input id="ix-q" class="input" type="search" placeholder="搜尋法規名稱${st.full ? '或條文內容' : ''}" value="${esc(st.q)}" data-ixq="1" aria-label="搜尋">
+      <label class="check"><input type="checkbox" data-ix="full" ${st.full ? 'checked' : ''}><span>也搜尋條文內容</span></label></div>
+    <div class="ix"><aside class="ix-side" aria-label="篩選">${side}</aside><div class="ix-main" data-ix-out>${ixOutHTML()}</div></div>`);
+}
+function ixRerender() { const sy = window.scrollY; $('#app').innerHTML = renderIndex(); window.scrollTo(0, sy); }
+function ixRefresh() { const o = $('[data-ix-out]'); if (o) o.innerHTML = ixOutHTML(); }
 
 function renderAdminList() {
   const laws = state.admin.data.laws;
@@ -1109,7 +1455,7 @@ function renderAdminList() {
   return adminShell('list', `
     <div style="display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:16px">
       <div><div class="eyebrow">管理後台</div><h1>法規管理</h1></div>
-      <div style="display:flex;flex-wrap:wrap;gap:10px"><button type="button" class="btn" data-act="compendium">匯出法規彙編（Word）</button><a class="btn primary" href="#/admin/new">＋ 新增法規</a></div>
+      <div style="display:flex;flex-wrap:wrap;gap:10px"><button type="button" class="btn" data-act="compendium">匯出法規彙編（Word）</button><button type="button" class="btn" data-act="sitemap">匯出網站地圖</button><a class="btn primary" href="#/admin/new">＋ 新增法規</a></div>
     </div>
     <div class="filters">
       <div class="field wide"><label for="f-q">搜尋</label><input id="f-q" class="input" type="search" value="${esc(f.q)}" placeholder="法規名稱" data-filter="q"></div>
@@ -1322,7 +1668,7 @@ function edRender(form) {
   sBox.hidden = ed.mode !== 'struct'; tBox.hidden = ed.mode !== 'text';
   if (ed.mode === 'struct') sBox.innerHTML = `<div class="ed"><div class="ed-side"><div data-ed-tree>${edTreeHTML()}</div>
       <div class="ed-btns"><button type="button" class="btn small" data-act="ed-add-ch">＋ 新增章</button><button type="button" class="btn small" data-act="ed-add-sec">＋ 新增節</button><button type="button" class="btn small" data-act="ed-add-art">＋ 新增條</button></div>
-      ${ed.preamble.length ? `<div class="hint" style="color:var(--red,#B3372B)">全文最前面有 ${ed.preamble.length} 行不屬於任何條文，前台會顯示在條文最上方：<br>「${esc(ed.preamble.join(' ／ ').slice(0, 80))}」<br>要修改或刪除，請切到「貼上全文」。</div>` : ''}</div>
+      ${ed.preamble.length ? `<div class="hint" style="color:var(--red)">全文最前面有 ${ed.preamble.length} 行不屬於任何條文，前台會顯示在條文最上方：<br>「${esc(ed.preamble.join(' ／ ').slice(0, 80))}」<br>要修改或刪除，請切到「貼上全文」。</div>` : ''}</div>
       <div data-ed-panel>${edPanelHTML()}</div></div>`;
 }
 function edSync(form, opts) {
@@ -1557,6 +1903,7 @@ async function adminRoute(parts) {
   else if (sub === 'edit') app.innerHTML = renderAdminEdit(id);
   else if (sub === 'repeal') app.innerHTML = renderAdminRepeal(id);
   else if (sub === 'history') { state.admin.histDraft = null; app.innerHTML = renderAdminHistory(id); }
+  else if (sub === 'index') app.innerHTML = renderIndex();
   else app.innerHTML = renderAdminList();
   const ef = $('form[data-form="edit"]');
   if (ef) { updatePreview(ef); edInit(ef, sub === 'edit' ? adminLaw(id) : null); }
@@ -1675,11 +2022,21 @@ async function onClick(e) {
   if (act === 'totop') { window.scrollTo({ top: 0, behavior: 'smooth' }); return; }
   if (act === 'goto-kids') { const el = document.getElementById('kids'); if (el) { el.scrollIntoView({ block: 'start' }); el.focus({ preventScroll: true }); } return; }
   if (act === 'goto-ch') { e.preventDefault(); const el = document.getElementById('ch-' + t.dataset.idx); if (window.innerWidth <= 1000) { const d = t.closest('details'); if (d) d.open = false; } if (el) el.scrollIntoView({ block: 'start' }); return; }
-  if (act === 'copy-art') { const ok = await copyText(`${baseUrl()}#/law/${encodeURIComponent(parts[1])}/${encodeURIComponent(t.dataset.key)}`); toast(ok ? '已複製本條連結' : '複製失敗，請手動複製網址'); return; }
-  if (act === 'copy-law') { const ok = await copyText(`${baseUrl()}#/law/${encodeURIComponent(parts[1])}`); toast(ok ? '已複製法規連結' : '複製失敗，請手動複製網址'); return; }
+  if (act === 'copy-art') { const ok = await copyText(lawUrl(parts[1], t.dataset.key)); toast(ok ? '已複製本條連結' : '複製失敗，請手動複製網址'); return; }
+  if (act === 'copy-law') { const ok = await copyText(lawUrl(parts[1])); toast(ok ? '已複製法規連結' : '複製失敗，請手動複製網址'); return; }
   if (act === 'print') { const l = lawById(parts[1]); if (l) printLaw(l); return; }
   if (act === 'reload') { location.reload(); return; }
+  if (act === 'theme') { setTheme(document.documentElement.dataset.theme === 'dark' ? 'light' : 'dark'); return; }
   if (act === 'compendium') { downloadCompendium(); return; }
+  if (act === 'ix-sort') { const st = ixState(); if (st.sort === t.dataset.k) st.dir = -st.dir; else { st.sort = t.dataset.k; st.dir = t.dataset.k === 'date' || t.dataset.k === 'arts' ? -1 : 1; } ixRefresh(); return; }
+  if (act === 'ix-unset' || act === 'ix-clear') {
+    const st = ixState();
+    if (act === 'ix-clear') { Object.keys(st.sel).forEach((g) => { st.sel[g] = []; }); st.recent = ''; }
+    else if (t.dataset.g === 'recent') st.recent = '';
+    else st.sel[t.dataset.g] = st.sel[t.dataset.g].filter((v) => v !== t.dataset.v);
+    ixRerender(); return;
+  }
+  if (act === 'sitemap') { downloadSitemap(); return; }
   if (act === 'word') { const l = lawById(parts[1]); if (l) downloadWord(l); return; }
   if (act === 'logout') { logout(); go('#/admin'); return; }
   if (act === 'autoformat') {
@@ -1721,6 +2078,7 @@ function onPaste(e) {
 }
 function onInput(e) {
   const t = e.target;
+  if (t.dataset.ixq) { ixState().q = t.value; clearTimeout(onInput.ix); onInput.ix = setTimeout(ixRefresh, 200); return; }
   if (t.dataset.ed && t.dataset.ed !== 'key') { const form = t.closest('form[data-form="edit"]'); if (form) edInput(t, form); return; }
   if (t.dataset.filter) {
     state.admin.filter[t.dataset.filter] = t.value;
@@ -1742,6 +2100,13 @@ function rerenderList() {
 }
 function onChange(e) {
   const t = e.target;
+  if (t.dataset.ix) {
+    const st = ixState(), g = t.dataset.ix;
+    if (g === 'full') { st.full = t.checked; const q = $('#ix-q'); if (q) q.placeholder = '搜尋法規名稱' + (st.full ? '或條文內容' : ''); }
+    else if (g === 'recent') { st.recent = t.checked ? t.value : ''; document.querySelectorAll('[data-ix="recent"]').forEach((x) => { if (x !== t) x.checked = false; }); }
+    else { st.sel[g] = st.sel[g].filter((v) => v !== t.value); if (t.checked) st.sel[g].push(t.value); }
+    ixRefresh(); return;
+  }
   if (t.dataset.change === 'search') {
     const { params } = parseHash();
     const mode = $('#mode') ? $('#mode').value : 'all'; const lv = $('#lv') ? $('#lv').value : 'all';
@@ -1764,7 +2129,10 @@ function onChange(e) {
 
 /* ---------- 路由 ---------- */
 function route() {
+  // 從 ?law= 網址進來後再點站內連結時，拿掉網址上的 ?law=，避免兩組位置打架
+  if (location.hash && location.search && new URLSearchParams(location.search).get('law')) { try { history.replaceState(null, '', location.pathname + location.hash); } catch (e) {} }
   const { parts, params } = parseHash();
+  setSeo(null); linkCtx = null;
   const app = $('#app');
   if (parts[0] === 'admin') { adminRoute(parts); return; }
   document.title = '國立臺北大學學生自治會 跨校區及三峽校區法規資料庫';
