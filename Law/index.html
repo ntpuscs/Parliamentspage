@@ -166,6 +166,8 @@ h1 .fei{border-width:2.5px;border-radius:5px;font-size:.72em;margin-right:.3em}
 .ch-head .n{font-size:15px;letter-spacing:.2em;color:var(--artno);font-weight:700;white-space:nowrap}
 .ch-head h2{margin:0;font-family:var(--serif);font-weight:900;font-size:30px;letter-spacing:.04em}
 .ch-head.sec2 h2{font-size:22px}
+.ch-head.sec3 h2{font-size:19px}
+.toc li.sub2 a{padding-left:44px}
 .art{display:flex;flex-wrap:wrap;gap:6px 32px;padding:24px 0;border-bottom:1px solid var(--stone);scroll-margin-top:16px;transition:background .6s}
 .art.flash{background:#F7EBC9}
 .art-no{flex:0 0 124px;display:flex;flex-direction:column;align-items:flex-start;gap:2px}
@@ -442,6 +444,8 @@ function cnToNum(s) {
 }
 const NUM = '[0-9０-９零〇一二兩三四五六七八九十百]+';
 const RE_CH = new RegExp('^第\\s*(' + NUM + ')\\s*([章節])(?:\\s*之\\s*(' + NUM + '))?\\s*(.*)$');
+// 「第一款 法庭之開閉與秩序」這種節底下的款標題：款號後一定要有空白，避免把「第一款之人員⋯」誤認成標題
+const RE_KH = new RegExp('^第\\s*(' + NUM + ')\\s*款(?:\\s*之\\s*(' + NUM + '))?[\\s\\u3000]+(\\S.*)$');
 const RE_ART = new RegExp('^第\\s*(' + NUM + ')\\s*條(?:\\s*之\\s*(' + NUM + '))?\\s*[:：]?\\s*(.*)$');
 const parseCache = new Map();
 function parseLaw(text) {
@@ -453,8 +457,9 @@ function parseLaw(text) {
     const line = raw.replace(/^[\s　]+|[\s　]+$/g, '');
     if (!line) return;
     let m = line.match(RE_CH);
-    if (m && m[4].length <= 20 && !/[，。；：,;]/.test(m[4])) {
-      const ch = { label: '第' + m[1] + m[2] + (m[3] ? '之' + m[3] : ''), title: m[4] || '', kind: m[2], articles: [], idx: out.chapters.length };
+    if (!m) { const k = line.match(RE_KH); if (k) m = [k[0], k[1], '款', k[2], k[3]]; }
+    if (m && m[4].length <= 20 && !/[，。；：,;、]/.test(m[4]) && !(m[2] === '款' && /^[之至及或與規所者]/.test(m[4]))) {
+      const ch = { label: '第' + m[1] + m[2] + (m[3] ? '之' + m[3] : ''), title: m[4] || '', kind: m[2], articles: [], intro: [], idx: out.chapters.length };
       out.chapters.push(ch); curCh = ch; curArt = null; return;
     }
     m = line.match(RE_ART);
@@ -470,7 +475,8 @@ function parseLaw(text) {
     const level = /^[一二三四五六七八九十百]+、/.test(line) ? 2
       : /^[（(][一二三四五六七八九十百]+[）)]/.test(line) ? 3
       : /^[0-9０-９]+[.．、]/.test(line) ? 4 : 1;
-    if (curArt) curArt.paras.push({ level, text: line }); else out.preamble.push(line);
+    // 標題後、第一條前的文字跟著該章節，不再跑到全文最上方
+    if (curArt) curArt.paras.push({ level, text: line }); else if (curCh) curCh.intro.push(line); else out.preamble.push(line);
   });
   out.articles.forEach((a) => { a.plain = a.paras.map((p) => p.text).join(''); });
   parseCache.set(text, out);
@@ -743,7 +749,7 @@ function lawBodyHTML(parsed, q, withLink, onlyKeys, levels) {
   parsed.chapters.forEach((ch) => {
     const arts = ch.articles.filter(show);
     if (onlyKeys && !arts.length) return;
-    html += `<section><div class="ch-head ${ch.kind === '節' ? 'sec2' : ''}" id="ch-${ch.idx}"><span class="n">${esc(ch.label)}</span><h2>${esc(ch.title)}</h2></div>${arts.map((a) => articleHTML(a, q, withLink, levels)).join('')}</section>`;
+    html += `<section><div class="ch-head ${ch.kind === '節' ? 'sec2' : ch.kind === '款' ? 'sec3' : ''}" id="ch-${ch.idx}"><span class="n">${esc(ch.label)}</span><h2>${esc(ch.title)}</h2></div>${ch.intro.length && !onlyKeys ? `<div class="preamble" style="padding:14px 0">${ch.intro.map((t) => `<p style="margin:0">${esc(t)}</p>`).join('')}</div>` : ''}${arts.map((a) => articleHTML(a, q, withLink, levels)).join('')}</section>`;
   });
   return html;
 }
@@ -789,7 +795,7 @@ function renderDetail(id, artKey, params) {
 
   const wide = window.innerWidth > 1000; // 桌機展開目錄；平板、手機預設收合，避免目錄把條文推到很下面
   const toc = parsed.chapters.length ? `<details class="tocd" ${wide ? 'open' : ''}><summary><span>目錄</span><span class="muted" style="font-size:14px;font-weight:400">${parsed.chapters.filter((c) => c.kind === '章').length} 章</span></summary><ol class="toc">${parsed.chapters.map((ch) => `
-      <li class="${ch.kind === '節' ? 'sub' : ''}"><a href="#" data-act="goto-ch" data-idx="${ch.idx}"><span class="n">${esc(ch.label)}</span><span>${esc(ch.title)}</span></a></li>`).join('')}</ol></details>` : '';
+      <li class="${ch.kind === '節' ? 'sub' : ch.kind === '款' ? 'sub2' : ''}"><a href="#" data-act="goto-ch" data-idx="${ch.idx}"><span class="n">${esc(ch.label)}</span><span>${esc(ch.title)}</span></a></li>`).join('')}</ol></details>` : '';
 
   const bodyHTML = parsed.articles.length || parsed.preamble.length
     ? lawBodyHTML(parsed, q, !ver, only)
@@ -864,7 +870,7 @@ function lawDocParts(law) {
     : `<p class="k${x.level}">${esc(x.text)}</p>`;
   const art = (a) => `<div class="an">${esc(keyHead(a.key))}</div>${a.paras.map(para).join('')}`;
   let body = p.preamble.map((t) => `<p class="x">${esc(t)}</p>`).join('') + p.articles.filter((a) => a.chapter === -1).map(art).join('');
-  p.chapters.forEach((ch) => { body += `<h2>${esc(ch.label)}${ch.title ? '　' + esc(ch.title) : ''}</h2>` + ch.articles.map(art).join(''); });
+  p.chapters.forEach((ch) => { body += `<h2${ch.kind === '款' ? ' style="font-size:13pt"' : ch.kind === '節' ? ' style="font-size:14pt"' : ''}>${esc(ch.label)}${ch.title ? '　' + esc(ch.title) : ''}</h2>` + ch.intro.map((t) => `<p class="x">${esc(t)}</p>`).join('') + ch.articles.map(art).join(''); });
   const head = `<h1>${esc(law.name)}</h1>${isRepealed(law) ? `<p class="rep">本法已廢止${law.date ? `（${esc(law.date)}）` : ''}</p>` : ''}
     ${hist.length ? `<ol class="hist">${hist.map((h, i) => `<li${i === hist.length - 1 ? ' class="last"' : ''}>${esc(h.text)}</li>`).join('')}</ol>` : ''}<hr>`;
   return { head, body };
@@ -1229,7 +1235,7 @@ function edFromText(text) {
   const nodes = [];
   p.articles.filter((a) => a.chapter === -1).forEach((a) => nodes.push({ t: 'a', key: a.key, paras: a.paras.map((x) => ({ ...x })) }));
   p.chapters.forEach((c) => {
-    nodes.push({ t: 'c', label: c.label, title: c.title });
+    nodes.push({ t: 'c', label: c.label, title: c.title, intro: c.intro.slice() });
     c.articles.forEach((a) => nodes.push({ t: 'a', key: a.key, paras: a.paras.map((x) => ({ ...x })) }));
   });
   return { preamble: p.preamble.slice(), nodes };
@@ -1249,7 +1255,7 @@ function edArtText(a) {
 }
 function edToText(ed) {
   const out = ed.preamble.slice();
-  ed.nodes.forEach((n) => out.push(n.t === 'c' ? (n.label + (n.title ? ' ' + n.title : '')) : edArtText(n)));
+  ed.nodes.forEach((n) => { if (n.t === 'c') { out.push(n.label + (n.title ? ' ' + n.title : '')); (n.intro || []).forEach((t) => out.push(t)); } else out.push(edArtText(n)); });
   return out.join('\n');
 }
 function edInit(form, law) {
@@ -1272,14 +1278,14 @@ function edBadge(n) {
 function edTreeHTML() {
   const ed = state.admin.ed;
   const items = ed.nodes.map((n, i) => n.t === 'c'
-    ? `<li><button type="button" class="ch ${/節/.test(n.label) ? 'sec' : ''} ${i === ed.sel ? 'on' : ''}" data-act="ed-sel" data-i="${i}"><span class="n">${esc(n.label)}</span><span>${esc(n.title)}</span></button></li>`
+    ? `<li><button type="button" class="ch ${/[節款]/.test(n.label) ? 'sec' : ''} ${i === ed.sel ? 'on' : ''}" data-act="ed-sel" data-i="${i}"><span class="n">${esc(n.label)}</span><span>${esc(n.title)}</span></button></li>`
     : `<li><button type="button" class="ar ${i === ed.sel ? 'on' : ''}" data-act="ed-sel" data-i="${i}"><span>${esc(keyLabel(n.key))}</span>${edBadge(n)}</button></li>`).join('');
   return `<ol class="ed-tree" aria-label="章條目錄">${items || '<li class="muted" style="padding:12px">還沒有條文，按下方按鈕新增，或切換到「貼上全文」。</li>'}</ol>`;
 }
 function edPanelHTML() {
   const ed = state.admin.ed; const n = ed.nodes[ed.sel];
   if (!n) return '<div class="ed-panel"><p class="muted" style="margin:0">從左邊選擇要編輯的章或條。</p></div>';
-  if (n.t === 'c') { const w = /節/.test(n.label) ? '節' : '章'; return `<div class="ed-panel">
+  if (n.t === 'c') { const w = /節/.test(n.label) ? '節' : /款/.test(n.label) ? '款' : '章'; return `<div class="ed-panel">
       <div class="grid2"><div class="field"><label for="ed-chlabel">${w}號</label><input id="ed-chlabel" class="input" data-ed="chlabel" value="${esc(n.label)}" placeholder="${w === '節' ? '例如：第一節' : '例如：第三章之一'}"></div>
       <div class="field"><label for="ed-chtitle">${w}名</label><input id="ed-chtitle" class="input" data-ed="chtitle" value="${esc(n.title)}" placeholder="${w === '節' ? '例如：常設委員會' : '例如：議案審議'}"></div></div>
       <div class="ed-btns" style="padding-top:12px;border-top:1px solid var(--stone)"><button type="button" class="btn small" data-act="ed-del">刪除此${w}</button></div>
@@ -1315,7 +1321,7 @@ function edRender(form) {
   sBox.hidden = ed.mode !== 'struct'; tBox.hidden = ed.mode !== 'text';
   if (ed.mode === 'struct') sBox.innerHTML = `<div class="ed"><div class="ed-side"><div data-ed-tree>${edTreeHTML()}</div>
       <div class="ed-btns"><button type="button" class="btn small" data-act="ed-add-ch">＋ 新增章</button><button type="button" class="btn small" data-act="ed-add-sec">＋ 新增節</button><button type="button" class="btn small" data-act="ed-add-art">＋ 新增條</button></div>
-      ${ed.preamble.length ? `<div class="hint">另有 ${ed.preamble.length} 行不屬於任何條文，請到「貼上全文」查看。</div>` : ''}</div>
+      ${ed.preamble.length ? `<div class="hint" style="color:var(--red,#B3372B)">全文最前面有 ${ed.preamble.length} 行不屬於任何條文，前台會顯示在條文最上方：<br>「${esc(ed.preamble.join(' ／ ').slice(0, 80))}」<br>要修改或刪除，請切到「貼上全文」。</div>` : ''}</div>
       <div data-ed-panel>${edPanelHTML()}</div></div>`;
 }
 function edSync(form, opts) {
@@ -1360,7 +1366,7 @@ function edAction(act, t, form) {
   }
   if (act === 'ed-add-ch') {
     const at = ed.sel < 0 ? ed.nodes.length - 1 : ed.sel;
-    const count = ed.nodes.slice(0, at + 1).filter((x) => x.t === 'c' && !/節/.test(x.label)).length + 1;
+    const count = ed.nodes.slice(0, at + 1).filter((x) => x.t === 'c' && !/[節款]/.test(x.label)).length + 1;
     ed.nodes.splice(at + 1, 0, { t: 'c', label: '第' + numToCn(count) + '章', title: '' });
     ed.sel = at + 1; edSync(form, { tree: true, panel: true });
     const f = $('#ed-chtitle'); if (f) f.focus(); return;
@@ -1369,13 +1375,13 @@ function edAction(act, t, form) {
     const at = ed.sel < 0 ? ed.nodes.length - 1 : ed.sel;
     // 節號：從上一個「章」之後開始數
     let count = 1;
-    for (let i = at; i >= 0; i--) { const m = ed.nodes[i]; if (m.t !== 'c') continue; if (/節/.test(m.label)) count++; else break; }
+    for (let i = at; i >= 0; i--) { const m = ed.nodes[i]; if (m.t !== 'c') continue; if (/款/.test(m.label)) continue; if (/節/.test(m.label)) count++; else break; }
     ed.nodes.splice(at + 1, 0, { t: 'c', label: '第' + numToCn(count) + '節', title: '' });
     ed.sel = at + 1; edSync(form, { tree: true, panel: true });
     const f = $('#ed-chtitle'); if (f) f.focus(); return;
   }
   if (act === 'ed-del' && n) {
-    if (!confirm(n.t === 'c' ? `確定刪除「${n.label} ${n.title}」這個${/節/.test(n.label) ? '節' : '章'}標題嗎？` : `確定刪除「${keyLabel(n.key)}」嗎？`)) return;
+    if (!confirm(n.t === 'c' ? `確定刪除「${n.label} ${n.title}」這個${/節/.test(n.label) ? '節' : /款/.test(n.label) ? '款' : '章'}標題嗎？` : `確定刪除「${keyLabel(n.key)}」嗎？`)) return;
     ed.nodes.splice(ed.sel, 1); ed.sel = Math.min(ed.sel, ed.nodes.length - 1);
     edSync(form, { tree: true, panel: true }); return;
   }
