@@ -908,19 +908,62 @@ const WORD_CSS = `
   p.k2{padding:0;margin:0 0 2pt 36pt;text-indent:-24pt}
   p.k3{padding:0;margin:0 0 2pt 54pt;text-indent:-30pt}
   p.k4{padding:0;margin:0 0 2pt 66pt;text-indent:-18pt}`;
-function downloadWord(law) {
-  const { head } = lawDocParts(law);
-  // 直接寫進每段的 style，Word 與其他文書軟體才會照著縮排
-  const IND = { x: 'margin:0 0 4pt 0;text-indent:12pt', k2: 'margin:0 0 2pt 36pt;text-indent:-24pt', k3: 'margin:0 0 2pt 54pt;text-indent:-30pt', k4: 'margin:0 0 2pt 66pt;text-indent:-18pt' };
-  const body = lawDocParts(law).body.replace(/<p class="(x|k[234])">/g, (m, c) => `<p class="${c}" style="${IND[c]};text-align:justify">`);
-  const html = `<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:w="urn:schemas-microsoft-com:office:word"><head><meta charset="utf-8"><title>${esc(law.name)}</title>
-    <style>@page WordSection1{size:595.3pt 841.9pt;margin:62pt 71pt 57pt 71pt}div.WordSection1{page:WordSection1}${DOC_CSS.replace(KAI, '"標楷體","DFKai-SB",serif')}${WORD_CSS}</style></head>
-    <body><div class="WordSection1">${head}${body}</div></body></html>`;
+// Word 檔共用：每段縮排直接寫進 style，Word 與其他文書軟體才會照著縮排
+const WORD_IND = { x: 'margin:0 0 4pt 0;text-indent:12pt', k2: 'margin:0 0 2pt 36pt;text-indent:-24pt', k3: 'margin:0 0 2pt 54pt;text-indent:-30pt', k4: 'margin:0 0 2pt 66pt;text-indent:-18pt' };
+function wordLawHtml(law) {
+  const { head, body } = lawDocParts(law);
+  return head + body.replace(/<p class="(x|k[234])">/g, (m, c) => `<p class="${c}" style="${WORD_IND[c]};text-align:justify">`);
+}
+function saveWord(title, inner, extraCss) {
+  const html = `<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:w="urn:schemas-microsoft-com:office:word"><head><meta charset="utf-8"><title>${esc(title)}</title>
+    <style>@page WordSection1{size:595.3pt 841.9pt;margin:62pt 71pt 57pt 71pt}div.WordSection1{page:WordSection1}${DOC_CSS.replace(KAI, '"標楷體","DFKai-SB",serif')}${WORD_CSS}${extraCss || ''}</style></head>
+    <body><div class="WordSection1">${inner}</div></body></html>`;
   const blob = new Blob(['﻿' + html], { type: 'application/msword' });
   const a = document.createElement('a');
-  a.href = URL.createObjectURL(blob); a.download = law.name + '.doc';
+  a.href = URL.createObjectURL(blob); a.download = title + '.doc';
   document.body.appendChild(a); a.click(); a.remove();
   setTimeout(() => URL.revokeObjectURL(a.href), 2000);
+}
+function downloadWord(law) { saveWord(law.name, wordLawHtml(law)); }
+
+// 法規彙編：封面、目錄，之後每部法規都從新的一頁開始
+function downloadCompendium() {
+  const laws = state.data.laws.filter((l) => !isRepealed(l) && l.status !== '草稿');
+  const byLevel = (arr) => LEVELS.concat(['']).flatMap((lv) => arr.filter((l) => (levelOf(l) || '') === lv));
+  const parts = [
+    [REGION_COMMON, '', laws.filter((l) => scopeOf(l) === 'common')],
+    [REGION_SANXIA, '學生會主管', laws.filter((l) => scopeOf(l) === 'union')],
+    [REGION_SANXIA, '學生議會主管', laws.filter((l) => scopeOf(l) === 'council')],
+    [REGION_SANXIA, '主管機關待確認', laws.filter((l) => scopeOf(l) === 'pending')],
+  ].map(([r, sub, arr]) => [r, sub, byLevel(arr)]).filter((x) => x[2].length);
+  if (!parts.length) { toast('目前沒有現行法規可以匯出'); return; }
+  const now = new Date();
+  const today = `${now.getFullYear()}/${String(now.getMonth() + 1).padStart(2, '0')}/${String(now.getDate()).padStart(2, '0')}`;
+  const BR = '<br clear="all" style="page-break-before:always;mso-break-type:page-break">';
+  const title = '國立臺北大學學生自治會 跨校區及三峽校區法規彙編';
+  const cover = `<div style="text-align:center">
+      <p class="cv1">國立臺北大學學生自治會</p><p class="cv2">跨校區及三峽校區</p><p class="cv3">法規彙編</p>
+      <p class="cv4">中華民國 ${esc(rocDate(today))} 編印</p><p class="cv5">收錄現行法規共 ${parts.reduce((n, x) => n + x[2].length, 0)} 部</p></div>`;
+  let n = 0;
+  const toc = `${BR}<h1>目　錄</h1>` + parts.map(([r, sub, arr], pi) => {
+    const showRegion = pi === 0 || parts[pi - 1][0] !== r;
+    return `${showRegion ? `<p class="tc-r">${esc(r)}</p>` : ''}${sub ? `<p class="tc-s">${esc(sub)}</p>` : ''}` +
+      arr.map((l) => `<p class="tc-l" style="margin:0 0 3pt 24pt;text-indent:-24pt"><span class="tc-n">${++n}.</span>　${esc(l.name || l.short)}${levelOf(l) ? `<span class="tc-lv">（${esc(levelOf(l))}）</span>` : ''}</p>`).join('');
+  }).join('');
+  const lawsHtml = parts.flatMap(([r, sub, arr]) => arr.map((l) => `${BR}<p class="run">${esc(r)}${sub ? '．' + esc(sub) : ''}</p>${wordLawHtml(l)}`)).join('');
+  const css = `
+    p.cv1{text-align:center;font-size:20pt;margin:200pt 0 14pt;text-indent:0}
+    p.cv2{text-align:center;font-size:26pt;font-weight:bold;margin:0 0 6pt;text-indent:0}
+    p.cv3{text-align:center;font-size:40pt;font-weight:bold;letter-spacing:.3em;margin:0 0 180pt;text-indent:0}
+    p.cv4{text-align:center;font-size:14pt;margin:0 0 6pt;text-indent:0}
+    p.cv5{text-align:center;font-size:11pt;margin:0;color:#555}
+    p.tc-r{font-size:15pt;font-weight:bold;margin:18pt 0 6pt;border-bottom:1pt solid #000;padding-bottom:3pt}
+    p.tc-s{font-size:13pt;font-weight:bold;margin:10pt 0 4pt}
+    p.tc-l{font-size:12pt}
+    span.tc-lv{font-size:10pt;color:#555}
+    p.run{text-align:right;font-size:9pt;color:#555;margin:0 0 10pt;text-indent:0}`;
+  saveWord(`法規彙編_${today.replace(/\//g, '')}`, cover + toc + lawsHtml, css);
+  toast('已匯出法規彙編');
 }
 
 /* ---------- 搜尋 ---------- */
@@ -1059,7 +1102,7 @@ function renderAdminList() {
   return adminShell('list', `
     <div style="display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:16px">
       <div><div class="eyebrow">管理後台</div><h1>法規管理</h1></div>
-      <a class="btn primary" href="#/admin/new">＋ 新增法規</a>
+      <div style="display:flex;flex-wrap:wrap;gap:10px"><button type="button" class="btn" data-act="compendium">匯出法規彙編（Word）</button><a class="btn primary" href="#/admin/new">＋ 新增法規</a></div>
     </div>
     <div class="filters">
       <div class="field wide"><label for="f-q">搜尋</label><input id="f-q" class="input" type="search" value="${esc(f.q)}" placeholder="法規名稱" data-filter="q"></div>
@@ -1629,6 +1672,7 @@ async function onClick(e) {
   if (act === 'copy-law') { const ok = await copyText(`${baseUrl()}#/law/${encodeURIComponent(parts[1])}`); toast(ok ? '已複製法規連結' : '複製失敗，請手動複製網址'); return; }
   if (act === 'print') { const l = lawById(parts[1]); if (l) printLaw(l); return; }
   if (act === 'reload') { location.reload(); return; }
+  if (act === 'compendium') { downloadCompendium(); return; }
   if (act === 'word') { const l = lawById(parts[1]); if (l) downloadWord(l); return; }
   if (act === 'logout') { logout(); go('#/admin'); return; }
   if (act === 'autoformat') {
