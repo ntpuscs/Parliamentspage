@@ -87,6 +87,15 @@ input[type=file].input{padding:12px 16px;font-size:16px;border-style:dashed}
 .tbl{width:100%;border-collapse:collapse;font-size:15px;table-layout:fixed;min-width:960px}
 .tbl th{text-align:left;font-size:14px;color:var(--muted);font-weight:700;padding:10px 12px;background:var(--cream);border-bottom:1px solid var(--line)}
 .tbl td{padding:14px 12px;border-bottom:1px solid var(--line);vertical-align:top;line-height:1.6;word-break:break-word}
+.cm-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(340px,100%),1fr));gap:24px}
+.cm-col{display:flex;flex-direction:column;gap:12px;min-width:0}
+.cm-h{display:flex;align-items:baseline;justify-content:space-between;gap:8px;padding:10px 14px;border-radius:4px;color:#fff;font-weight:700;font-size:17px}
+.cm{border:1px solid var(--line);border-radius:4px;padding:14px 16px;display:flex;flex-direction:column;gap:8px;background:#fff}
+.cm.mine{border-color:var(--ink)}
+.cm-meta{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:6px 12px;font-size:14px;color:var(--muted)}
+.cm-t{font-size:16px;line-height:1.8;white-space:pre-wrap;word-break:break-word}
+.cm-hid{font-size:15px;line-height:1.7;color:var(--muted);font-style:italic}
+.cm-form{border:2px solid var(--ink);border-radius:4px;padding:20px;display:flex;flex-direction:column;gap:16px;background:var(--cream)}
 .empty{padding:32px;border:1px dashed var(--line);border-radius:4px;color:var(--muted);text-align:center;font-size:16px}
 .loading{padding:64px 0;color:var(--muted);text-align:center;font-size:16px}
 .modal-bg{position:fixed;inset:0;z-index:50;background:rgba(29,34,48,.66);display:flex;justify-content:center;align-items:flex-start;padding:8vh 16px;overflow:auto}
@@ -493,7 +502,11 @@ const ACTS = {
   cat: (el) => { S.cat = el.dataset.v; drawList(); },
   sign: () => doSign(),
   share: (el) => sharePetition(el.dataset.pid, el.dataset.title),
-  secTab: (el) => { S.secTab = el.dataset.v; drawSec(); }
+  secTab: (el) => { S.secTab = el.dataset.v; drawSec(); },
+  cmSide: (el) => cmSide(el),
+  cmDel: (el) => cmDel(el),
+  secHide: (el) => secHide(el),
+  secUnhide: (el) => secUnhide(el)
 };
 document.addEventListener('click', (e) => {
   const el = e.target.closest('[data-act]');
@@ -685,7 +698,92 @@ async function viewDetail(pid) {
     resp + stages +
     '<section class="stack" style="gap:8px"><h3 class="h4">請願事項</h3><div class="pre" style="font-size:17px;line-height:1.8">' + esc(p.ask) + '</div></section>' +
     '<section class="stack" style="gap:8px"><h3 class="h4">理由</h3><div class="pre" style="font-size:17px;line-height:1.8;color:var(--body)">' + esc(p.reason) + '</div></section>' +
-    '</div>' + aside + '</article>', { title: '請願內容' });
+    '</div>' + aside + '</article>' +
+    '<section id="cm" class="stack" style="gap:16px;margin-top:56px;padding-top:32px;border-top:3px double var(--ink)" aria-labelledby="cmT"><h2 id="cmT" class="h2">正反方意見</h2><div id="cm-body">' + loadingHtml('留言載入中…') + '</div></section>', { title: '請願內容' });
+  loadComments(p);
+}
+
+// =====================================================================
+// 正反方留言
+// =====================================================================
+const SIDE = { '正方': { d: '支持這件請願', color: '#0F6B5C' }, '反方': { d: '反對這件請願', color: '#B42318' } };
+const CM_MAX = 1000, CM_PER = 5;
+async function loadComments(p) {
+  try {
+    const d = await api(authed() ? 'comments' : 'guestComments', { pid: p.pid });
+    S.cm = Object.assign({ pid: p.pid, side: (S.cm && S.cm.pid === p.pid && S.cm.side) || '' }, d);
+    drawComments(p);
+  } catch (e) {
+    const box = $('#cm-body'); if (box) box.innerHTML = errorHtml('留言載入失敗：' + e.message);
+  }
+}
+function cmItem(c) {
+  return '<li class="cm' + (c.mine ? ' mine' : '') + '"><div class="cm-meta"><span><strong style="color:var(--ink)">' + esc(c.dept) + '</strong> 同學' + (c.mine ? '（您）' : '') + '</span><span>' + esc(String(c.at).slice(0, 16).replace(/-/g, '/')) + '</span></div>' +
+    (c.hidden ? '<div class="cm-hid">此則留言已由秘書處隱藏。理由：' + esc(c.why) + '</div>' : '<div class="cm-t">' + esc(c.text) + '</div>') +
+    (c.mine ? '<div><button type="button" class="btn sm" data-act="cmDel" data-id="' + esc(c.id) + '">刪除我的留言</button></div>' : '') + '</li>';
+}
+function drawComments(p) {
+  const box = $('#cm-body');
+  if (!box || !S.cm || S.cm.pid !== p.pid) return;
+  const d = S.cm;
+  const cols = Object.keys(SIDE).map((k) => {
+    const list = d.items.filter((c) => c.side === k);
+    return '<div class="cm-col"><div class="cm-h" style="background:' + SIDE[k].color + '"><span>' + k + '・' + SIDE[k].d + '</span><span style="font-size:15px">' + list.length + ' 則</span></div>' +
+      (list.length ? '<ul style="list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:12px">' + list.map(cmItem).join('') + '</ul>' : '<div class="empty" style="padding:20px">目前沒有' + k + '留言。</div>') + '</div>';
+  }).join('');
+  let form;
+  if (!d.open) form = '<div class="hint">連署期間已結束，留言區已關閉，既有留言保留供參考。</div>';
+  else if (!authed()) form = '<div class="cm-form"><div class="h4">發表意見</div><p style="margin:0;font-size:15px;line-height:1.7;color:var(--body)">留言須以北大帳號（@' + CONFIG.DOMAIN + '）登入，限三峽校區學生會會員。</p><div><button type="button" class="btn primary" data-act="loginHere">登入北大帳號後留言</button></div></div>';
+  else if (!auth.user.isMember) form = '<div class="hint">' + (auth.user.isStudent ? '依學籍判斷，您不是三峽校區學生會會員，只能瀏覽留言。' : '只有三峽校區學生會會員可以留言。') + '</div>';
+  else if (d.left <= 0) form = '<div class="hint">您在這件請願已有 ' + CM_PER + ' 則留言，刪除其中一則後才能再留言。</div>';
+  else {
+    let dept = ''; try { dept = localStorage.getItem('pt_dept') || ''; } catch (e) { /* 無法使用時略過 */ }
+    form = '<form id="cmf" class="cm-form" autocomplete="off" novalidate><div class="h4">發表意見</div>' +
+      '<div class="field"><span class="label" style="font-size:15px">立場 <span class="req">*</span></span><div class="tabs" role="group" aria-label="立場">' +
+      Object.keys(SIDE).map((k) => '<button type="button" class="btn' + (d.side === k ? ' on' : '') + '" aria-pressed="' + (d.side === k) + '" data-act="cmSide" data-v="' + k + '">' + k + '・' + SIDE[k].d + '</button>').join('') + '</div></div>' +
+      '<div class="field" style="max-width:280px"><label class="label" for="cm-dept" style="font-size:15px">系級 <span class="req">*</span></label><input id="cm-dept" class="input sm" maxlength="20" placeholder="例：公行三" value="' + esc(dept) + '"></div>' +
+      '<div class="field"><label class="label" for="cm-text" style="font-size:15px">意見 <span class="req">*</span></label><textarea id="cm-text" class="input" rows="6" maxlength="' + CM_MAX + '" style="font-size:16px" aria-describedby="cm-n"></textarea><div class="hint" id="cm-n">0 ／ ' + CM_MAX + ' 字</div></div>' +
+      '<p class="hint" style="margin:0">留言會立即公開，所有人都看得到，只顯示您填的系級，不顯示姓名、學號與信箱。您在這件請願還可以留言 <strong>' + d.left + '</strong> 則；刪除自己的留言後會釋出名額。人身攻擊、洩漏他人個資等不當留言，秘書處得予隱藏。</p>' +
+      '<div id="cm-err" role="alert"></div><div><button type="submit" class="btn primary">送出留言</button></div></form>';
+  }
+  box.innerHTML = '<p class="hint" style="margin:0 0 4px">連署期間內，三峽校區學生會會員可以發表支持或反對的意見，每則 ' + CM_MAX + ' 字以內，每人每件 ' + CM_PER + ' 則。留言只顯示系級。</p>' +
+    '<div class="cm-grid">' + cols + '</div>' + form;
+  const f = $('#cmf');
+  if (!f) return;
+  const ta = $('#cm-text');
+  ta.addEventListener('input', () => { $('#cm-n').textContent = Array.from(ta.value).length + ' ／ ' + CM_MAX + ' 字'; });
+  f.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const dept = $('#cm-dept').value.trim(), text = ta.value.trim();
+    const miss = [];
+    if (!S.cm.side) miss.push('立場'); if (!dept) miss.push('系級'); if (!text) miss.push('意見');
+    if (miss.length) { $('#cm-err').innerHTML = '<div class="alert">請填寫：' + esc(miss.join('、')) + '</div>'; return; }
+    if (Array.from(text).length > CM_MAX) { $('#cm-err').innerHTML = '<div class="alert">留言請在 ' + CM_MAX + ' 字以內</div>'; return; }
+    const btn = f.querySelector('button[type=submit]'); btn.disabled = true; btn.textContent = '送出中…';
+    try {
+      const r = await api('comment', { pid: p.pid, side: S.cm.side, dept: dept, text: text });
+      try { localStorage.setItem('pt_dept', dept); } catch (err) { /* 無法使用時略過 */ }
+      S.cm = Object.assign({ pid: p.pid, side: '' }, r);
+      drawComments(p); toast('留言已公開');
+    } catch (err) {
+      btn.disabled = false; btn.textContent = '送出留言';
+      $('#cm-err').innerHTML = '<div class="alert">' + esc(err.message) + '</div>';
+    }
+  });
+}
+function cmSide(el) {
+  if (!S.cm) return;
+  S.cm.side = el.dataset.v;
+  $$('[data-act="cmSide"]').forEach((b) => { const on = b.dataset.v === S.cm.side; b.classList.toggle('on', on); b.setAttribute('aria-pressed', on); });
+}
+function cmDel(el) {
+  const pid = route().b, p = S.list && S.list.find((x) => x.pid === pid);
+  if (!p) return;
+  showModal('刪除留言', '<p style="margin:0;font-size:16px;line-height:1.7">刪除後無法復原。刪除後您可以再發表一則留言。</p>', '確認刪除', async () => {
+    const r = await api('commentDel', { id: el.dataset.id });
+    S.cm = Object.assign({ pid: p.pid, side: S.cm.side }, r);
+    closeModal(); drawComments(p); toast('已刪除留言');
+  }, { cancel: '取消' });
 }
 
 function doSign() {
@@ -1009,7 +1107,11 @@ async function viewSecPetition(id) {
     right = '<div class="stack" style="gap:8px"><div class="h3">連署人確認中</div><div class="hint">' + (p.expired ? '已超過 14 天的連署人確認期限，確認連結已失效，視為撤回。' : '還有連署人未確認，10 位都確認後才會進入待程序審查。') + '</div></div>';
   }
   app.innerHTML = shell('<div style="margin-top:28px"><a class="btn" href="#/sec">' + BACK + '回到列表</a></div><div class="grid-main" style="margin-top:20px">' + left +
-    '<aside class="card" style="gap:16px">' + right + '</aside></div>', { title: '請願後台', wide: true });
+    '<aside class="card" style="gap:16px">' + right + '</aside></div>' +
+    (p.status === '已開放連署' ? '<section class="stack" style="gap:12px;margin-top:48px;padding-top:28px;border-top:3px double var(--ink)" aria-labelledby="smT"><h2 id="smT" class="h3">留言管理</h2>' +
+      '<p class="hint" style="margin:0">留言送出後立即公開。遇到人身攻擊、洩漏他人個資等不當留言，請按「隱藏」並填寫理由；連署頁會在原位置顯示「已由秘書處隱藏」與理由。留言者信箱只有秘書處看得到。</p><div id="sm-body">' + loadingHtml('留言載入中…') + '</div></section>' : ''),
+    { title: '請願後台', wide: true });
+  if (p.status === '已開放連署') loadSecComments(p.pid);
 
   const rv = $('#rv');
   if (rv) {
@@ -1050,6 +1152,41 @@ async function viewSecPetition(id) {
     catch (err) { $('#nt-err').innerHTML = '<div class="alert">' + esc(err.message) + '</div>'; }
     btn.disabled = false;
   });
+}
+
+async function loadSecComments(pid) {
+  try { S.sm = { pid: pid, items: (await api('secComments', { pid: pid })).items }; drawSecComments(); }
+  catch (e) { const b = $('#sm-body'); if (b) b.innerHTML = errorHtml(e.message); }
+}
+function drawSecComments() {
+  const box = $('#sm-body');
+  if (!box || !S.sm) return;
+  const rows = S.sm.items.slice().reverse();
+  const col = { '公開': '#0F6B5C', '秘書處隱藏': '#B42318', '本人刪除': '#5A6070' };
+  box.innerHTML = rows.length ? '<div class="tbl-wrap"><table class="tbl" style="min-width:900px"><colgroup><col style="width:5em"><col style="width:9em"><col><col style="width:14em"><col style="width:8.5em"></colgroup>' +
+    '<thead><tr><th scope="col">立場</th><th scope="col">系級・時間</th><th scope="col">內容</th><th scope="col">留言者・狀態</th><th scope="col"><span hidden>操作</span></th></tr></thead><tbody>' +
+    rows.map((c) => '<tr><td><span class="chip" style="background:' + SIDE[c.side].color + '">' + esc(c.side) + '</span></td>' +
+      '<td style="font-size:14px">' + esc(c.dept) + '<br><span style="color:var(--muted)">' + esc(String(c.at).slice(0, 16).replace(/-/g, '/')) + '</span></td>' +
+      '<td class="pre" style="font-size:15px;line-height:1.7">' + esc(c.text) + (c.why ? '<div class="hint" style="margin-top:6px">隱藏理由：' + esc(c.why) + '</div>' : '') + '</td>' +
+      '<td style="font-size:14px;word-break:break-all">' + esc(c.mail) + '<br><span class="chip" style="margin-top:6px;background:' + col[c.status] + '">' + esc(c.status) + '</span></td>' +
+      '<td>' + (c.status === '公開' ? '<button type="button" class="btn sm" data-act="secHide" data-id="' + esc(c.id) + '">隱藏</button>'
+        : c.status === '秘書處隱藏' ? '<button type="button" class="btn sm" data-act="secUnhide" data-id="' + esc(c.id) + '">取消隱藏</button>' : '') + '</td></tr>').join('') + '</tbody></table></div>'
+    : '<div class="empty">這件請願目前沒有留言。</div>';
+}
+function secHide(el) {
+  showModal('隱藏留言', '<div class="field"><label class="label" for="hide-why" style="font-size:15px">隱藏理由 <span class="req">*</span></label><input id="hide-why" class="input sm" maxlength="100" placeholder="例：內容涉及人身攻擊">' +
+    '<div class="hint">理由會公開顯示在這則留言的位置。</div></div>', '確認隱藏', async () => {
+    const why = $('#hide-why').value.trim();
+    if (!why) throw new Error('請填寫隱藏理由');
+    S.sm.items = (await api('secHide', { id: el.dataset.id, why: why })).items;
+    closeModal(); drawSecComments(); toast('已隱藏留言');
+  }, { cancel: '取消' });
+}
+function secUnhide(el) {
+  showModal('取消隱藏', '<p style="margin:0;font-size:16px;line-height:1.7">這則留言會恢復公開顯示。</p>', '確認取消隱藏', async () => {
+    S.sm.items = (await api('secUnhide', { id: el.dataset.id })).items;
+    closeModal(); drawSecComments(); toast('已恢復公開');
+  }, { cancel: '取消' });
 }
 
 async function viewSecResp(pid) {
