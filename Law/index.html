@@ -588,7 +588,27 @@ const NUM = '[0-9０-９零〇一二兩三四五六七八九十百]+';
 const RE_CH = new RegExp('^第\\s*(' + NUM + ')\\s*([章節])(?:\\s*之\\s*(' + NUM + '))?\\s*(.*)$');
 // 「第一款 法庭之開閉與秩序」這種節底下的款標題：款號後一定要有空白，避免把「第一款之人員⋯」誤認成標題
 const RE_KH = new RegExp('^第\\s*(' + NUM + ')\\s*款(?:\\s*之\\s*(' + NUM + '))?[\\s\\u3000]+(\\S.*)$');
-const RE_ART = new RegExp('^第\\s*(' + NUM + ')\\s*條(?:\\s*之\\s*(' + NUM + '))?\\s*[:：]?\\s*(.*)$');
+const RE_ART = new RegExp('^第\\s*(' + NUM + ')\\s*條(?:\\s*之\\s*(' + NUM + '))?([\\s\\u3000:：]*)(.*)$');
+/* 條號行的判斷：
+   「第十條」單獨一行、「第 10 條 條文⋯」（條號後有空白或冒號）、「第20條之1（條旨）」「第36條（刪除）」→ 條號
+   「第十條規定之事項⋯」「第五條之一有關⋯」這種條號後直接接文字的，是條文內容在引用別條，不是新的一條；
+   只有在剛好是下一條（例如上一條是第九條，這行是第十條）而且不像引用時，才當成條號 */
+const ART_CONT = /^[之至、及或與和暨規所第各中以前後內外項款目者有準於應得不]/;
+function artHead(line, prevKey) {
+  const m = line.match(RE_ART);
+  if (!m) return null;
+  const n = cnToNum(m[1]); const sub = m[2] ? cnToNum(m[2]) : null;
+  if (isNaN(n) || (sub !== null && isNaN(sub))) return null;
+  const rest = m[4], sep = m[3];
+  if (rest && ART_CONT.test(rest)) return null;
+  if (rest && !sep && !/^[（(]/.test(rest)) {
+    const key = sub ? n + '-' + sub : String(n);
+    const [pn, ps] = String(prevKey || '0').split('-').map(Number);
+    const isNext = sub ? (n === pn && sub === (ps || 0) + 1) : n === pn + 1;
+    if (!isNext) return null;
+  }
+  return { n, sub, rest };
+}
 const parseCache = new Map();
 function parseLaw(text) {
   text = String(text || '');
@@ -604,15 +624,13 @@ function parseLaw(text) {
       const ch = { label: '第' + m[1] + m[2] + (m[3] ? '之' + m[3] : ''), title: m[4] || '', kind: m[2], articles: [], intro: [], idx: out.chapters.length };
       out.chapters.push(ch); curCh = ch; curArt = null; return;
     }
-    m = line.match(RE_ART);
-    if (m) {
-      const n = cnToNum(m[1]); const s = m[2] ? cnToNum(m[2]) : null;
-      if (!isNaN(n) && (s === null || !isNaN(s)) && !/^[之至、及或與規]/.test(m[3])) {
-        curArt = { key: s ? n + '-' + s : String(n), label: '第 ' + n + ' 條' + (s ? '之 ' + s : ''), paras: [], chapter: curCh ? curCh.idx : -1 };
-        out.articles.push(curArt); if (curCh) curCh.articles.push(curArt);
-        if (m[3]) curArt.paras.push({ level: 1, text: m[3] });
-        return;
-      }
+    const ah = artHead(line, out.articles.length ? out.articles[out.articles.length - 1].key : '0');
+    if (ah) {
+      const { n, sub: s } = ah;
+      curArt = { key: s ? n + '-' + s : String(n), label: '第 ' + n + ' 條' + (s ? '之 ' + s : ''), paras: [], chapter: curCh ? curCh.idx : -1 };
+      out.articles.push(curArt); if (curCh) curCh.articles.push(curArt);
+      if (ah.rest) curArt.paras.push({ level: 1, text: ah.rest });
+      return;
     }
     const level = /^[一二三四五六七八九十百]+、/.test(line) ? 2
       : /^[（(][一二三四五六七八九十百]+[）)]/.test(line) ? 3
@@ -648,7 +666,7 @@ function autoFormat(text) {
   t = t.replace(new RegExp('([：:；;。])[ \\t\\u3000]*(?=' + MU + ')', 'g'), '$1\n');
   t = t.replace(new RegExp('([。])[ \\t\\u3000]+(?=第\\s*' + NUM + '\\s*[條章節])', 'g'), '$1\n');
   const lines = t.split('\n').map((l) => l.replace(/^[\s　]+|[\s　]+$/g, '')).filter(Boolean);
-  const isHead = (l) => RE_CH.test(l) || RE_ART.test(l) || new RegExp('^(' + KUAN + '|' + MU + '|[0-9０-９]+[.．、])').test(l);
+  const isHead = (l) => RE_CH.test(l) || (() => { const m = l.match(RE_ART); return !!m && !ART_CONT.test(m[4]) && (!m[4] || !!m[3] || /^[（(]/.test(m[4])); })() || new RegExp('^(' + KUAN + '|' + MU + '|[0-9０-９]+[.．、])').test(l);
   const out = [];
   lines.forEach((l) => {
     const prev = out[out.length - 1];
@@ -1031,7 +1049,7 @@ function diffHTML(oldText, newText, showAll, id, row, histText) {
   }).join('');
   const base = `#/law/${encodeURIComponent(id)}?ver=${row}&diff=1`;
   const whole = /全文/.test(histText || '');
-  const note = `<div class="diff-note" role="note"><b>僅供參考</b>本對照由系統依「條號」自動逐條比對產生，無法辨識條次變更（條文移動、增刪後重新編號）${whole ? '；<b>本次為全文修正</b>，條次多有變動，下表的修正、新增、刪除標示很可能與實際不符' : '或全文修正，遇到這些情形時，比對結果會與實際修正內容不符'}。正式修正內容請以議事系統的修正條文對照表及公布條文為準。</div>`;
+  const note = `<div class="diff-note" role="note"><b>僅供參考</b>本對照由系統依「條號」自動逐條比對產生，無法辨識條次變更（條文移動、增刪後重新編號）${whole ? '；<b>本次為全文修正</b>，條次多有變動，下表的修正、新增、刪除標示很可能與實際不符' : '或全文修正，遇到這些情形時，比對結果會與實際修正內容不符'}。修正內容請以正式公布的條文為準。</div>`;
   return note + `<div class="diff-sum"><span>${['修正', '新增', '刪除'].filter((k) => cnt[k]).map((k) => `${k} <b>${cnt[k]}</b> 條`).join('、') || '條文內容沒有變動'}${cnt.未修正 ? `；未修正 ${cnt.未修正} 條` : ''}</span>
       ${cnt.未修正 ? `<a href="${base}${showAll ? '' : '&all=1'}">${showAll ? '只看有變動的條文' : '一併顯示未修正條文'}</a>` : ''}
       <span class="muted" style="font-size:14px"><ins>底線</ins> 為新增文字，<del>刪除線</del> 為刪除文字</span></div>
