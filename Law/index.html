@@ -611,6 +611,8 @@ const levelTag = (l) => { const v = levelOf(l); return v ? `<span class="lv lv-$
 // 母法／子法：「母法編號」可填一個或多個（以頓號分隔）
 const parentsOf = (l) => String((l && l.parent) || '').split(/[、,，\s]+/).map((x) => x.trim()).filter((x) => x && x !== l.id);
 const childrenOf = (id) => state.data.laws.filter((l) => parentsOf(l).indexOf(id) >= 0);
+// 命令、行政規則稱「訂定」；章程、法律稱「制定」
+const enactWord = (lv) => (lv === '命令' || lv === '行政規則' ? '訂定' : '制定');
 const levelRank = (l) => { const i = LEVELS.indexOf(levelOf(l)); return i < 0 ? 9 : i; };
 const sortLaws = (arr) => arr.map((l, i) => [l, i]).sort((a, b) => (isRepealed(a[0]) - isRepealed(b[0])) || (levelRank(a[0]) - levelRank(b[0])) || (a[1] - b[1])).map((x) => x[0]);
 
@@ -1070,7 +1072,7 @@ function renderAdminEdit(id, presetParent) {
   const agencies = a.role === 'admin' ? AGENCIES : [a.agency];
   const v = law || { name: '', short: '', level: '', parent: presetParent || '', region: regions[regions.length - 1], agency: agencies[0], url: '', text: '' };
   const title = isNew ? '新增法規' : isDraft ? '編輯草稿' : '修正法規';
-  const type = isAmend ? '修正' : '制定';
+  const type = isAmend ? '修正' : enactWord(levelOf(v));
   const ph = isAmend
     ? '中華民國 ○ 年 ○ 月 ○ 日三峽校區學生議會第 ○ 屆第 ○ 次常會通過，會長於 ○ 年 ○ 月 ○ 日公布，修正第 ○ 條。'
     : '中華民國 ○ 年 ○ 月 ○ 日三峽校區學生議會第 ○ 屆第 ○ 次常會通過，會長於 ○ 年 ○ 月 ○ 日公布。';
@@ -1118,8 +1120,9 @@ function renderAdminEdit(id, presetParent) {
         <div class="step"><span class="n">三</span><h2>沿革紀錄</h2><span class="muted" style="font-size:14px">發布時必填${isNew || isDraft ? '，儲存草稿可不填' : ''}</span></div>
         <div class="grid2">
           <div class="field"><label for="e-date">公布日期</label><input id="e-date" name="date" class="input" type="date" value="${todayISO()}">
-            ${isAmend ? '' : '<label class="check" style="margin-top:6px"><input type="checkbox" name="unknown" id="e-unknown"><span>制定日期不可考（不填日期，沿革寫「制定日期不可考。」）</span></label>'}</div>
-          <div class="field"><label for="e-type">異動類型</label><select id="e-type" name="type" class="select">${(isAmend ? ['修正'] : ['制定']).map((t) => `<option ${t === type ? 'selected' : ''}>${t}</option>`).join('')}</select></div>
+            ${isAmend ? '' : `<label class="check" style="margin-top:6px"><input type="checkbox" name="unknown" id="e-unknown"><span><span data-enact>${type}</span>日期不可考（不填日期，沿革寫「<span data-enact>${type}</span>日期不可考。」）</span></label>`}</div>
+          <div class="field"><label for="e-type">異動類型</label><select id="e-type" name="type" class="select">${(isAmend ? ['修正'] : ['制定', '訂定']).map((t) => `<option ${t === type ? 'selected' : ''}>${t}</option>`).join('')}</select>
+            ${isAmend ? '' : '<div class="hint">章程、法律為「制定」；命令、行政規則為「訂定」，會依位階自動切換。</div>'}</div>
           <div class="field span-all"><label for="e-hist">沿革文字</label>
             <textarea id="e-hist" name="hist" class="textarea" rows="3" placeholder="${ph}"></textarea>
             <div class="hint">寫明通過日期、第幾屆第幾次常會／臨時會、公布日期，以及修正、增訂或廢止第幾條。發布後會接在前台「法規沿革」最上方。</div></div>
@@ -1339,6 +1342,14 @@ function edKeyChange(t, form) {
   n.key = key; edSync(form, { tree: true, panel: true });
 }
 
+function form_enact(t) { t.form.querySelectorAll('[data-enact]').forEach((x) => { x.textContent = t.value; }); }
+function syncLevelBits(form) {
+  if (!form) return;
+  const lv = form.elements.level ? form.elements.level.value : '';
+  const tp = form.elements.type;
+  if (tp && tp.options.length > 1) { tp.value = enactWord(lv); form.querySelectorAll('[data-enact]').forEach((x) => { x.textContent = tp.value; }); }
+  const h = form.elements.hist; if (h && /^[制訂]定日期不可考。$/.test(h.value.trim()) && tp) h.value = tp.value + '日期不可考。';
+}
 function kidsPanel(id) {
   const all = state.admin.data.laws;
   const kids = all.filter((l) => parentsOf(l).indexOf(id) >= 0);
@@ -1396,7 +1407,7 @@ function parseHistoryBlock(text) {
       if (!pub[1] && first && +pub[2] < +first[2]) y += 1;
       date = iso(y, +pub[2], +pub[3]);
     } else if (first) date = iso(+first[1], +first[2], +first[3]);
-    const type = /修正|增訂|刪除|廢止第/.test(t) ? '修正' : /廢止/.test(t) ? '廢止' : '制定';
+    const type = /修正|增訂|刪除|廢止第/.test(t) ? '修正' : /廢止/.test(t) ? '廢止' : /訂定|發布/.test(t) ? '訂定' : '制定';
     return { text: orig, date, type };
   });
 }
@@ -1406,7 +1417,7 @@ function renderAdminHistory(id) {
   if (!canEdit(law.region, law.agency)) return adminShell('list', '<h1>沒有權限修改這部法規</h1><p><a href="#/admin">回到列表</a></p>');
   const existing = state.admin.data.history.filter((h) => h.id === id).sort((a, b) => (b.date || '').localeCompare(a.date || ''));
   const draft = state.admin.histDraft;
-  const types = ['制定', '修正', '廢止'];
+  const types = ['制定', '訂定', '修正', '廢止'];
   return adminShell('list', `
     <div style="display:flex;flex-direction:column;gap:12px">
       <nav class="crumbs" style="padding:0" aria-label="麵包屑"><a href="#/admin">法規管理</a><span>/</span><span>匯入沿革</span></nav>
@@ -1532,11 +1543,11 @@ async function onSubmit(e) {
       const f = form.elements;
       const law = { id: form.dataset.id || '', name: f.name.value.trim(), short: f.short.value.trim(), level: f.level.value, parent: f.parent.value, region: f.region.value, agency: f.region.value === REGION_COMMON ? '' : f.agency.value, url: f.url.value.trim(), text: f.text.value };
       const unknown = !!(f.unknown && f.unknown.checked);
-      const history = { date: unknown ? '' : f.date.value, type: f.type.value, text: f.hist.value.trim() || (unknown ? '制定日期不可考。' : ''), unknown };
+      const history = { date: unknown ? '' : f.date.value, type: f.type.value, text: f.hist.value.trim() || (unknown ? f.type.value + '日期不可考。' : ''), unknown };
       if (!law.name) return showErr(form, '請填寫法規全稱。');
       if (submitter === 'publish') {
         if (!parseLaw(law.text).articles.length) return showErr(form, '全文沒有辨識到任何條文，請確認每條以「第 X 條」開頭。');
-        if (!history.date && !unknown) return showErr(form, '請填寫公布日期，或勾選「制定日期不可考」。');
+        if (!history.date && !unknown) return showErr(form, `請填寫公布日期，或勾選「${history.type}日期不可考」。`);
         if (!history.text) return showErr(form, '發布前請填寫沿革文字。');
       }
       showErr(form, ''); lock(true);
@@ -1651,7 +1662,7 @@ function onInput(e) {
   const form = t.closest('form[data-form="edit"]');
   if (form && (t.name === 'name' || t.name === 'short')) {
     const sel = form.elements.level;
-    if (sel && sel.dataset.dirty !== '1') { const g = guessLevel(form.elements.name.value) || guessLevel(form.elements.short.value); sel.value = g; }
+    if (sel && sel.dataset.dirty !== '1') { const g = guessLevel(form.elements.name.value) || guessLevel(form.elements.short.value); sel.value = g; syncLevelBits(form); }
   }
   if (form && t.name === 'text') { clearTimeout(onInput.p); onInput.p = setTimeout(() => updatePreview(form), 200); }
 }
@@ -1668,13 +1679,15 @@ function onChange(e) {
     const mode = $('#mode') ? $('#mode').value : 'all'; const lv = $('#lv') ? $('#lv').value : 'all';
     go(`#/search?q=${encodeURIComponent(params.get('q') || '')}&scope=${encodeURIComponent(params.get('scope') || 'all')}&in=${encodeURIComponent(mode)}&lv=${encodeURIComponent(lv)}`);
   }
-  if (t.id === 'e-level') t.dataset.dirty = '1';
+  if (t.id === 'e-level') { t.dataset.dirty = '1'; syncLevelBits(t.form); }
   if (t.dataset.ed === 'key') { const form = t.closest('form[data-form="edit"]'); if (form) edKeyChange(t, form); }
+  if (t.id === 'e-type') form_enact(t);
   if (t.id === 'e-unknown') {
     const d = $('#e-date'); const h = $('#e-hist');
     d.disabled = t.checked;
-    if (t.checked && !h.value.trim()) h.value = '制定日期不可考。';
-    if (!t.checked && h.value.trim() === '制定日期不可考。') h.value = '';
+    const w = ($('#e-type') || {}).value || '制定';
+    if (t.checked && !h.value.trim()) h.value = w + '日期不可考。';
+    if (!t.checked && /^[制訂]定日期不可考。$/.test(h.value.trim())) h.value = '';
   }
   if (t.id === 'e-region') {
     const fld = $('[data-agency-field]'); if (fld) fld.hidden = t.value === REGION_COMMON;
