@@ -216,6 +216,8 @@ h1 .fei{border-width:2.5px;border-radius:5px;font-size:.72em;margin-right:.3em}
 .art{display:flex;flex-wrap:wrap;gap:6px 32px;padding:24px 0;border-bottom:1px solid var(--stone);scroll-margin-top:16px;transition:background .6s}
 .art.flash{background:var(--flash)}
 /* 修正前後對照 */
+.diff-note{margin:0 0 14px;padding:12px 16px;border:1px solid var(--warn-line);border-left:4px solid var(--warn-line);border-radius:4px;background:var(--warn-bg);font-size:15px;line-height:1.8}
+.diff-note b:first-child{margin-right:8px}
 .diff-sum{display:flex;flex-wrap:wrap;align-items:baseline;gap:6px 18px;padding:4px 0 14px;font-size:16px}
 .diff{border:1px solid var(--stone);border-radius:6px;overflow:hidden;background:var(--card)}
 .diff .dh,.diff .dr{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr)}
@@ -1006,7 +1008,7 @@ function charDiff(a, b) {
   const newH = pre + ops.map(([t, c]) => t === '=' ? br(c) : t === '+' ? `<ins>${br(c)}</ins>` : '').join('') + suf;
   return [oldH, newH];
 }
-function diffHTML(oldText, newText, showAll, id, row) {
+function diffHTML(oldText, newText, showAll, id, row, histText) {
   const A = parseLaw(oldText), B = parseLaw(newText);
   const join = (a) => a.paras.map((x) => x.text).join('\n');
   const mA = new Map(A.articles.map((a) => [a.key, a])), mB = new Map(B.articles.map((a) => [a.key, a]));
@@ -1026,7 +1028,9 @@ function diffHTML(oldText, newText, showAll, id, row) {
     return `<div class="dr${st === '未修正' ? ' same' : ''}"><div class="dc" data-h="修正後">${lab}<div>${nh}</div></div><div class="dc" data-h="修正前">${lab}<div>${oh}</div></div></div>`;
   }).join('');
   const base = `#/law/${encodeURIComponent(id)}?ver=${row}&diff=1`;
-  return `<div class="diff-sum"><span>${['修正', '新增', '刪除'].filter((k) => cnt[k]).map((k) => `${k} <b>${cnt[k]}</b> 條`).join('、') || '條文內容沒有變動'}${cnt.未修正 ? `；未修正 ${cnt.未修正} 條` : ''}</span>
+  const whole = /全文/.test(histText || '');
+  const note = `<div class="diff-note" role="note"><b>僅供參考</b>本對照由系統依「條號」自動逐條比對產生，無法辨識條次變更（條文移動、增刪後重新編號）${whole ? '；<b>本次為全文修正</b>，條次多有變動，下表的修正、新增、刪除標示很可能與實際不符' : '或全文修正，遇到這些情形時，比對結果會與實際修正內容不符'}。正式修正內容請以議事系統的修正條文對照表及公布條文為準。</div>`;
+  return note + `<div class="diff-sum"><span>${['修正', '新增', '刪除'].filter((k) => cnt[k]).map((k) => `${k} <b>${cnt[k]}</b> 條`).join('、') || '條文內容沒有變動'}${cnt.未修正 ? `；未修正 ${cnt.未修正} 條` : ''}</span>
       ${cnt.未修正 ? `<a href="${base}${showAll ? '' : '&all=1'}">${showAll ? '只看有變動的條文' : '一併顯示未修正條文'}</a>` : ''}
       <span class="muted" style="font-size:14px"><ins>底線</ins> 為新增文字，<del>刪除線</del> 為刪除文字</span></div>
     <div class="diff"><div class="dh"><span>修正後條文</span><span>修正前條文</span></div>${rows}</div>`;
@@ -1090,7 +1094,7 @@ function renderDetail(id, artKey, params) {
   const toc = parsed.chapters.length ? `<details class="tocd" ${wide ? 'open' : ''}><summary><span>目錄</span><span class="muted" style="font-size:14px;font-weight:400">${parsed.chapters.filter((c) => c.kind === '章').length} 章</span></summary><ol class="toc">${parsed.chapters.map((ch) => `
       <li class="${ch.kind === '節' ? 'sub' : ch.kind === '款' ? 'sub2' : ''}"><a href="#" data-act="goto-ch" data-idx="${ch.idx}"><span class="n">${esc(ch.label)}</span><span>${esc(ch.title)}</span></a></li>`).join('')}</ol></details>` : '';
 
-  const bodyHTML = ver && ver.diff ? diffHTML(ver.text, ver.after, params.get('all') === '1', id, ver.h.row)
+  const bodyHTML = ver && ver.diff ? diffHTML(ver.text, ver.after, params.get('all') === '1', id, ver.h.row, ver.h.text)
     : parsed.articles.length || parsed.preamble.length
     ? lawBodyHTML(parsed, q, !ver, only)
     : `<p class="muted" style="font-size:17px">本法條文尚未建檔。${law.url ? `請先參閱<a href="${esc(law.url)}" target="_blank" rel="noopener">原始頁面</a>。` : ''}</p>`;
