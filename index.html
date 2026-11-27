@@ -222,6 +222,18 @@ a.primary{display:inline-flex;align-items:center;text-decoration:none;margin-top
   .share .ok:empty{display:none}
 }
 article.focus{outline:3px solid var(--accent);outline-offset:8px;border-radius:2px}
+/* 連動法規資料庫：說明裡的法規名稱、條號連結，以及「相關法規」區塊 */
+a.lx{color:var(--accent);text-decoration:underline;text-decoration-thickness:1px;text-underline-offset:3px}
+.lawref{display:flex;flex-direction:column;gap:10px;padding:16px 18px;border:1px solid var(--line);border-radius:4px;background:var(--outbg)}
+.lawref .lbl{display:flex;flex-wrap:wrap;align-items:baseline;gap:4px 10px;font-size:15px;font-weight:700}
+.lawref .lbl span{font-size:13px;font-weight:400;color:var(--muted)}
+.lawref ul{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:10px}
+.lawref li{display:flex;flex-wrap:wrap;align-items:center;gap:6px 12px;font-size:16px}
+.lawref .nm{display:inline-flex;align-items:center;gap:6px;min-height:36px;color:var(--accent);font-weight:700;text-underline-offset:4px}
+.lawref .fei{font-size:13px;font-weight:700;color:var(--warn);background:var(--warnbg);padding:1px 8px;border-radius:3px}
+.lawref .arts{display:flex;flex-wrap:wrap;gap:6px}
+.lawref .arts a{display:inline-flex;align-items:center;min-height:36px;padding:0 12px;font-size:14px;font-weight:500;color:var(--ink);border:1px solid var(--line);border-radius:999px;text-decoration:none;background:var(--bg)}
+.lawref .arts a:hover{border-color:var(--ink)}
 .hp{position:absolute;left:-9999px;width:1px;height:1px;overflow:hidden}
 .flist{margin:0;padding-left:1.4em;font-size:15px;line-height:1.8;color:var(--text2)}
 /* ====== 送出前確認視窗 ====== */
@@ -980,7 +992,8 @@ function render() {
       '<div class="cur">目前進度：' + esc(currentLabel(b)) + '</div></div>' +
       '<div><button type="button" class="more" data-open="' + esc(b.id) + '" aria-expanded="' + open + '">' + (open ? '收合詳情' : '查看詳情') + '</button></div>' +
       (open ? '<div class="detail">' +
-        (b.summary ? '<p>' + esc(b.summary) + '</p>' : '') +
+        (b.summary ? '<p>' + lawLinked(b.summary).html + '</p>' : '') +
+        lawRefHTML(b) +
         '<dl><div><dt>提案人</dt><dd>' + esc(b.proposerFull) + '</dd></div>' +
         '<div><dt>審查單位</dt><dd>' + esc(b.committee) + '</dd></div></dl>' +
         (b.files.length ? '<div><div style="font-size:15px;font-weight:700;margin-bottom:4px">附件</div><ul class="files">' +
@@ -1074,6 +1087,7 @@ async function load() {
     $('updated').textContent = '資料載入時間：' + new Date().toLocaleString('zh-TW', { hour12: false });
     render();
     focusBill();
+    loadLawIndex();
   } catch (err) {
     const why = err && err.headers ? err.message : '無法連到試算表（' + (err && err.message ? err.message : '未知原因') + '）。請稍後再試，或聯絡議會秘書處。';
     S.err = why;
@@ -1081,6 +1095,117 @@ async function load() {
     console.error(err);
   }
 }
+/* ====== 連動法規資料庫 ======
+   議案的標題、說明提到法規名稱（全稱、簡稱或舊名稱）與條號時，自動連到法規資料庫，
+   並在議案詳情列出「相關法規」。不需要在試算表多填任何欄位。 */
+const LAW_API_URL = 'https://script.google.com/macros/s/AKfycbwERts4CSlpOUcxT4I0fINYVNyhsKGZC4VaY54m0Q2W6SmaLj1c8Eo_C8WGuEnFkupB/exec';
+const LAW_SITE = 'Law/'; // 法規資料庫的網址（相對於本站）
+const LAWX = { byId: null, nameTo: {}, re: null, loading: false };
+const LNUM = '[0-9０-９零〇一二兩三四五六七八九十百]+';
+const LCN = { 零: 0, 〇: 0, 一: 1, 二: 2, 兩: 2, 三: 3, 四: 4, 五: 5, 六: 6, 七: 7, 八: 8, 九: 9 };
+function lawNum(s) {
+  s = String(s).trim().replace(/[０-９]/g, (c) => String.fromCharCode(c.charCodeAt(0) - 0xFEE0));
+  if (/^\d+$/.test(s)) return +s;
+  let total = 0, cur = 0;
+  for (const ch of s) {
+    if (ch in LCN) cur = LCN[ch];
+    else if (ch === '十') { total += (cur || 1) * 10; cur = 0; }
+    else if (ch === '百') { total += (cur || 1) * 100; cur = 0; }
+    else return NaN;
+  }
+  return total + cur;
+}
+// 法規資料庫的 Apps Script 還沒部署新版時，從全文自己找條號
+function lawArtKeys(text) {
+  const re = new RegExp('^第\\s*(' + LNUM + ')\\s*條(?:\\s*之\\s*(' + LNUM + '))?');
+  const keys = [];
+  String(text || '').split(/\r?\n/).forEach((line) => {
+    const m = re.exec(line.replace(/^[\s　]+/, '')); if (!m) return;
+    const n = lawNum(m[1]), x = m[2] ? lawNum(m[2]) : null;
+    if (!isNaN(n) && (x === null || !isNaN(x))) keys.push(x ? n + '-' + x : String(n));
+  });
+  return keys;
+}
+const lawStrip = (n) => String(n || '').trim().replace(/^國立臺北大學/, '').replace(/^學生自治會/, '');
+const escRe = (s) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+function buildLawIndex(j) {
+  const byId = {}, nameTo = {};
+  j.laws.forEach((l) => { byId[l.id] = { id: l.id, name: l.name || l.short, short: l.short, status: l.status, arts: new Set(l.arts || []) }; });
+  // 名稱至少 4 個字才比對，避免太短的簡稱誤連；同一個名稱以現行名稱優先
+  const add = (n, id) => { n = String(n || '').trim(); if (n.length >= 4 && !(n in nameTo)) nameTo[n] = id; };
+  j.laws.forEach((l) => { add(l.name, l.id); add(l.short, l.id); add(lawStrip(l.name), l.id); add(lawStrip(l.short), l.id); });
+  (j.renames || []).forEach((r) => { if (byId[r.id]) { add(r.oldName, r.id); add(lawStrip(r.oldName), r.id); } });
+  const names = Object.keys(nameTo).sort((a, b) => b.length - a.length);
+  LAWX.byId = byId; LAWX.nameTo = nameTo;
+  LAWX.re = names.length ? new RegExp('(' + names.map(escRe).join('|') + ')|(第\\s*(' + LNUM + ')\\s*條(?:\\s*之\\s*(' + LNUM + '))?)', 'g') : null;
+}
+async function loadLawIndex() {
+  if (LAWX.byId || LAWX.loading || !LAW_API_URL) return;
+  LAWX.loading = true;
+  try {
+    let j = null;
+    try { const r = await fetch(LAW_API_URL + '?action=index', { cache: 'no-store' }); j = await r.json(); } catch (e) {}
+    if (!j || !j.ok || !j.laws) {
+      const r = await fetch(LAW_API_URL + '?action=data'); const d = await r.json();
+      if (!d.ok) throw new Error(d.error || '讀取失敗');
+      j = { laws: d.laws.map((l) => ({ id: l.id, name: l.name, short: l.short, status: l.status, arts: lawArtKeys(l.text) })), renames: d.renames };
+    }
+    buildLawIndex(j);
+    if (S.open && !views.pub.hidden) render();
+  } catch (e) { console.warn('法規資料庫索引讀取失敗：', e); }
+  LAWX.loading = false;
+}
+const lawHref = (id, key) => LAW_SITE + '#/law/' + encodeURIComponent(id) + (key ? '/' + encodeURIComponent(key) : '');
+const artLabel = (key) => { const p = String(key).split('-'); return '第 ' + p[0] + ' 條' + (p[1] ? '之 ' + p[1] : ''); };
+// 回傳 { html: 已加上連結的文字, refs: [[法規編號, Set(條號)]…] }
+function lawLinked(text) {
+  text = String(text == null ? '' : text);
+  const refs = new Map();
+  if (!LAWX.re) return { html: esc(text), refs: refs };
+  const re = new RegExp(LAWX.re.source, 'g');
+  let out = '', last = 0, ctx = null, m;
+  while ((m = re.exec(text))) {
+    out += esc(text.slice(last, m.index));
+    if (m[1]) {
+      const id = LAWX.nameTo[m[1]];
+      if (!refs.has(id)) refs.set(id, new Set());
+      out += '<a class="lx" href="' + esc(lawHref(id)) + '">' + esc(m[1]) + '</a>';
+      ctx = { id: id, end: re.lastIndex };
+    } else {
+      // 條號要緊接在法規名稱後（中間可有引號、「第 X 項」或「、及與至」），才知道是哪部法規
+      const gap = ctx ? text.slice(ctx.end, m.index) : null;
+      const near = gap !== null && (/^[\s　」』》〉]*(?:第[^，。；：]{0,12}?[項款目])?[\s　]*$/.test(gap) || /^[\s　]*(?:第[^，。；：]{0,12}?[項款目])?[\s　]*[、，,及或與和至][\s　]*$/.test(gap));
+      const n = lawNum(m[3]), x = m[4] ? lawNum(m[4]) : null;
+      const key = isNaN(n) || (m[4] && isNaN(x)) ? null : (x ? n + '-' + x : String(n));
+      const law = near && LAWX.byId[ctx.id];
+      if (law && key && law.arts.has(key)) {
+        refs.get(ctx.id).add(key);
+        out += '<a class="lx" href="' + esc(lawHref(ctx.id, key)) + '">' + esc(m[0]) + '</a>';
+      } else out += esc(m[0]);
+      ctx = near ? { id: ctx.id, end: re.lastIndex } : null;
+    }
+    last = re.lastIndex;
+  }
+  return { html: out + esc(text.slice(last)), refs: refs };
+}
+// 議案詳情的「相關法規」：從標題與說明找出提到的法規與條號
+function lawRefHTML(b) {
+  if (!LAWX.byId) return '';
+  const refs = new Map();
+  [b.title, b.summary].forEach((t) => lawLinked(t).refs.forEach((keys, id) => {
+    if (!refs.has(id)) refs.set(id, new Set());
+    keys.forEach((k) => refs.get(id).add(k));
+  }));
+  if (!refs.size) return '';
+  const sortKey = (k) => { const p = k.split('-'); return +p[0] * 1000 + (+p[1] || 0); };
+  return '<div class="lawref"><div class="lbl">相關法規<span>依議案內容自動比對，點選可查看現行條文</span></div><ul>' +
+    [...refs].map(([id, keys]) => { const l = LAWX.byId[id];
+      return '<li><a class="nm" href="' + esc(lawHref(id)) + '">' + esc(l.short || l.name) + ' →</a>' +
+        (l.status === '已廢止' ? '<span class="fei">已廢止</span>' : '') +
+        (keys.size ? '<span class="arts">' + [...keys].sort((a, c) => sortKey(a) - sortKey(c)).map((k) => '<a href="' + esc(lawHref(id, k)) + '">' + artLabel(k) + '</a>').join('') + '</span>' : '') + '</li>';
+    }).join('') + '</ul></div>';
+}
+
 /* ====== 秘書處 ======
    帳號密碼放在 Apps Script（SEC_USER／SEC_PASS）由伺服器驗證，網頁原始碼裡沒有帳密。 */
 

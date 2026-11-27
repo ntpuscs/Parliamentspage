@@ -343,6 +343,8 @@ del{text-decoration:line-through;text-decoration-color:var(--red);background:var
 .step h2{margin:0;font-family:var(--serif);font-weight:900;font-size:24px}
 .grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(260px,100%),1fr));gap:20px}
 .span-all{grid-column:1/-1}
+/* 從議事系統「會議期程」擬沿革 */
+.meetbox{padding:16px 18px;background:var(--tint);border:1px solid var(--stone);border-radius:6px}
 .editor{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(420px,100%),1fr));gap:24px;align-items:start}
 .preview{background:var(--card);border:1px solid var(--stone);border-radius:6px;padding:20px 24px;max-height:720px;overflow:auto}
 .seg button{display:inline-flex;align-items:center;min-height:48px;padding:0 22px;border:0;background:transparent;font-weight:500;cursor:pointer;font-size:16px}
@@ -1621,11 +1623,14 @@ function renderAdminEdit(id, presetParent) {
       <section style="display:flex;flex-direction:column;gap:20px">
         <div class="step"><span class="n">三</span><h2>沿革紀錄</h2><span class="muted" style="font-size:14px">發布時必填${isNew || isDraft ? '，儲存草稿可不填' : ''}</span></div>
         <div class="grid2">
+          <div class="field span-all meetbox"><label for="e-meet">通過的會議（選填，從議事系統「會議期程」帶入）</label>
+            <select id="e-meet" name="meet" class="select" data-meet><option value="">載入會議期程中⋯</option></select>
+            <div class="hint">選好通過的會議、填好公布日期，再按沿革文字旁的「產生沿革草稿」，系統會寫好通過與公布的句子${isAmend ? '，並依條文比對列出修正、增訂、刪除的條次' : ''}。產生後請再核對。</div></div>
           <div class="field"><label for="e-date">公布日期</label><input id="e-date" name="date" class="input" type="date" value="${todayISO()}">
             ${isAmend ? '' : `<label class="check" style="margin-top:6px"><input type="checkbox" name="unknown" id="e-unknown"><span><span data-enact>${type}</span>日期不可考（不填日期，沿革寫「<span data-enact>${type}</span>日期不可考。」）</span></label>`}</div>
           <div class="field"><label for="e-type">異動類型</label><select id="e-type" name="type" class="select">${(isAmend ? ['修正'] : ['制定', '訂定']).map((t) => `<option ${t === type ? 'selected' : ''}>${t}</option>`).join('')}</select>
             ${isAmend ? '' : '<div class="hint">章程、法律為「制定」；命令、行政規則為「訂定」，會依位階自動切換。</div>'}</div>
-          <div class="field span-all"><label for="e-hist">沿革文字</label>
+          <div class="field span-all"><div class="tools"><label for="e-hist">沿革文字</label><button type="button" class="btn small" data-act="hist-draft" style="margin-left:auto">產生沿革草稿</button></div>
             <textarea id="e-hist" name="hist" class="textarea" rows="3" placeholder="${ph}"></textarea>
             <div class="hint">寫明通過日期、第幾屆第幾次常會／臨時會、公布日期，以及修正、增訂或廢止第幾條。發布後會接在前台「法規沿革」最上方。</div></div>
         </div>
@@ -1970,14 +1975,101 @@ function renderAdminRepeal(id) {
         <div class="muted" style="font-size:15px">${esc(scopeLabel(law))}　·　最近異動 ${esc(law.date || '—')}</div></div>
       <div class="warnbox">${ICON_WARN}<div><b>廢止後會發生什麼</b><br><span style="color:var(--ink2)">前台會標示「已廢止」，並在法規沿革新增一筆「廢止」紀錄；條文與既有沿革仍可查詢，不會被刪除。</span></div></div>
       <form data-form="repeal" data-id="${esc(id)}" novalidate style="display:flex;flex-direction:column;gap:22px">
+        <div class="field meetbox"><label for="r-meet">通過的會議（選填，從議事系統「會議期程」帶入）</label>
+            <select id="r-meet" name="meet" class="select" data-meet><option value="">載入會議期程中⋯</option></select>
+            <div class="hint">選好通過的會議、填好公布日期，再按沿革文字旁的「產生沿革草稿」，系統會寫好通過與公布廢止的句子。產生後請再核對。</div></div>
         <div class="field" style="max-width:320px"><label for="r-date">公布日期</label><input id="r-date" name="date" class="input" type="date" value="${todayISO()}"></div>
-        <div class="field"><label for="r-hist">本次沿革</label>
+        <div class="field"><div class="tools"><label for="r-hist">本次沿革</label><button type="button" class="btn small" data-act="hist-draft" style="margin-left:auto">產生沿革草稿</button></div>
           <textarea id="r-hist" name="hist" class="textarea" rows="3" placeholder="中華民國 ○ 年 ○ 月 ○ 日三峽校區學生議會第 ○ 屆第 ○ 次常會通過，會長於 ○ 年 ○ 月 ○ 日公布廢止。"></textarea></div>
         <label class="check"><input type="checkbox" name="confirm"><span>我確認要廢止這部法規，並已核對公布日期與沿革內容。</span></label>
         <div class="err" data-err role="alert" hidden></div>
         <div class="bar" style="justify-content:flex-start"><button class="btn primary" type="submit">確認廢止</button><a class="btn" href="#/admin">取消</a></div>
       </form>
     </div>`);
+}
+
+/* ---------- 從議事系統「會議期程」擬沿革文字 ----------
+   會議期程由議事系統秘書處維護（公開讀取，不需登入）；這裡只列已舉行的常會、臨時會。 */
+const MEETINGS_URL = 'https://script.google.com/macros/s/AKfycbwZE63WWksqAi3wLooESVdFFwMyEpqEZIn5ez6EA-OaHtRznH0bFEANbFFrJDreazoR/exec?type=meetings';
+const meetings = { items: null, loading: null };
+function loadMeetingList() {
+  if (meetings.items) return Promise.resolve(meetings.items);
+  if (state.demo || !MEETINGS_URL) {
+    meetings.items = [{ id: 'M1', date: '2026-11-20', name: '第 27 屆第 4 次常會', type: '常會' }, { id: 'M2', date: '2026-10-30', name: '第 27 屆第 1 次臨時會', type: '臨時會' }];
+    return Promise.resolve(meetings.items);
+  }
+  if (!meetings.loading) {
+    meetings.loading = fetch(MEETINGS_URL, { cache: 'no-store' }).then((r) => r.json()).then((j) => {
+      if (!j.ok) throw new Error(j.error || '讀取失敗');
+      meetings.items = (j.items || []).filter((x) => x.type === '常會' || x.type === '臨時會');
+      return meetings.items;
+    }).catch((e) => { meetings.loading = null; throw e; });
+  }
+  return meetings.loading;
+}
+function fillMeetSelects() {
+  const sels = document.querySelectorAll('select[data-meet]');
+  if (!sels.length) return;
+  loadMeetingList().then((items) => {
+    const today = todayISO();
+    const list = items.filter((x) => x.date <= today).sort((a, b) => (b.date + (b.start || '')).localeCompare(a.date + (a.start || '')));
+    const html = list.length
+      ? '<option value="">（不帶入，自己填寫會議）</option>' + list.map((x) => `<option value="${esc(x.id)}">${esc(isoToSlash(x.date))}　${esc(x.name)}</option>`).join('')
+      : '<option value="">會議期程裡沒有已舉行的常會或臨時會</option>';
+    sels.forEach((s) => { if (s.isConnected) s.innerHTML = html; });
+  }).catch(() => sels.forEach((s) => { s.innerHTML = '<option value="">讀不到會議期程，請直接填寫沿革文字</option>'; }));
+}
+// 「第 27 屆第 4 次常會」→「三峽校區學生議會第 27 屆第 4 次常會」（數字前後留空白，與既有沿革一致）
+function meetingName(m) {
+  const n = String(m.name || '').replace(/[\s　]+/g, '').replace(/^(?:國立臺北大學)?(?:學生自治會)?(?:三峽校區)?學生議會/, '');
+  return '三峽校區學生議會' + n.replace(/(\d+)/g, ' $1 ').replace(/\s+/g, ' ').trim();
+}
+// 條號清單：「第 3、5 條」；有「條之」時逐條寫出「第 3 條、第 14 條之 1」
+function artList(arts) {
+  if (arts.every((a) => a.key.indexOf('-') < 0)) return '第 ' + arts.map((a) => a.key).join('、') + ' 條';
+  return arts.map((a) => a.label).join('、');
+}
+// 比對修正前後條文，寫出「修正第 X 條，增訂第 Y 條，刪除第 Z 條」；變動超過六成時寫「修正全文 N 條」
+function changePhrase(oldText, newText, oldName, newName) {
+  const A = parseLaw(oldText).articles, B = parseLaw(newText).articles;
+  const flat = (t) => String(t || '').replace(/[\s　]+/g, '');
+  const am = new Map(A.map((a) => [a.key, flat(a.plain)])), bm = new Map(B.map((b) => [b.key, flat(b.plain)]));
+  const mod = B.filter((b) => am.has(b.key) && am.get(b.key) !== bm.get(b.key));
+  const add = B.filter((b) => !am.has(b.key));
+  const del = A.filter((a) => !bm.has(a.key));
+  const parts = [], renamed = oldName && newName && oldName !== newName;
+  if (B.length >= 6 && mod.length + add.length + del.length > B.length * 0.6) parts.push((renamed ? '修正名稱及' : '修正') + '全文 ' + B.length + ' 條');
+  else {
+    if (mod.length) parts.push((renamed ? '修正名稱及' : '修正') + artList(mod));
+    else if (renamed) parts.push('修正名稱');
+    if (add.length) parts.push('增訂' + artList(add));
+    if (del.length) parts.push('刪除' + artList(del));
+  }
+  return parts.join('，');
+}
+function histDraft(btn) {
+  const form = btn.closest('form'); if (!form) return;
+  const f = form.elements, kind = form.dataset.form;
+  const m = f.meet && meetings.items ? meetings.items.find((x) => x.id === f.meet.value) : null;
+  if (f.unknown && f.unknown.checked) { toast('已勾選「日期不可考」，不需要產生草稿'); return; }
+  const pass = m ? `中華民國 ${rocDate(isoToSlash(m.date))}${meetingName(m)}通過` : '中華民國 ○ 年 ○ 月 ○ 日三峽校區學生議會第 ○ 屆第 ○ 次常會通過';
+  const pub = '會長於 ' + (f.date.value ? rocDate(isoToSlash(f.date.value)) : '○ 年 ○ 月 ○ 日') + '公布';
+  let text, region, note = '';
+  if (kind === 'repeal') {
+    const law = adminLaw(form.dataset.id); region = law && law.region;
+    text = pass + '，' + pub + '廢止。';
+  } else if (form.dataset.mode === 'amend') {
+    const law = adminLaw(form.dataset.id); region = f.region.value;
+    const cur = state.admin.ed && state.admin.ed.mode === 'struct' ? edToText(state.admin.ed) : f.text.value;
+    const chg = changePhrase(law.text, cur, law.name, f.name.value.trim());
+    if (!chg) note = '條文還沒有修改，條次請自行填寫';
+    text = pass + '，' + pub + '，' + (chg || '修正第 ○ 條') + '。';
+  } else { region = f.region.value; text = pass + '，' + pub + '。'; }
+  if (region === REGION_COMMON) note = '跨校區法規請補上臺北校區學生議會的通過日期，並改為兩校區會長聯名公布';
+  if (!m) note = note || '沒有選會議，通過日期與會次請自行填寫';
+  const ta = f.hist; ta.focus(); ta.select();
+  if (!document.execCommand || !document.execCommand('insertText', false, text)) ta.value = text;
+  toast(note ? '已產生草稿：' + note : '已產生沿革草稿，請核對後再發布（可按 Ctrl＋Z 復原）');
 }
 
 /* ---------- 後台動作 ---------- */
@@ -2001,6 +2093,7 @@ async function adminRoute(parts) {
   else app.innerHTML = renderAdminList();
   const ef = $('form[data-form="edit"]');
   if (ef) { updatePreview(ef); edInit(ef, sub === 'edit' ? adminLaw(id) : null); }
+  fillMeetSelects();
   window.scrollTo(0, 0);
 }
 function adminFail(e) {
@@ -2146,6 +2239,7 @@ async function onClick(e) {
     if (!document.execCommand || !document.execCommand('insertText', false, after)) ta.value = after;
     updatePreview(ta.form); toast('已整理格式，可按 Ctrl＋Z 復原'); return;
   }
+  if (act === 'hist-draft') { histDraft(t); return; }
   if (act.startsWith('ed-')) { const form = t.closest('form[data-form="edit"]'); if (form) edAction(act, t, form); return; }
   if (act === 'kid-add') {
     const sel = $('#kid-add'); if (!sel || !sel.value) { toast('請先選擇要加入的法規'); return; }
