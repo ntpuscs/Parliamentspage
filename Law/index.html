@@ -552,17 +552,24 @@ const api = {
   },
 };
 
+// 命令、行政規則的「制定」一律顯示為「訂定」（舊資料或試算表手動填的也一樣）
+function fixEnact(data) {
+  const byId = {}; (data.laws || []).forEach((l) => { byId[l.id] = l; });
+  (data.history || []).forEach((h) => { const l = byId[h.id]; if (h.type === '制定' && l && enactWord(levelOf(l)) === '訂定') h.type = '訂定'; });
+  return data;
+}
+
 // 先顯示上次存在瀏覽器的資料，再到背景向試算表更新；更新失敗時標示資料可能過時
 async function loadData(force, silent) {
   if (!force && !state.data && !state.demo) {
     try {
       const c = JSON.parse(store.get(CACHE_KEY) || 'null');
-      if (c && c.data) { state.data = c.data; state.cachedAt = c.at; state.syncing = true; route(); }
+      if (c && c.data) { state.data = fixEnact(c.data); state.cachedAt = c.at; state.syncing = true; route(); }
     } catch (e) {}
   }
   try {
     const d = await api.data();
-    state.data = { laws: d.laws || [], history: d.history || [], renames: d.renames || [] };
+    state.data = fixEnact({ laws: d.laws || [], history: d.history || [], renames: d.renames || [] });
     state.loadError = null; state.stale = false; state.syncing = false;
     state.cachedAt = Date.now();
     if (!state.demo) store.set(CACHE_KEY, JSON.stringify({ at: state.cachedAt, data: state.data }));
