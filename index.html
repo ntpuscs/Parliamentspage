@@ -60,6 +60,29 @@ header{padding:56px 0 32px;border-bottom:3px double var(--ink);display:flex;flex
 .agenda input{min-height:56px}
 .agenda textarea{min-height:420px;font-size:17px;line-height:1.9;resize:vertical}
 .secopt{margin:4px 0 0;border:2px solid var(--ink);border-radius:4px;padding:12px 16px 14px;display:flex;flex-wrap:wrap;gap:10px 22px}
+/* 秘書處後台選單 */
+.sectabs{display:flex;gap:8px;margin-top:24px;padding-bottom:0;border-bottom:2px solid var(--ink);overflow-x:auto;scrollbar-width:none}
+.sectabs::-webkit-scrollbar{display:none}
+.sectabs button{flex:0 0 auto;display:inline-flex;align-items:center;gap:8px;min-height:52px;padding:0 20px;margin-bottom:-2px;border:2px solid transparent;border-bottom:0;border-radius:6px 6px 0 0;background:transparent;color:var(--muted);font-size:17px;font-weight:700;font-family:inherit;cursor:pointer}
+.sectabs button:hover{color:var(--ink);background:var(--paper)}
+.sectabs button[aria-selected="true"]{color:var(--ink);background:var(--bg);border-color:var(--ink);box-shadow:0 2px 0 var(--bg)}
+.sectab[hidden]{display:none}
+/* 秘書處：議員照片裁切 */
+.phdrop{position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;min-height:150px;padding:20px;border:2px dashed var(--ink);border-radius:6px;text-align:center;cursor:pointer;font-size:17px;font-weight:400}
+.phdrop.over{background:var(--paper)}
+.phdrop input{position:absolute;width:1px;height:1px;opacity:0}
+.phset{display:flex;flex-wrap:wrap;gap:10px 22px;align-items:center;font-size:16px}
+.phset label{font-weight:400}
+.phset select{min-height:44px;padding:0 10px;font-size:16px;font-family:inherit;border:2px solid var(--ink);border-radius:4px;background:var(--bg);color:var(--ink)}
+.phgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(250px,100%),1fr));gap:16px}
+.phc{display:flex;flex-direction:column;gap:10px;padding:16px;border:1px solid var(--line);border-radius:6px}
+.phc canvas{width:200px;height:200px;align-self:center;border-radius:50%;cursor:grab;touch-action:none;box-shadow:0 0 0 1px var(--line)}
+.phc canvas:active{cursor:grabbing}
+.phc label{font-size:14px;font-weight:700;display:flex;flex-direction:column;gap:6px}
+.agenda .phc input[type=text]{min-height:44px;padding:0 12px;font-size:16px}
+.phc input[type=range]{width:100%;min-height:0;padding:0;border:0;accent-color:var(--ink)}
+.phc .btns{display:flex;flex-wrap:wrap;gap:8px}
+.phc .btns .secbtn{min-height:40px;padding:0 12px;font-size:15px}
 .secopt legend{font-size:15px;font-weight:700;padding:0 6px}
 .secopt label{display:flex;align-items:center;gap:8px;font-size:16px;font-weight:400;cursor:pointer}
 .secopt input{width:20px;height:20px;min-height:0;padding:0;margin:0;accent-color:var(--ink)}
@@ -92,6 +115,47 @@ h2 button{display:block;width:100%;padding:0;margin:0;text-align:left;background
 .more{min-height:44px;padding:0;background:transparent;border:0;cursor:pointer;font-size:16px;font-weight:700;color:var(--accent);text-decoration:underline;text-underline-offset:4px;text-align:left}
 .detail{margin-top:4px;padding:24px;background:var(--bg);border:1px solid var(--line);border-radius:4px;display:flex;flex-direction:column;gap:24px}
 .detail p{margin:0;font-size:15px;line-height:1.75;text-wrap:pretty;white-space:pre-line}
+/* 提案人卡片（頭像取自學生會官網；機關顯示標誌） */
+.ppl{display:flex;flex-direction:column;gap:10px}
+.ppl .pt{font-size:15px;font-weight:700}
+.pp-list{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(280px,100%),1fr));gap:12px}
+.pp{display:flex;flex-wrap:wrap;align-items:center;gap:14px 18px;padding:16px 18px;border:1px solid var(--line);border-radius:6px}
+.pp .tx{flex:1 1 180px;display:flex;flex-direction:column;gap:2px;min-width:0}
+.pp .kd{font-size:13px;font-weight:700;letter-spacing:.06em;color:var(--muted)}
+.pp .nm{font-family:'Noto Serif TC','Noto Serif CJK TC','Songti TC','PMingLiU','MingLiU',serif;font-size:22px;font-weight:700}
+.pp.big .nm{font-size:24px}
+.pp .sb{font-size:15px;color:var(--text2)}
+.pp .lk{flex:1 1 100%;display:flex;flex-wrap:wrap;gap:4px 18px;border-top:1px solid var(--line);padding-top:6px}
+.pp .lk a{display:inline-flex;align-items:center;gap:6px;min-height:44px;font-size:15px;font-weight:700;text-underline-offset:4px}
+.pp .lk a.who{color:var(--ink)}
+.av{position:relative;flex:0 0 auto;width:var(--s);height:var(--s);border-radius:50%;background:var(--infobg);color:var(--infofg);display:inline-flex;align-items:center;justify-content:center;font-weight:700;font-size:calc(var(--s) * .42);overflow:hidden}
+.av img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;background:var(--paper)}
+.av.org{background:var(--ink);color:var(--bg);font-family:'Noto Serif TC','Noto Serif CJK TC','Songti TC','PMingLiU','MingLiU',serif}
+img.lg{flex:0 0 auto;width:var(--s);height:var(--s);object-fit:contain}
+html[data-theme="dark"] img.lg.su{filter:invert(1)}
+/* 提案人頁 */
+.pv-prof{display:flex;flex-direction:row;align-items:center;gap:28px;padding:40px 0 32px;border-bottom:3px double var(--ink)}
+.pv-prof .tx{display:flex;flex-direction:column;gap:6px}
+.pv-prof .kd{font-size:15px;font-weight:700;letter-spacing:.06em;color:var(--muted)}
+.pv-prof h1{margin:0}
+.pv-prof .sb{font-size:17px;color:var(--text2)}
+.pv-prof a{align-self:flex-start;display:inline-flex;align-items:center;gap:6px;min-height:44px;font-size:16px;font-weight:700;text-underline-offset:4px}
+.pv-stats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;padding:28px 0 8px}
+.pv-stats button{display:flex;flex-direction:column;align-items:flex-start;gap:2px;padding:16px 18px;border:2px solid var(--ink);border-radius:4px;background:transparent;color:var(--ink);cursor:pointer;text-align:left;font-family:inherit}
+.pv-stats button[aria-pressed="true"]{background:var(--ink);color:var(--bg)}
+.pv-stats b{font-size:32px;line-height:1.1}
+.pv-stats span{font-size:15px;font-weight:700}
+.pv-list{border-top:1px solid var(--line)}
+.pv-row{display:grid;grid-template-columns:minmax(0,1fr) 220px;gap:10px 28px;align-items:center;padding:22px 8px;border-bottom:1px solid var(--line);color:var(--ink);text-decoration:none}
+.pv-row:hover{background:var(--paper)}
+.pv-row .l{display:flex;flex-direction:column;gap:8px;min-width:0}
+.pv-row .h{display:flex;flex-wrap:wrap;align-items:center;gap:10px}
+.pv-row .t{font-family:'Noto Serif TC','Noto Serif CJK TC','Songti TC','PMingLiU','MingLiU',serif;font-size:22px;font-weight:700;line-height:1.4;text-decoration:underline;text-underline-offset:5px;text-decoration-thickness:1px}
+.pv-row .m{font-size:15px;color:var(--muted)}
+.pv-row .r{display:flex;flex-direction:column;gap:8px}
+.tag{font-size:14px;padding:1px 10px;border-radius:4px;border:1px solid var(--ink)}
+.tag.co{border-color:transparent;background:var(--paper);font-weight:700}
+@media (max-width:700px){.pv-prof{flex-direction:column;align-items:flex-start}.pv-stats{grid-template-columns:repeat(2,minmax(0,1fr))}.pv-row{grid-template-columns:1fr}}
 dl{margin:0;display:grid;grid-template-columns:repeat(auto-fit,minmax(min(200px,100%),1fr));gap:16px 24px}
 dt{font-size:14px;color:var(--muted)}dd{margin:4px 0 0;font-size:17px;font-weight:500}
 .steps{margin:0;padding:0;list-style:none;display:grid;grid-template-columns:repeat(7,minmax(0,1fr))}
@@ -329,6 +393,15 @@ dialog.cf::backdrop{background:rgba(29,34,48,.55)}
   </footer>
 </div>
 
+<!-- ====== 提案人頁（#proposer/姓名） ====== -->
+<div class="wrap" id="viewProposer" hidden>
+  <div class="topbar" style="padding-top:28px">
+    <div class="school">國立臺北大學三峽校區學生議會</div>
+    <div class="topbtns"><a class="secbtn" href="#bills"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 18l-6-6 6-6"/></svg>返回議案查詢</a></div>
+  </div>
+  <div id="pvBody"></div>
+</div>
+
 <!-- 秘書處登入 -->
 <div class="wrap" id="viewLogin" hidden>
   <header>
@@ -359,10 +432,18 @@ dialog.cf::backdrop{background:rgba(29,34,48,.55)}
         <button type="button" class="secbtn" id="logout">登出</button>
       </div>
     </div>
-    <h1>議程與會議記錄草擬系統</h1>
-    <p class="intro">分別輸入報告事項與討論事項的議案編號，一次產生議程與會議記錄草稿。</p>
+    <h1>秘書處後台</h1>
   </header>
-  <section class="agenda" aria-label="議程與會議記錄草擬">
+  <!-- 後台選單：一次只顯示一項功能，記得上次停在哪一項 -->
+  <nav class="sectabs" role="tablist" aria-label="秘書處功能">
+    <button type="button" role="tab" id="stab-agenda" aria-controls="secAgenda" data-st="agenda"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"/><path d="M14 3v6h6M8 13h8M8 17h5"/></svg>議程與會議記錄</button>
+    <button type="button" role="tab" id="stab-meet" aria-controls="secMeet" data-st="meet"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg>會議期程</button>
+    <button type="button" role="tab" id="stab-photo" aria-controls="secPhoto" data-st="photo"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="9" r="4"/><path d="M4.5 21c1-4 4-6 7.5-6s6.5 2 7.5 6"/></svg>議員照片裁切</button>
+  </nav>
+
+  <section class="agenda sectab" id="secAgenda" role="tabpanel" aria-labelledby="stab-agenda">
+    <h2 style="font-size:30px;font-weight:700">議程與會議記錄草擬</h2>
+    <p class="hint" style="font-size:15px;margin-top:-4px">分別輸入報告事項與討論事項的議案編號，一次產生議程與會議記錄草稿。</p>
     <label for="agReport">報告事項　議案編號</label>
     <input id="agReport" type="text" placeholder="例如：27-001、27-002（沒有就留空）" autocomplete="off">
     <label for="agDisc" style="margin-top:8px">討論事項　議案編號</label>
@@ -395,7 +476,7 @@ dialog.cf::backdrop{background:rgba(29,34,48,.55)}
     </div>
   </section>
 
-  <section class="agenda" aria-labelledby="mtT" style="border-top:3px double var(--ink)">
+  <section class="agenda sectab" id="secMeet" role="tabpanel" aria-labelledby="stab-meet" hidden>
     <h2 id="mtT" style="font-size:30px;font-weight:700">會議期程管理</h2>
     <p class="hint" style="font-size:15px">新增的會議會立即出現在首頁的「會議期程」月曆（最多約 1 分鐘）。</p>
     <form id="mtForm" class="fgrid" style="padding-top:8px;gap:20px 24px" novalidate>
@@ -412,6 +493,23 @@ dialog.cf::backdrop{background:rgba(29,34,48,.55)}
     <div style="font-size:16px;font-weight:700;margin-top:8px">即將舉行的會議</div>
     <ul class="mlist" id="mtList"></ul>
     <button type="button" class="more" id="mtPast" style="align-self:flex-start">顯示過去的會議</button>
+  </section>
+
+  <section class="agenda sectab" id="secPhoto" role="tabpanel" aria-labelledby="stab-photo" hidden>
+    <h2 id="phT" style="font-size:30px;font-weight:700">議員照片裁切</h2>
+    <p class="hint" style="font-size:15px">把議員提供的照片拖進來，自動裁成圓形並輸出成官網用的 .svg（預設 90×90）。拖曳照片可調整位置，滑桿可放大縮小。照片只在這台電腦處理，不會上傳。</p>
+    <label class="phdrop" id="phDrop" for="phFiles">
+      <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2"/><circle cx="9" cy="10" r="2"/><path d="M21 16l-5-5-9 8"/></svg>
+      <span><strong>選擇照片</strong>，或把照片拖到這裡（可一次多張）</span>
+      <input type="file" id="phFiles" accept="image/*" multiple>
+    </label>
+    <div class="phset">
+      <label>輸出尺寸 <select id="phSize"><option value="90" selected>90 × 90</option><option value="120">120 × 120</option><option value="200">200 × 200</option></select></label>
+      <label>清晰度 <select id="phQ"><option value="4" selected>高（建議）</option><option value="2">一般（檔案較小）</option></select></label>
+      <button type="button" class="secbtn" id="phAll" hidden>全部下載 .svg</button>
+      <button type="button" class="secbtn" id="phClear" hidden>清除全部</button>
+    </div>
+    <div class="phgrid" id="phGrid"></div>
   </section>
 </div>
 
@@ -1006,8 +1104,8 @@ function render() {
       '<div><button type="button" class="more" data-open="' + esc(b.id) + '" aria-expanded="' + open + '">' + (open ? '收合詳情' : '查看詳情') + '</button></div>' +
       (open ? '<div class="detail">' +
         (b.summary ? '<p>' + esc(b.summary) + '</p>' : '') +
-        '<dl><div><dt>提案人</dt><dd>' + esc(b.proposerFull) + '</dd></div>' +
-        '<div><dt>審查單位</dt><dd>' + esc(b.committee) + '</dd></div></dl>' +
+        peopleBlock(b) +
+        '<dl><div><dt>審查單位</dt><dd>' + esc(b.committee) + '</dd></div></dl>' +
         (b.files.length ? '<div><div style="font-size:15px;font-weight:700;margin-bottom:4px">附件</div><ul class="files">' +
           b.files.map((f) => f.url
             ? '<li><a href="' + esc(f.url) + '" target="_blank" rel="noopener noreferrer"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 11.5l-8.6 8.6a5 5 0 0 1-7.1-7.1l8.6-8.6a3.3 3.3 0 0 1 4.7 4.7l-8.6 8.6a1.7 1.7 0 0 1-2.4-2.4l7.9-7.9"/></svg>' + esc(f.name) + '</a></li>'
@@ -1025,6 +1123,97 @@ function render() {
       '</article>';
   }).join('') : '<div class="empty">找不到符合的議案。<br>換個關鍵字，或把篩選改回「全部」試試。</div>';
 }
+
+/* ====== 提案人：頭像（學生會官網）、機關標誌、提案人頁 #proposer/姓名 ======
+   「提案人姓名」可用頓號分隔多位議員（共同提案）；機關提案一律單獨。
+   議員依議案編號的屆次（NTPUSP-27-001 → 第 27 屆）到官網該屆名單找照片，找不到再找其他屆。 */
+const LOGOS = { su: { src: 'ntpusu-logo.png', alt: '國立臺北大學學生會標誌' }, court: { src: 'court-logo.png', alt: '國立臺北大學學生法院標誌' } };
+const PPL = { data: null, loading: false };
+async function loadPeople() {
+  if (PPL.data || PPL.loading || !SHEET_API_URL) return;
+  PPL.loading = true;
+  try { const r = await fetch(SHEET_API_URL + '?type=people'); const o = await r.json(); if (o && o.ok) PPL.data = o; } catch (e) {}
+  PPL.loading = false;
+  if (PPL.data) { if (!views.pub.hidden && S.open) render(); if (!views.proposer.hidden) renderProposer(); }
+}
+const splitNames = (s) => String(s || '').split(/[、，,／/]/).map((x) => x.trim()).filter(Boolean);
+const billTerm = (b) => { const m = String(b.id).match(/(\d{1,3})-\d+\s*$/); return m ? String(+m[1]) : ''; };
+const isPresBill = (b) => /會長/.test((b.unit || '') + (b.ptitle || ''));
+function orgOf(b) {
+  const u = b.unit || '';
+  if (isPresBill(b)) return '';
+  if (/^學生會/.test(u)) return 'su';
+  if (/學生法院/.test(u)) return 'court';
+  if (/^(學生)?議會秘書處/.test(u)) return 'sec';
+  return '';
+}
+function personInfo(name, term, pres) {
+  const d = PPL.data; if (!d) return null;
+  if (pres) { const p = (d.pres || []).find((x) => x.name === name); if (p) return { photo: p.photo, link: p.link, kind: (p.term ? '第 ' + p.term + ' 屆' : '') + '學生會長', seat: '' }; }
+  const terms = d.terms || {}, order = [term].concat(Object.keys(terms).sort((a, b) => b - a));
+  for (const t of order) {
+    const p = (terms[t] || []).find((x) => x.name === name);
+    if (p) return { photo: p.photo, link: p.link, kind: '第 ' + t + ' 屆學生議員' + (p.role ? '・' + p.role : ''), seat: p.seat };
+  }
+  return null;
+}
+function peopleOf(b) {
+  const org = orgOf(b);
+  if (org) return [{ key: b.unit, name: b.unit, org: org, kind: '機關提案', sub: '提案人：' + b.proposer + (b.ptitle ? '（' + b.ptitle + '）' : '') }];
+  const pres = isPresBill(b), ns = splitNames(b.proposer), ts = splitNames(b.ptitle);
+  return ns.map((n, i) => {
+    const info = personInfo(n, billTerm(b), pres), t = ts.length === ns.length ? ts[i] : (ns.length === 1 ? b.ptitle : '');
+    return { key: n, name: n, photo: info && info.photo, link: info && info.link,
+      kind: info ? info.kind : (pres ? '學生會正副會長' : (t || '提案人')),
+      sub: info ? (info.seat || t || '') : (b.unit && b.unit !== '學生議員' && b.unit !== '議長' ? b.unit : '') };
+  });
+}
+const keyBills = (key) => S.bills.filter((x) => orgOf(x) ? x.unit === key : splitNames(x.proposer).indexOf(key) !== -1);
+function avatar(p, size) {
+  if (p.org === 'su' || p.org === 'court') return '<img class="lg ' + p.org + '" style="--s:' + size + 'px" src="' + LOGOS[p.org].src + '" alt="' + LOGOS[p.org].alt + '">';
+  const init = esc((p.org === 'sec' ? '秘' : p.name).slice(0, 1));
+  return '<span class="av' + (p.org ? ' org' : '') + '" style="--s:' + size + 'px" aria-hidden="true">' + init +
+    (p.photo ? '<img src="' + esc(p.photo) + '" alt="" loading="lazy" referrerpolicy="no-referrer" onerror="this.remove()">' : '') + '</span>';
+}
+const ICON_LIST = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 6h13M8 12h13M8 18h13"/><circle cx="3.5" cy="6" r="1"/><circle cx="3.5" cy="12" r="1"/><circle cx="3.5" cy="18" r="1"/></svg>';
+const ICON_EXT = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 4h6v6M20 4l-9 9M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5"/></svg>';
+function peopleBlock(b) {
+  const ps = peopleOf(b), multi = ps.length > 1;
+  return '<div class="ppl"><div class="pt">' + (multi ? '共同提案（' + ps.length + ' 人，依提案順序）' : '提案人') + '</div><div class="' + (multi ? 'pp-list' : '') + '">' +
+    ps.map((p) => '<div class="pp' + (multi ? '' : ' big') + '">' + avatar(p, multi ? 56 : 72) +
+      '<div class="tx"><div class="kd">' + esc(p.kind) + '</div><div class="nm">' + esc(p.name) + '</div>' + (p.sub ? '<div class="sb">' + esc(p.sub) + '</div>' : '') + '</div>' +
+      '<div class="lk"><a class="who" href="#proposer/' + encodeURIComponent(p.key) + '">' + ICON_LIST + esc(p.name) + ' 提出的議案（' + keyBills(p.key).length + ' 件）</a>' +
+      (p.link ? '<a href="' + esc(p.link) + '" target="_blank" rel="noopener noreferrer">' + (/會長/.test(p.kind) ? '官網學生會長介紹' : '官網議員介紹') + ICON_EXT + '</a>' : '') +
+      '</div></div>').join('') + '</div></div>';
+}
+// 提案人頁
+function renderProposer() {
+  const box = $('pvBody'), key = S.who || '';
+  if (!S.bills.length) { box.innerHTML = '<div class="empty">' + (S.err ? esc(S.err) : '載入議案中…') + '</div>'; return; }
+  const all = keyBills(key);
+  if (!all.length) { box.innerHTML = '<div class="empty">找不到「' + esc(key) + '」提出的議案。</div>'; return; }
+  const first = all[0], p = peopleOf(first).find((x) => x.key === key) || { key: key, name: key, kind: '提案人' };
+  const grp = (b) => (b.status === '已退回' || b.status === '已撤案') ? 'out' : b.status === '審查中' ? 'review' : 'passed';
+  const f = S.whoF || 'all', list = all.filter((b) => f === 'all' || grp(b) === f);
+  const stat = (k, t) => '<button type="button" data-pvf="' + k + '" aria-pressed="' + (f === k) + '"><b>' + (k === 'all' ? all.length : all.filter((b) => grp(b) === k).length) + '</b><span>' + t + '</span></button>';
+  document.title = p.name + ' 提出的議案｜國立臺北大學三峽校區學生議會';
+  box.innerHTML = '<header class="pv-prof">' + avatar(p, 128) + '<div class="tx"><div class="kd">' + esc(p.kind) + '</div><h1>' + esc(p.name) + '</h1>' +
+      (p.sub ? '<div class="sb">' + esc(p.sub) + '</div>' : '') +
+      (p.link ? '<a href="' + esc(p.link) + '" target="_blank" rel="noopener noreferrer">' + (/會長/.test(p.kind) ? '官網學生會長介紹' : '官網議員介紹') + ICON_EXT + '</a>' : '') + '</div></header>' +
+    '<section class="pv-stats" aria-label="提案統計">' + stat('all', '提出議案') + stat('review', '審查中') + stat('passed', '已通過') + stat('out', '已退回・撤案') + '</section>' +
+    '<h2 style="margin:24px 0 12px;font-family:\'Noto Serif TC\',\'Noto Serif CJK TC\',\'Songti TC\',serif;font-size:28px;font-weight:700">' + esc(p.name) + ' 提出的議案（' + list.length + ' 件）</h2>' +
+    '<div class="pv-list">' + (list.length ? list.map((b) => {
+      const st = STATUS[b.status], sp = steps(b), others = orgOf(b) ? [] : splitNames(b.proposer).filter((n) => n !== key);
+      return '<a class="pv-row" href="#bills/' + encodeURIComponent(b.id) + '"><span class="l"><span class="h"><span class="id" style="font-size:14px;font-weight:700;color:var(--muted)">議案 ' + esc(b.id) + '</span>' +
+        '<span class="badge" style="background:' + st.bg + ';color:' + st.fg + '">' + esc(statusText(b.status, b.cat)) + '</span><span class="tag">' + esc(b.cat) + '</span>' +
+        (others.length ? '<span class="tag co">共同提案</span>' : '') + '</span>' +
+        '<span class="t">' + esc(b.title) + '</span><span class="m">' + esc(b.date) + ' 提案' + (others.length ? '　・　共同提案人：' + esc(others.join('、')) : '') + '</span></span>' +
+        '<span class="r"><span class="bar" role="img" aria-label="目前：' + esc(currentLabel(b)) + '">' + sp.map((s) => '<i style="background:' + s.bar + shadow(s) + '"></i>').join('') + '</span>' +
+        '<span class="cur">目前進度：' + esc(currentLabel(b)) + '</span></span></a>';
+    }).join('') : '<div class="empty">沒有符合的議案。</div>') + '</div>' +
+    '<p class="hint" style="margin-top:16px;font-size:15px">列出擔任提案人或共同提案人的議案，依提案日期由新到舊排列。點議案可看完整審查歷程。</p>';
+}
+document.addEventListener('click', (e) => { const t = e.target.closest('[data-pvf]'); if (!t) return; S.whoF = t.dataset.pvf; renderProposer(); });
 
 /* ====== 分享議案：連結格式 …/#bills/NTPUSP-27-001 ====== */
 const billLink = (id) => location.origin + location.pathname + '#bills/' + encodeURIComponent(id);
@@ -1099,6 +1288,7 @@ async function load() {
     $('updated').textContent = '資料載入時間：' + new Date().toLocaleString('zh-TW', { hour12: false });
     render();
     focusBill();
+    if (views.proposer && !views.proposer.hidden) renderProposer();
   } catch (err) {
     const why = err && err.headers ? err.message : '無法連到試算表（' + (err && err.message ? err.message : '未知原因') + '）。請稍後再試，或聯絡議會秘書處。';
     S.err = why;
@@ -1252,7 +1442,7 @@ load();
 
 /* ====== 頁面切換（網址 #bills、#proposal、#request、#invite、#sec） ====== */
 const views = { home: $('viewHome'), reply: $('viewReply'), mlogin: $('viewMLogin'), member: $('viewMember'), pub: $('viewPublic'), login: $('viewLogin'), sec: $('viewSec'),
-  proposal: $('viewProposal'), suggest: $('viewSuggest'), request: $('viewRequest'), invite: $('viewInvite'), petition: $('viewPetition') };
+  proposal: $('viewProposal'), suggest: $('viewSuggest'), request: $('viewRequest'), invite: $('viewInvite'), petition: $('viewPetition'), proposer: $('viewProposer') };
 function show(name) {
   Object.keys(views).forEach((k) => { views[k].hidden = k !== name; });
   window.scrollTo(0, 0);
@@ -1267,6 +1457,8 @@ function show(name) {
   if (name === 'proposal') limitUnits();
   if (name === 'petition') loadCouncillors();
   if (name === 'home') { loadMeetings(); loadLive(); }
+  if (name === 'pub' || name === 'proposer') loadPeople();
+  if (name !== 'proposer') document.title = '國立臺北大學三峽校區學生議會';
   if (name === 'sec') loadMeetings(true);
   if (name === 'reply') { $('rpMsg').hidden = true; RP.open = null; RP.replying = null; loadReplies(); }
 }
@@ -1301,6 +1493,10 @@ function route() {
   if (h.indexOf('bills/') === 0) {
     let id = h.slice(6); try { id = decodeURIComponent(id); } catch (e) {}
     S.focus = id; show('pub'); focusBill(); return;
+  }
+  if (h.indexOf('proposer/') === 0) {
+    let who = h.slice(9); try { who = decodeURIComponent(who); } catch (e) {}
+    S.who = who; S.whoF = 'all'; show('proposer'); renderProposer(); return;
   }
   if (S.focus) { S.focus = null; }
   if (MEMBER_PAGES.indexOf(h) !== -1 && !isMember()) { afterLogin = h; show('mlogin'); return; }
@@ -1935,6 +2131,111 @@ $('mtList').addEventListener('click', async (e) => {
   try { await secPost({ type: 'meetingDel', id: x.id }); $('mtMsg').textContent = '已刪除「' + x.name + '」。'; await loadMeetings(true); }
   catch (er) { secFail(er); b.disabled = false; b.textContent = '刪除'; }
 });
+
+/* ====== 秘書處後台選單 ====== */
+const SEC_TABS = ['agenda', 'meet', 'photo'];
+function secTab(k, focus) {
+  if (SEC_TABS.indexOf(k) === -1) k = 'agenda';
+  SEC_TABS.forEach((t) => {
+    const on = t === k, b = $('stab-' + t);
+    b.setAttribute('aria-selected', on); b.tabIndex = on ? 0 : -1;
+    $('sec' + t[0].toUpperCase() + t.slice(1)).hidden = !on;
+  });
+  if (focus) $('stab-' + k).focus();
+  try { sessionStorage.setItem('secTab', k); } catch (e) {}
+}
+document.querySelector('.sectabs').addEventListener('click', (e) => { const b = e.target.closest('[data-st]'); if (b) secTab(b.dataset.st); });
+document.querySelector('.sectabs').addEventListener('keydown', (e) => {   // 左右方向鍵切換
+  const i = SEC_TABS.indexOf(document.activeElement && document.activeElement.dataset.st); if (i === -1) return;
+  if (e.key === 'ArrowRight' || e.key === 'ArrowLeft') { e.preventDefault(); secTab(SEC_TABS[(i + (e.key === 'ArrowRight' ? 1 : SEC_TABS.length - 1)) % SEC_TABS.length], true); }
+});
+secTab((() => { try { return sessionStorage.getItem('secTab'); } catch (e) { return ''; } })());
+
+/* ====== 秘書處：議員照片裁切（圓形 .svg / .png，全部在瀏覽器本機處理） ====== */
+const PH = [];
+function phLoad(files) {
+  [...files].filter((f) => /^image\//.test(f.type)).forEach((f) => {
+    const url = URL.createObjectURL(f), img = new Image();
+    img.onload = () => {
+      // 預設：裁成正方形填滿；直式照片位置略偏上（臉部通常在上半部）
+      PH.push({ img: img, url: url, name: f.name.replace(/\.[^.]+$/, ''), zoom: 1, dx: 0, dy: img.height > img.width ? 0.12 : 0 });
+      phDraw();
+    };
+    img.onerror = () => { URL.revokeObjectURL(url); alert('「' + f.name + '」無法讀取，請改用 JPG 或 PNG。'); };
+    img.src = url;
+  });
+}
+// 依目前位置／縮放把照片畫到 n×n 畫布；round 時切成圓形、圓外透明
+function phPaint(it, n, round) {
+  const c = document.createElement('canvas'); c.width = c.height = n;
+  const g = c.getContext('2d'), w = it.img.naturalWidth, h = it.img.naturalHeight;
+  const sc = Math.max(n / w, n / h) * it.zoom, dw = w * sc, dh = h * sc;
+  let x = (n - dw) / 2 + it.dx * dw, y = (n - dh) / 2 + it.dy * dh;
+  x = Math.min(0, Math.max(n - dw, x)); y = Math.min(0, Math.max(n - dh, y));   // 不讓圓裡出現空白
+  it.dx = (x - (n - dw) / 2) / dw; it.dy = (y - (n - dh) / 2) / dh;
+  if (round) { g.beginPath(); g.arc(n / 2, n / 2, n / 2, 0, Math.PI * 2); g.clip(); }
+  g.imageSmoothingQuality = 'high';
+  g.drawImage(it.img, x, y, dw, dh);
+  return c;
+}
+function phDraw() {
+  $('phAll').hidden = $('phClear').hidden = !PH.length;
+  $('phGrid').innerHTML = PH.map((it, i) => '<div class="phc" data-i="' + i + '"><canvas width="400" height="400" role="img" aria-label="' + esc(it.name) + ' 的裁切預覽，可拖曳調整位置"></canvas>' +
+    '<label>縮放<input type="range" min="1" max="3" step="0.01" value="' + it.zoom + '" data-zoom="' + i + '"></label>' +
+    '<label>檔名（建議用議員姓名）<input type="text" value="' + esc(it.name) + '" data-name="' + i + '"></label>' +
+    '<div class="btns"><button type="button" class="secbtn" data-svg="' + i + '">下載 .svg</button><button type="button" class="secbtn" data-png="' + i + '">下載 .png</button><button type="button" class="secbtn" data-del="' + i + '">移除</button></div></div>').join('');
+  PH.forEach((it, i) => phPreview(i));
+}
+function phPreview(i) {
+  const cv = document.querySelector('.phc[data-i="' + i + '"] canvas'); if (!cv) return;
+  const g = cv.getContext('2d'); g.clearRect(0, 0, cv.width, cv.height);
+  g.drawImage(phPaint(PH[i], cv.width, true), 0, 0);
+}
+// .svg：顯示尺寸為 90×90，裡面放 4 倍解析度的照片並用圓形裁切，縮放時不糊
+function phSvg(it) {
+  const out = +$('phSize').value, px = out * +$('phQ').value;
+  const jpg = phPaint(it, px, false).toDataURL('image/jpeg', 0.9);
+  return '<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="' + out + '" height="' + out + '" viewBox="0 0 ' + out + ' ' + out + '">' +
+    '<defs><clipPath id="c"><circle cx="' + out / 2 + '" cy="' + out / 2 + '" r="' + out / 2 + '"/></clipPath></defs>' +
+    '<image width="' + out + '" height="' + out + '" clip-path="url(#c)" preserveAspectRatio="xMidYMid slice" href="' + jpg + '" xlink:href="' + jpg + '"/></svg>';
+}
+function phSave(blob, name) {
+  const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = name;
+  document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(a.href), 2000);
+}
+const phFile = (it, ext) => ((it.name || '').trim() || '議員照片').replace(/[\\/:*?"<>|]/g, '') + '.' + ext;
+$('phFiles').addEventListener('change', (e) => { phLoad(e.target.files); e.target.value = ''; });
+['dragenter', 'dragover'].forEach((t) => $('phDrop').addEventListener(t, (e) => { e.preventDefault(); $('phDrop').classList.add('over'); }));
+['dragleave', 'drop'].forEach((t) => $('phDrop').addEventListener(t, (e) => { e.preventDefault(); $('phDrop').classList.remove('over'); }));
+$('phDrop').addEventListener('drop', (e) => phLoad(e.dataTransfer.files));
+$('phGrid').addEventListener('input', (e) => {
+  const z = e.target.dataset.zoom, n = e.target.dataset.name;
+  if (z != null) { PH[z].zoom = +e.target.value; phPreview(+z); }
+  if (n != null) PH[n].name = e.target.value;
+});
+$('phGrid').addEventListener('click', (e) => {
+  const b = e.target.closest('button'); if (!b) return;
+  if (b.dataset.svg != null) { const it = PH[b.dataset.svg]; phSave(new Blob([phSvg(it)], { type: 'image/svg+xml' }), phFile(it, 'svg')); }
+  if (b.dataset.png != null) { const it = PH[b.dataset.png]; phPaint(it, +$('phSize').value * +$('phQ').value, true).toBlob((bl) => phSave(bl, phFile(it, 'png')), 'image/png'); }
+  if (b.dataset.del != null) { URL.revokeObjectURL(PH[b.dataset.del].url); PH.splice(+b.dataset.del, 1); phDraw(); }
+});
+// 拖曳預覽圖調整位置（滑鼠、手指都可以）
+$('phGrid').addEventListener('pointerdown', (e) => {
+  const cv = e.target.closest('.phc canvas'); if (!cv) return;
+  e.preventDefault();
+  const i = +cv.closest('.phc').dataset.i, it = PH[i], r = cv.getBoundingClientRect();
+  const k = Math.max(1 / it.img.naturalWidth, 1 / it.img.naturalHeight) * it.zoom;  // 畫面寬 1 單位對應的照片縮放
+  let lx = e.clientX, ly = e.clientY; cv.setPointerCapture(e.pointerId);
+  const mv = (ev) => {
+    it.dx += (ev.clientX - lx) / r.width / (it.img.naturalWidth * k);
+    it.dy += (ev.clientY - ly) / r.height / (it.img.naturalHeight * k);
+    lx = ev.clientX; ly = ev.clientY; phPreview(i);
+  };
+  const up = () => { cv.removeEventListener('pointermove', mv); cv.removeEventListener('pointerup', up); cv.removeEventListener('pointercancel', up); };
+  cv.addEventListener('pointermove', mv); cv.addEventListener('pointerup', up); cv.addEventListener('pointercancel', up);
+});
+$('phAll').addEventListener('click', () => { PH.forEach((it, j) => setTimeout(() => phSave(new Blob([phSvg(it)], { type: 'image/svg+xml' }), phFile(it, 'svg')), j * 400)); });
+$('phClear').addEventListener('click', () => { PH.splice(0).forEach((it) => URL.revokeObjectURL(it.url)); phDraw(); });
 
 /* ====== 會議直播：議會 YouTube 頻道正在直播就嵌入畫面，否則顯示「當前無公開會議舉行」；在首頁時每 2 分鐘檢查一次 ====== */
 const LIVE = { vid: null, timer: null };
